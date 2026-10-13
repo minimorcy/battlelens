@@ -8,6 +8,8 @@ from functools import lru_cache
 from importlib import resources
 from pathlib import Path
 
+from .abilities import AbilityEffect, affects_typing, resolve
+
 STAT_ORDER = ("hp", "attack", "defense", "special_attack", "special_defense", "speed")
 MULTIPLIER_GROUPS = (4.0, 2.0, 0.5, 0.25, 0.0)
 CURRENT_GENERATION = 9
@@ -32,6 +34,7 @@ class Ability:
     names: dict[str, str]
     hidden: bool
     descriptions: dict[str, str] = field(default_factory=dict, compare=False)
+    slot: int = field(default=0, compare=False)  # 1, 2 o 3 (oculta)
 
     def name(self, lang: str) -> str:
         return _localized(self.names, lang, self.identifier)
@@ -63,6 +66,28 @@ def capture_difficulty(rate: int | None) -> str | None:
 
 
 @dataclass(frozen=True)
+class PastAbility:
+    """Habilidad de un hueco vigente hasta una generación; None = hueco vacío (add-ability-aware-matchups D2)."""
+
+    until_generation: int
+    slot: int
+    ability: Ability | None
+
+
+def abilities_in(
+    abilities: tuple[Ability, ...], past: tuple[PastAbility, ...], generation: int
+) -> tuple[Ability, ...]:
+    """Habilidades vigentes en una generación: cada hueco toma la entrada pasada más cercana que la cubra."""
+    by_slot: dict[int, Ability | None] = {a.slot: a for a in abilities}
+    chosen: dict[int, int] = {}
+    for p in past:
+        if p.until_generation >= generation and (p.slot not in chosen or p.until_generation < chosen[p.slot]):
+            chosen[p.slot] = p.until_generation
+            by_slot[p.slot] = p.ability
+    return tuple(a for _, a in sorted(by_slot.items()) if a is not None)
+
+
+@dataclass(frozen=True)
 class Evolution:
     trigger: str
     min_level: int | None = None
@@ -84,9 +109,13 @@ class Form:
     weight_kg: float | None = None
     height_m: float | None = None
     ev_yield: dict[str, int] = field(default_factory=dict, compare=False)
+    past_abilities: tuple[PastAbility, ...] = field(default=(), compare=False)
 
     def name(self, lang: str) -> str:
         return _localized(self.names, lang, self.identifier)
+
+    def abilities_in(self, generation: int) -> tuple[Ability, ...]:
+        return abilities_in(self.abilities, self.past_abilities, generation)
 
 
 @dataclass(frozen=True)
@@ -113,6 +142,7 @@ class Species:
     weight_kg: float | None = None
     height_m: float | None = None
     ev_yield: dict[str, int] = field(default_factory=dict, compare=False)
+    past_abilities: tuple[PastAbility, ...] = field(default=(), compare=False)
 
     def name(self, lang: str) -> str:
         return _localized(self.names, lang, self.identifier)
@@ -120,6 +150,9 @@ class Species:
     @property
     def stat_total(self) -> int:
         return sum(self.stats.values())
+
+    def abilities_in(self, generation: int) -> tuple[Ability, ...]:
+        return abilities_in(self.abilities, self.past_abilities, generation)
 
     def types_in(self, generation: int) -> tuple[str, ...]:
         """Tipos de la forma por defecto vigentes en una generación (design.md D3)."""
@@ -166,16 +199,32 @@ class SpeciesView:
     pokemon: str | None = None
     weight_kg: float | None = None
     ev_yield: dict[str, int] = field(default_factory=dict)
+    # Efectos defensivos de sus habilidades, seguros y posibles (add-ability-aware-matchups D3)
+    ability_effects: tuple[AbilityEffect, ...] = field(default_factory=tuple)
+
+    def effects_against(self, attacking: str) -> tuple[AbilityEffect, ...]:
+        return tuple(e for e in self.ability_effects if e.type == attacking)
 
     @property
     def stat_total(self) -> int:
         return sum(self.stats.values())
 
 
+def _ability(a: dict, descriptions: dict[str, dict[str, str]], default_slot: int) -> Ability:
+    slot = a.get("slot") or (3 if a["hidden"] else default_slot)
+    return Ability(a["identifier"], a["names"], a["hidden"], descriptions.get(a["identifier"], {}), slot)
+
+
 def _abilities(raw: list[dict], descriptions: dict[str, dict[str, str]] | None = None) -> tuple[Ability, ...]:
     descriptions = descriptions or {}
+    return tuple(_ability(a, descriptions, i + 1) for i, a in enumerate(raw))
+
+
+def _past_abilities(raw: list[dict], descriptions: dict[str, dict[str, str]]) -> tuple[PastAbility, ...]:
     return tuple(
-        Ability(a["identifier"], a["names"], a["hidden"], descriptions.get(a["identifier"], {})) for a in raw
+        PastAbility(p["until_generation"], p["slot"],
+                    _ability(p["ability"], descriptions, p["slot"]) if p.get("ability") else None)
+        for p in raw
     )
 
 
@@ -220,6 +269,7 @@ class Pokedex:
                         weight_kg=f.get("weight_kg"),
                         height_m=f.get("height_m"),
                         ev_yield=f.get("ev_yield", {}),
+                        past_abilities=_past_abilities(f.get("past_abilities", []), descriptions),
                     )
                     for f in s.get("forms", [])
                 ),
@@ -230,6 +280,7 @@ class Pokedex:
                 weight_kg=s.get("weight_kg"),
                 height_m=s.get("height_m"),
                 ev_yield=s.get("ev_yield", {}),
+                past_abilities=_past_abilities(s.get("past_abilities", []), descriptions),
             )
             if s.get("evolves_from"):
                 self._children.setdefault(s["evolves_from"], []).append(s["id"])
@@ -293,14 +344,32 @@ class Pokedex:
         return result
 
     def defensive_matchups(
-        self, defending_types: tuple[str, ...] | list[str], generation: int = CURRENT_GENERATION
+        self,
+        defending_types: tuple[str, ...] | list[str],
+        generation: int = CURRENT_GENERATION,
+        abilities: tuple[Ability, ...] = (),
     ) -> dict[float, list[str]]:
-        """Agrupa los tipos de ataque en ×4, ×2, ×½, ×¼ y ×0 (se omite ×1)."""
+        """Agrupa los tipos de ataque en ×4, ×2, ×½, ×¼ y ×0 (se omite ×1), con los efectos seguros
+        de las habilidades que dan un multiplicador de los grupos (add-ability-aware-matchups D3)."""
         groups: dict[float, list[str]] = {m: [] for m in MULTIPLIER_GROUPS}
-        for attacking, factor in self.damage_multipliers(defending_types, generation).items():
+        for attacking, base in self.damage_multipliers(defending_types, generation).items():
+            factor, _ = resolve(abilities, attacking, base)
+            if factor not in groups and factor != 1.0:
+                factor = base
             if factor in groups:
                 groups[factor].append(attacking)
         return groups
+
+    def ability_effects(
+        self, defending_types: tuple[str, ...], abilities: tuple[Ability, ...], generation: int = CURRENT_GENERATION
+    ) -> tuple[AbilityEffect, ...]:
+        """Efectos seguros y posibles de las habilidades sobre cada tipo de ataque de la generación."""
+        if not any(affects_typing(a.identifier) for a in abilities):
+            return ()
+        effects: list[AbilityEffect] = []
+        for attacking, base in self.damage_multipliers(defending_types, generation).items():
+            effects.extend(resolve(abilities, attacking, base)[1])
+        return tuple(effects)
 
     # ---- evolución ----------------------------------------------------------
 
@@ -368,9 +437,11 @@ class Pokedex:
 
         source = form if form is not None else species
         if form is not None:
-            name, types, stats, abilities = form.name(lang), form.types, form.stats, form.abilities
+            name, types, stats = form.name(lang), form.types, form.stats
+            abilities = form.abilities_in(generation)
         else:
-            name, types, stats, abilities = species.name(lang), species.types_in(generation), species.stats, species.abilities
+            name, types, stats = species.name(lang), species.types_in(generation), species.stats
+            abilities = species.abilities_in(generation)
 
         if generation < ABILITIES_FROM_GENERATION:
             abilities = ()
@@ -390,7 +461,7 @@ class Pokedex:
             stats=stats,
             abilities=abilities,
             generation=generation,
-            matchups=self.defensive_matchups(types, generation),
+            matchups=self.defensive_matchups(types, generation, abilities),
             other_forms=tuple(others),
             capture_rate=species.capture_rate,
             capture_difficulty=capture_difficulty(species.capture_rate),
@@ -399,4 +470,5 @@ class Pokedex:
             pokemon=source.pokemon,
             weight_kg=source.weight_kg,
             ev_yield=source.ev_yield,
+            ability_effects=self.ability_effects(types, abilities, generation),
         )

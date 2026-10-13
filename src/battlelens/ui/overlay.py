@@ -19,8 +19,8 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from ..core.abilities import ABILITY_NOTES, AbilityEffect, ability_effects, multiplier_text
 from ..core.competitive import (
-    ability_effects,
     compare_speed,
     stat_profile,
     stat_ranges,
@@ -28,7 +28,7 @@ from ..core.competitive import (
 )
 from ..core.learnsets import Learnsets, LearnsetsMissingError
 from ..core.pokedex import STAT_ORDER, Pokedex, Species, SpeciesView
-from ..core.matchup import Matchup, Verdict, matchup
+from ..core.matchup import Matchup, Verdict, effective_multiplier, matchup
 from . import theme
 
 WIDTH = 320  # ancho histórico; cada modo define el suyo en card_width()
@@ -316,21 +316,51 @@ class Overlay(QWidget):
         header.addStretch(1)
         header.addWidget(verdict)
         layout.addLayout(header)
-        for label, pairs in (("Tú", m.offense), ("Él", m.defense)):
+        notes: list[str] = []
+        for label, pairs, effects in (("Tú", m.offense, m.offense_effects), ("Él", m.defense, m.defense_effects)):
             row = QHBoxLayout()
             who = QLabel(label)
             who.setFixedWidth(26)
             who.setStyleSheet(f"color:{theme.ACCENT}; font-weight:700;")
             row.addWidget(who, alignment=Qt.AlignmentFlag.AlignTop)
-            pills = [_pill(f"{self._type_label(t)} {theme.MULTIPLIER_LABELS.get(x, '×1')}", t) for t, x in pairs]
+            pills = []
+            for t, x in pairs:
+                found = effects.get(t, ())
+                mark = "*" if any(not e.certain for e in found) else ""
+                pills.append(_pill(f"{self._type_label(t)} {multiplier_text(x)}{mark}", t))
+                notes += [self._matchup_note(e) for e in found]
             row.addWidget(_FlowRow(pills, per_row=2), 1)
             layout.addLayout(row)
+        for note in notes:
+            layout.addWidget(self._muted(note, size=10, name="matchup-ability-note"))
         if self.competitive and rival_ranges and own is not None and own_level:
             own_speed = stat_ranges(own.stats, own_level, own.pokemon)["speed"]
             speed = compare_speed(own_speed, rival_ranges["speed"])
             text = (f"Velocidad: {speed.value} (tú {own_speed[0]}-{own_speed[1]}, "
                     f"él {rival_ranges['speed'][0]}-{rival_ranges['speed'][1]})")
             layout.addWidget(self._muted(text, name="speed"))
+
+    def _ability_names(self, effect: AbilityEffect) -> str:
+        return " / ".join(a.name(self.language) for a in effect.abilities)
+
+    def _matchup_note(self, effect: AbilityEffect) -> str:
+        """«Tierra: ×0 por Levitación» (seguro) o «Tierra: ×0 si tiene Levitación» (posible)."""
+        link = "por" if effect.certain else "si tiene"
+        return f"{self._type_label(effect.type)}: {multiplier_text(effect.factor)} {link} {self._ability_names(effect)}"
+
+    def _ability_effect_lines(self, view: SpeciesView) -> list[str]:
+        """Una línea por habilidad: «Levitación: Tierra ×0» o «Si tiene Levitación: Tierra ×0» (D5)."""
+        grouped: dict[tuple[bool, tuple[str, ...]], list[AbilityEffect]] = {}
+        for effect in view.ability_effects:
+            key = (effect.certain, tuple(a.identifier for a in effect.abilities))
+            grouped.setdefault(key, []).append(effect)
+        lines = []
+        for (certain, identifiers), effects in grouped.items():
+            names = self._ability_names(effects[0])
+            note = next((ABILITY_NOTES[i] for i in identifiers if i in ABILITY_NOTES), None)
+            detail = note or ", ".join(f"{self._type_label(e.type)} {multiplier_text(e.factor)}" for e in effects)
+            lines.append(f"{names}: {detail}" if certain else f"Si tiene {names}: {detail}")
+        return lines
 
     def _effectiveness(self, view: SpeciesView, layout: QVBoxLayout) -> None:
         groups = view.matchups
@@ -352,6 +382,8 @@ class Overlay(QWidget):
                 row.addWidget(mult, alignment=Qt.AlignmentFlag.AlignTop)
                 row.addWidget(self._types_row(groups[m]), 1)
                 layout.addLayout(row)
+        for line in self._ability_effect_lines(view):
+            layout.addWidget(self._muted(line, size=10, name="ability-effect-line"))
 
     def _evolution(self, view: SpeciesView, layout: QVBoxLayout) -> None:
         if len(view.evolution) <= 1:
@@ -470,11 +502,9 @@ class Overlay(QWidget):
             grid.addWidget(name, i, 1)
             grid.addWidget(info, i, 2)
             if own is not None and move.type and move.category != "status":
-                factor = 1.0
-                for t in own.types:
-                    factor *= chart.get(move.type, {}).get(t, 1.0)
+                factor, _ = effective_multiplier(chart, move.type, own)
                 if factor != 1.0:
-                    mult = QLabel(theme.MULTIPLIER_LABELS.get(factor, f"×{factor:g}"))
+                    mult = QLabel(multiplier_text(factor))
                     mult.setObjectName("move-vs-you")
                     color = "#e5484d" if factor > 1 else theme.TEXT_MUTED
                     mult.setStyleSheet(f"color:{color}; font-weight:700;")

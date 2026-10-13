@@ -371,6 +371,34 @@ def test_competitivo_velocidad_y_movimientos_contra_ti(qapp, overlay, dex):
     assert sorted(_named(overlay, "move-vs-you")) == ["×0", "×2"]
 
 
+# ---- habilidades en la eficacia (add-ability-aware-matchups) ----------------------------
+
+def test_normal_explica_inmunidad_por_habilidad(qapp, dex):
+    from battlelens.ui.overlay import Overlay
+
+    o = Overlay(dex, "es")
+    o.show_species(dex.get_species(330), None)  # Flygon: solo Levitación
+    qapp.processEvents()
+    assert _named(o, "ability-effect-line") == ["Levitación: Tierra ×0"]
+    o.close()
+
+
+def test_comparativa_avisa_de_habilidad_posible(qapp, overlay, dex):
+    overlay.show_battle([dex.view(437, "platinum")], dex.view(445, "platinum"), None)  # Bronzong contra Garchomp
+    qapp.processEvents()
+    texts = " | ".join(_labels(overlay))
+    assert "Tierra ×2*" in texts
+    assert "Tierra: ×0 si tiene Levitación" in _named(overlay, "matchup-ability-note")
+    assert "Si tiene Levitación: Tierra ×0" in _named(overlay, "ability-effect-line")
+
+
+def test_movimiento_contra_tu_flygon(qapp, overlay, dex):
+    # Rival Diglett Nv. 20 (aprende movimientos de Tierra) contra tu Flygon con Levitación
+    overlay.show_battle([dex.view(50, "sword-shield")], dex.view(330, "sword-shield"), None, [20], 50)
+    qapp.processEvents()
+    assert "×0" in _named(overlay, "move-vs-you")
+
+
 
 def test_ajustes_incluyen_modo_y_atajo(qapp):
     from battlelens.core.config import Config

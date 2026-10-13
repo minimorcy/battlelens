@@ -83,6 +83,21 @@ def test_build_con_formas_juegos_y_datos_anteriores():
     assert form["names"] == {"es": "Zigzagoon de Galar", "en": "Galarian Zigzagoon"}
 
 
+def test_build_con_habilidades_anteriores():
+    tables = _mini_tables()
+    tables["pokemon_abilities_past"] = _rows(
+        "pokemon_id,generation_id,ability_id,is_hidden,slot", "263,6,26,0,1", "263,4,,1,3"
+    )
+    tables["abilities"] = _rows("id,identifier", "53,pickup", "26,levitate")
+    zig = build_dataset.build(tables)["species"][0]
+    assert zig["abilities"][0]["slot"] == 1
+    assert zig["past_abilities"] == [
+        {"until_generation": 4, "slot": 3, "ability": None},
+        {"until_generation": 6, "slot": 1,
+         "ability": {"identifier": "levitate", "names": {}, "hidden": False, "slot": 1}},
+    ]
+
+
 def test_build_con_evoluciones_y_descripciones():
     tables = _mini_tables()
     tables["pokemon_species"] = _rows(

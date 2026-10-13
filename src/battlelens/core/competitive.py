@@ -6,6 +6,7 @@ from __future__ import annotations
 import math
 from enum import Enum
 
+from .abilities import ABILITY_NOTES, ABILITY_TYPE_EFFECTS, ability_effects  # noqa: F401 (reexportadas)
 from .pokedex import STAT_ORDER
 
 SHEDINJA = "shedinja"
@@ -44,42 +45,6 @@ def compare_speed(own: tuple[int, int], rival: tuple[int, int]) -> SpeedVerdict:
     if rival[0] > own[1]:
         return SpeedVerdict.SLOWER
     return SpeedVerdict.DEPENDS
-
-
-# Habilidades que cambian la eficacia de los ataques recibidos (D6). Notas especiales en `ABILITY_NOTES`.
-ABILITY_TYPE_EFFECTS: dict[str, dict[str, float]] = {
-    "levitate": {"ground": 0.0},
-    "earth-eater": {"ground": 0.0},
-    "flash-fire": {"fire": 0.0},
-    "well-baked-body": {"fire": 0.0},
-    "water-absorb": {"water": 0.0},
-    "storm-drain": {"water": 0.0},
-    "dry-skin": {"water": 0.0, "fire": 1.25},
-    "volt-absorb": {"electric": 0.0},
-    "lightning-rod": {"electric": 0.0},
-    "motor-drive": {"electric": 0.0},
-    "sap-sipper": {"grass": 0.0},
-    "heatproof": {"fire": 0.5},
-    "water-bubble": {"fire": 0.5},
-    "thick-fat": {"fire": 0.5, "ice": 0.5},
-    "purifying-salt": {"ghost": 0.5},
-    "fluffy": {"fire": 2.0},
-}
-ABILITY_NOTES: dict[str, str] = {
-    "wonder-guard": "Solo le afectan los ataques supereficaces",
-    "filter": "Los supereficaces le hacen ×0,75",
-    "solid-rock": "Los supereficaces le hacen ×0,75",
-    "prism-armor": "Los supereficaces le hacen ×0,75",
-}
-_MULTIPLIER_TEXT = {0.0: "×0", 0.5: "×½", 1.25: "×1,25", 2.0: "×2"}
-
-
-def ability_effects(identifier: str, type_name) -> list[str]:
-    """Textos como «Tierra ×0» para una habilidad; `type_name(tipo)` traduce el tipo."""
-    effects = [f"{type_name(t)} {_MULTIPLIER_TEXT.get(m, f'×{m}')}" for t, m in ABILITY_TYPE_EFFECTS.get(identifier, {}).items()]
-    if identifier in ABILITY_NOTES:
-        effects.append(ABILITY_NOTES[identifier])
-    return effects
 
 
 def weight_move_power(weight_kg: float | None) -> int | None:

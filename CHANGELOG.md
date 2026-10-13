@@ -17,6 +17,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Ratio de captura con su dificultad, cadena evolutiva y descripción de las habilidades.
 - Ventana de ajustes (sin editar archivos) y aviso de versión nueva.
 - Web del proyecto (inglés/español) y README en inglés, con analítica opcional de Umami (sin cookies).
+- Las habilidades que cambian la eficacia (Levitación, Absorbe Agua, Superguarda…) se aplican a las debilidades y a «Contra tu X» si son seguras, y se avisan si son solo posibles. Las habilidades son las de la generación del juego (Gengar con Levitación hasta la Gen 6).
 - Modos de ficha: **Normal** (compacta, aventura y captura) y **Competitivo** (nivel, estadísticas reales, movimientos probables, velocidad, habilidades y entrenamiento).
 
 ### Cambiado

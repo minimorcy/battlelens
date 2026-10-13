@@ -25,6 +25,7 @@ CSV_FILES = [
     "pokemon_types",
     "pokemon_stats",
     "pokemon_abilities",
+    "pokemon_abilities_past",
     "abilities",
     "ability_names",
     "types",
@@ -169,8 +170,25 @@ def build(tables: dict[str, list[dict[str, str]]]) -> dict:
                     "identifier": ability_ident.get(aid, str(aid)),
                     "names": ability_names.get(aid, {}),
                     "hidden": r["is_hidden"] == "1",
+                    "slot": int(r["slot"]),
                 },
             )
+        )
+    # Habilidades de generaciones anteriores por hueco; sin habilidad = hueco vacío (add-ability-aware-matchups D2)
+    past_abilities: dict[int, list[dict]] = {}
+    for r in tables.get("pokemon_abilities_past", []):
+        aid = int(r["ability_id"]) if r["ability_id"] else None
+        past_abilities.setdefault(int(r["pokemon_id"]), []).append(
+            {
+                "until_generation": int(r["generation_id"]),
+                "slot": int(r["slot"]),
+                "ability": None if aid is None else {
+                    "identifier": ability_ident.get(aid, str(aid)),
+                    "names": ability_names.get(aid, {}),
+                    "hidden": r["is_hidden"] == "1",
+                    "slot": int(r["slot"]),
+                },
+            }
         )
 
     past_types: dict[int, dict[int, list[tuple[int, str]]]] = {}
@@ -191,6 +209,7 @@ def build(tables: dict[str, list[dict[str, str]]]) -> dict:
             "types": [t for _, t in sorted(poke_types.get(pid, []))],
             "stats": stats,
             "abilities": [a for _, a in sorted(poke_abilities.get(pid, []), key=lambda x: x[0])],
+            "past_abilities": sorted(past_abilities.get(pid, []), key=lambda p: (p["until_generation"], p["slot"])),
             "weight_kg": int(row["weight"]) / 10 if row.get("weight") else None,
             "height_m": int(row["height"]) / 10 if row.get("height") else None,
             "ev_yield": poke_evs.get(pid, {}),

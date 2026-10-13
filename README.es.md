@@ -84,7 +84,7 @@ BattleLens comprueba una vez al día si hay una versión nueva. Si la hay, te av
 - **Lectura del nivel en juegos 3D:** en Pokémon Espada/Escudo el OCR no siempre lee el nivel (fuente grande), así que en modo Competitivo pueden faltar los movimientos probables y las estadísticas a su nivel. El modo Normal no lo necesita.
 - **Movimientos probables:** son los que llevaría un Pokémon salvaje o de un entrenador corriente; los líderes, los rivales y los equipos competitivos pueden llevar otros.
 - **Estadísticas a su nivel** con la fórmula de la Gen 3 en adelante (en la Gen 1-2 y en Let's Go/Leyendas la fórmula es otra).
-- **La comparativa es por tipos** (ataques con STAB): no tiene en cuenta movimientos concretos, habilidades como Levitación ni objetos.
+- **La comparativa es por tipos** (ataques con STAB) y tiene en cuenta las habilidades que cambian la eficacia: si todas las que puede tener en ese juego hacen lo mismo (la Levitación de Flygon), se aplica; si solo alguna (Bronzong), la ficha avisa («si tiene Levitación»). No se tienen en cuenta los objetos ni las habilidades que ignoran otras (Rompemoldes).
 
 ### Desinstalar
 
