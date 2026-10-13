@@ -1,6 +1,6 @@
 [project]
 name = "battlelens"
-version = "0.2.0"
+version = "0.2.1"
 description = "Ficha instantánea del Pokémon rival en cualquier emulador mediante OCR (proyecto de fans no oficial)."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"

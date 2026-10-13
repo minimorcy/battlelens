@@ -2,7 +2,21 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versionado [SemVer](https://semver.org/lang/es/).
 
-## [0.2.0] - Sin publicar
+## [0.2.1] - Sin publicar
+
+### Añadido
+- Las habilidades que cambian la eficacia (Levitación, Absorbe Agua, Superguarda…) se aplican a las debilidades y a «Contra tu X» si son seguras, y se avisan si son solo posibles. Las habilidades son las de la generación del juego (Gengar con Levitación hasta la Gen 6).
+- Estadísticas base de la generación del juego (la «Especial» única de la Gen 1, los valores anteriores a la Gen 6) y rangos a su nivel con la fórmula de cada juego (Gen 1-2, Let's Go y Leyendas: Arceus).
+- Megaevoluciones, regresiones primigenias y formas alternativas (Rotom, Deoxys, Giratina, Necrozma…) según el juego, en «Otras formas», con el atajo `Ctrl+Alt+F` para elegir la forma del rival.
+- «Tus movimientos»: con la nueva región del menú de ataques, BattleLens lee los movimientos de tu Pokémon, los recuerda por especie y muestra en cada ficha cuánto le hace cada uno al rival (o los probables según su nivel mientras no se han leído).
+
+### Cambiado
+- El nivel se lee con más fiabilidad: si el nombre se reconoce sin nivel, se reintenta con más variantes y con la mitad derecha ampliada, y se toleran dígitos leídos como letras («Nv. 1G»).
+
+### Corregido
+- Al cambiar de modo, de forma o al leerse tus movimientos con la ficha abierta, esta se quedaba en un rectángulo diminuto.
+
+## [0.2.0] - 2026-10-13
 
 ### Añadido
 - Instalador para Windows (sin permisos de administrador) y versión portable.
@@ -17,10 +31,6 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Ratio de captura con su dificultad, cadena evolutiva y descripción de las habilidades.
 - Ventana de ajustes (sin editar archivos) y aviso de versión nueva.
 - Web del proyecto (inglés/español) y README en inglés, con analítica opcional de Umami (sin cookies).
-- Las habilidades que cambian la eficacia (Levitación, Absorbe Agua, Superguarda…) se aplican a las debilidades y a «Contra tu X» si son seguras, y se avisan si son solo posibles. Las habilidades son las de la generación del juego (Gengar con Levitación hasta la Gen 6).
-- Estadísticas base de la generación del juego (la «Especial» única de la Gen 1, los valores anteriores a la Gen 6) y rangos a su nivel con la fórmula de cada juego (Gen 1-2, Let's Go y Leyendas: Arceus).
-- Megaevoluciones, regresiones primigenias y formas alternativas (Rotom, Deoxys, Giratina, Necrozma…) según el juego, en «Otras formas», con el atajo `Ctrl+Alt+F` para elegir la forma del rival.
-- «Tus movimientos»: con la nueva región del menú de ataques, BattleLens lee los movimientos de tu Pokémon, los recuerda por especie y muestra en cada ficha cuánto le hace cada uno al rival (o los probables según su nivel mientras no se han leído).
 - Modos de ficha: **Normal** (compacta, aventura y captura) y **Competitivo** (nivel, estadísticas reales, movimientos probables, velocidad, habilidades y entrenamiento).
 
 ### Cambiado
@@ -28,11 +38,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Preprocesado sin OpenCV (descarga mucho más pequeña).
 - Icono propio.
 - Mejor reconocimiento en juegos 3D (Switch/3DS) y con regiones holgadas.
-- El nivel se lee con más fiabilidad: si el nombre se reconoce sin nivel, se reintenta con más variantes y con la mitad derecha ampliada, y se toleran dígitos leídos como letras («Nv. 1G»).
 
 ### Corregido
 - En combates dobles con escalado de pantalla alto (150-200 %), los textos largos de la ficha se recortaban.
-- Al cambiar de modo, de forma o al leerse tus movimientos con la ficha abierta, esta se quedaba en un rectángulo diminuto.
 - La ficha competitiva no cabía en pantallas de 720-768 px de alto: ahora se ajusta a la pantalla y se desplaza con la rueda.
 
 ## [0.1.0] - 2026-10-13
