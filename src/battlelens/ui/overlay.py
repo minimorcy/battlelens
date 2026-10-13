@@ -82,6 +82,7 @@ class _FlowRow(QWidget):
 
 class Overlay(QWidget):
     moved = pyqtSignal(int, int)
+    dismissed = pyqtSignal()  # el usuario la ha cerrado con un clic
 
     def __init__(self, pokedex: Pokedex, language: str = "es", auto_hide_seconds: float = 0) -> None:
         super().__init__(
@@ -323,6 +324,7 @@ class Overlay(QWidget):
             self.setCursor(Qt.CursorShape.OpenHandCursor)
         else:
             self.hide()
+            self.dismissed.emit()
         self._press_global = None
         self._dragging = False
 

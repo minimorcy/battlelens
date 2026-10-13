@@ -28,6 +28,7 @@ def controller(qapp, tmp_path, monkeypatch):
         hotkey_recognize="Ctrl+Alt+Shift+F20",
         hotkey_calibrate="Ctrl+Alt+Shift+F21",
         hotkey_hide="Ctrl+Alt+Shift+F22",
+        detection_enabled=False,
     )
     c = Controller(qapp, config, Pokedex.load())
     yield c
@@ -182,3 +183,74 @@ def test_cambiar_juego_del_perfil(qapp, controller):
     assert controller.profiles.active.game == "sword-shield"
     controller.profiles.load(preferred_active=p.id)  # persistido en disco
     assert controller.profiles.active.game == "sword-shield"
+
+
+def _show_frame(qapp, label, frame):
+    from PyQt6.QtGui import QImage, QPixmap
+
+    h, w = frame.shape[:2]
+    label.setPixmap(QPixmap.fromImage(QImage(frame.data, w, h, frame.strides[0], QImage.Format.Format_RGB888).copy()))
+    qapp.processEvents()
+
+
+@pytest.fixture
+def auto_controller(qapp, tmp_path, monkeypatch):
+    from battlelens.app import Controller
+    from battlelens.core.config import Config
+    from battlelens.core.pokedex import Pokedex
+
+    monkeypatch.setenv("BATTLELENS_HOME", str(tmp_path))
+    config = Config(
+        hotkey_recognize="Ctrl+Alt+Shift+F20",
+        hotkey_calibrate="Ctrl+Alt+Shift+F21",
+        hotkey_hide="Ctrl+Alt+Shift+F22",
+        detection_enabled=True,
+        detection_interval_ms=200,
+        detection_hide_after_seconds=1.0,
+    )
+    c = Controller(qapp, config, Pokedex.load())
+    yield c
+    c._watch_timer.stop()
+    c.hotkeys.stop()
+    c.tray.hide()
+    c.overlay.close()
+
+
+def _overlay_name(controller):
+    from PyQt6.QtWidgets import QLabel
+
+    labels = [w for w in controller.overlay.findChildren(QLabel) if w.objectName() == "species-name"]
+    return labels[0].text() if labels and controller.overlay.isVisible() else None
+
+
+def test_deteccion_automatica_de_extremo_a_extremo(qapp, auto_controller, fake_emulator, requires_ocr):
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.platform.windows import WindowInfo
+
+    c = auto_controller
+    c.tray.notify = lambda msg, warning=False: None
+    c.profiles.save(Profile("Fake", Region.from_pixels(14, 16, 70, 13, 240, 160)))
+    c.select_window(WindowInfo(int(fake_emulator.winId()), "Fake emulator", "python.exe", 0))
+    assert c.auto_detect
+
+    # 1. Entra en combate: la ficha aparece sin pulsar nada
+    assert _wait(qapp, lambda: _overlay_name(c) == "Zigzagoon", timeout=6)
+
+    # 2. Cambia el rival
+    _show_frame(qapp, fake_emulator, _battle_frame("GEODUDE"))
+    assert _wait(qapp, lambda: _overlay_name(c) == "Geodude", timeout=6)
+
+    # 3. Termina el combate: escena sin recuadro de nombre → se oculta sola
+    scene = np.full((480, 720, 3), (112, 200, 160), dtype=np.uint8)
+    _show_frame(qapp, fake_emulator, scene)
+    assert _wait(qapp, lambda: not c.overlay.isVisible(), timeout=6)
+
+
+def test_conmutador_de_deteccion_persiste(qapp, controller, tmp_path):
+    from battlelens.core.config import AppState
+
+    controller.set_auto_detect(True)
+    assert controller.auto_detect and controller.tray.auto_detect_action.isChecked()
+    controller.set_auto_detect(False)
+    assert not controller.auto_detect and not controller.tray.auto_detect_action.isChecked()
+    assert AppState.load(tmp_path / "state.json").auto_detect is False

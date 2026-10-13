@@ -1,7 +1,7 @@
 # game-catalog Specification
 
 ## Purpose
-TBD - created by archiving change add-regional-forms-and-generations. Update Purpose after archive.
+Catálogo de juegos principales (generación, forma regional, nombres) y detección del juego a partir del título de la ventana del emulador.
 ## Requirements
 ### Requirement: Catálogo de juegos
 El sistema SHALL disponer de un catálogo de juegos principales derivado de los grupos de versiones de PokéAPI. Cada entrada MUST incluir: identificador del grupo de versiones, generación, nombres de cada versión en en/es/fr/de/it y la forma regional que predomina en ese juego (alola, galar, hisui, paldea o ninguna).

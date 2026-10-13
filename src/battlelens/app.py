@@ -6,22 +6,34 @@ import argparse
 import logging
 import os
 import sys
-from pathlib import Path
+import time
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
-from PyQt6.QtCore import QLibraryInfo, QLocale, QObject, QPoint, QRunnable, QThreadPool, QTranslator, pyqtSignal
+from PyQt6.QtCore import (
+    QLibraryInfo,
+    QLocale,
+    QObject,
+    QPoint,
+    QRunnable,
+    QThreadPool,
+    QTimer,
+    QTranslator,
+    pyqtSignal,
+)
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from . import APP_NAME
 from .core.config import AppState, Config, ConfigError, load_config
+from .core.detection import Action, BattleDetector
 from .core.games import GameDetector
 from .core.matcher import NameMatcher
 from .core.pokedex import DatasetMissingError, Pokedex
 from .core.profiles import Profile, ProfileStore
 from .core.storage import app_data_dir
-from .pipeline import RecognitionPipeline, RecognitionResult
+from .pipeline import RecognitionPipeline, RecognitionResult, read_crop
 from .platform import windows
-from .platform.capture import CaptureError, WindowUnavailable, capture_client
+from .platform.capture import CaptureError, WindowMinimized, WindowUnavailable, capture_client
 from .platform.hotkeys import Hotkey, HotkeyManager, HotkeyParseError, parse_hotkey
 from .platform.ocr import OcrLanguageError, recognize, resolve_languages
 from .platform.ocr_setup import (
@@ -38,6 +50,7 @@ from .ui.calibrator import CalibrationDialog, ask_profile
 from .ui.icons import app_icon
 from .ui.overlay import Overlay
 from .ui.tray import Tray
+from .vision.preprocess import crop_region, fingerprint, fingerprint_distance
 
 log = logging.getLogger("battlelens")
 
@@ -92,6 +105,15 @@ class Controller(QObject):
         if self.state.overlay_pos:
             self.overlay.saved_pos = QPoint(*self.state.overlay_pos)
         self.overlay.moved.connect(self._on_overlay_moved)
+        self.overlay.dismissed.connect(lambda: self.battle.on_hidden_by_user())
+
+        # Detección automática del combate (spec battle-detection)
+        self.battle = BattleDetector(fingerprint_distance, config.detection_hide_after_seconds)
+        self._watch_busy = False
+        self._modal_open = False
+        self._watch_timer = QTimer(self)
+        self._watch_timer.setInterval(config.detection_interval_ms)
+        self._watch_timer.timeout.connect(self._watch_tick)
 
         bindings, invalid = self._parse_hotkeys()
         self.tray = Tray(
@@ -102,6 +124,7 @@ class Controller(QObject):
             lambda: [(g.id, f"Gen {g.generation} · {g.name(config.language)}") for g in pokedex.games],
         )
         self.tray.recognize_requested.connect(self.recognize)
+        self.tray.auto_detect_toggled.connect(self.set_auto_detect)
         self.tray.window_selected.connect(self.select_window)
         self.tray.profile_selected.connect(self.select_profile)
         self.tray.profile_game_selected.connect(self.set_profile_game)
@@ -114,6 +137,11 @@ class Controller(QObject):
         self._about: AboutDialog | None = None
         self.tray.quit_requested.connect(self.quit)
         self.tray.show()
+
+        auto = self.state.auto_detect if self.state.auto_detect is not None else config.detection_enabled
+        self.tray.set_auto_detect(auto)
+        if auto:
+            self._watch_timer.start()
 
         self.hotkeys = HotkeyManager(bindings)
         self.hotkeys.triggered.connect(self._on_hotkey)
@@ -206,7 +234,82 @@ class Controller(QObject):
         self._about.activateWindow()
 
     def _on_hotkey(self, name: str) -> None:
-        {"recognize": self.recognize, "calibrate": self.calibrate_new, "hide": self.overlay.hide}[name]()
+        {"recognize": self.recognize, "calibrate": self.calibrate_new, "hide": self.hide_overlay}[name]()
+
+    def hide_overlay(self) -> None:
+        self.overlay.hide()
+        self.battle.on_hidden_by_user()
+
+    # ---- detección automática ----------------------------------------------
+
+    @property
+    def auto_detect(self) -> bool:
+        return self._watch_timer.isActive()
+
+    def set_auto_detect(self, enabled: bool) -> None:
+        self.state.auto_detect = enabled
+        self._save_state()
+        self.battle.reset()
+        if enabled:
+            self._watch_timer.start()
+        else:
+            self._watch_timer.stop()
+        self.tray.set_auto_detect(enabled)
+
+    def _watch_tick(self) -> None:
+        if self._watch_busy or self._busy or self._modal_open or self.target is None:
+            return
+        self._auto_select_profile()
+        profile = self.profiles.active
+        if profile is None:
+            return
+        self._watch_busy = True
+        task = _Task(self._capture_crop, self.target.hwnd, profile)
+        task.signals.finished.connect(self._on_watch_frame)
+        task.signals.failed.connect(self._on_watch_error)
+        self._pool.start(task)
+
+    @staticmethod
+    def _capture_crop(hwnd: int, profile: Profile):
+        crop = crop_region(capture_client(hwnd), profile.region)
+        return crop, fingerprint(crop), profile
+
+    def _on_watch_frame(self, payload) -> None:
+        self._watch_busy = False
+        crop, fp, profile = payload
+        action = self.battle.on_frame(fp, time.monotonic())
+        if action is Action.HIDE:
+            self.overlay.hide()
+        elif action is Action.RECOGNIZE and not self._busy:
+            self._busy = True
+            task = _Task(self._read_auto, crop, fp, profile)
+            task.signals.finished.connect(self._on_auto_result)
+            task.signals.failed.connect(self._on_auto_failure)
+            self._pool.start(task)
+
+    def _read_auto(self, crop, fp, profile: Profile):
+        reading = read_crop(crop, recognize, self.pipeline.matcher, profile.ocr_languages)
+        return reading.match, fp, profile
+
+    def _on_auto_result(self, payload) -> None:
+        self._busy = False
+        match, fp, profile = payload
+        if self.battle.on_result(match.species_id, fp, time.monotonic()) is Action.SHOW:
+            log.info("Detección automática: %s (%.0f)", match.matched_name, match.score)
+            species = self.pokedex.get_species(match.species_id)
+            self.overlay.show_species(species, self._target_rect(), game=profile.game)
+
+    def _on_auto_failure(self, exc: Exception) -> None:
+        self._busy = False
+        log.warning("Fallo en el reconocimiento automático: %s", exc)
+
+    def _on_watch_error(self, exc: Exception) -> None:
+        self._watch_busy = False
+        if isinstance(exc, WindowUnavailable):
+            self._set_target(None)
+            self.tray.notify(str(exc), warning=True)
+        elif not isinstance(exc, WindowMinimized):
+            log.debug("Ciclo de vigilancia omitido: %s", exc)
 
     def recognize(self) -> None:
         if self._busy:
@@ -232,6 +335,7 @@ class Controller(QObject):
         rect = self._target_rect()
         if result.recognized:
             self.overlay.show_species(result.species, rect, game=self._recognition_game)
+            self.battle.on_manual_result(result.species.id, result.fingerprint)
         else:
             self.overlay.show_unrecognized(result.match.raw_text, rect)
 
@@ -313,6 +417,13 @@ class Controller(QObject):
         image = self._capture_for_calibration()
         if image is None:
             return
+        self._modal_open = True
+        try:
+            self._calibrate_new_with(image)
+        finally:
+            self._modal_open = False
+
+    def _calibrate_new_with(self, image) -> None:
         dialog = CalibrationDialog(image, "Calibrar nuevo perfil")
         if not dialog.exec() or dialog.region is None:
             return
@@ -340,7 +451,12 @@ class Controller(QObject):
         if image is None:
             return
         dialog = CalibrationDialog(image, f"Recalibrar «{profile.name}»")
-        if dialog.exec() and dialog.region is not None:
+        self._modal_open = True
+        try:
+            accepted = dialog.exec()
+        finally:
+            self._modal_open = False
+        if accepted and dialog.region is not None:
             self.profiles.save(profile.with_region(dialog.region), activate=True)
             self.tray.notify(f"Región de «{profile.name}» actualizada.")
 
@@ -366,6 +482,7 @@ class Controller(QObject):
             log.warning("No se pudo guardar state.json: %s", exc)
 
     def quit(self) -> None:
+        self._watch_timer.stop()
         self.hotkeys.stop()
         self._save_state()
         self.tray.hide()

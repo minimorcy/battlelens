@@ -16,6 +16,7 @@ from .icons import app_icon
 
 class Tray(QObject):
     recognize_requested = pyqtSignal()
+    auto_detect_toggled = pyqtSignal(bool)
     window_selected = pyqtSignal(object)  # WindowInfo
     profile_selected = pyqtSignal(str)
     profile_game_selected = pyqtSignal(object)  # id de juego o None
@@ -59,6 +60,11 @@ class Tray(QObject):
         kind = QSystemTrayIcon.MessageIcon.Warning if warning else QSystemTrayIcon.MessageIcon.Information
         self.icon.showMessage(APP_NAME, message, kind, 4000)
 
+    def set_auto_detect(self, enabled: bool) -> None:
+        self.auto_detect_action.blockSignals(True)
+        self.auto_detect_action.setChecked(enabled)
+        self.auto_detect_action.blockSignals(False)
+
     def set_ocr_missing(self, missing: bool) -> None:
         self.install_ocr_action.setVisible(missing)
 
@@ -79,6 +85,9 @@ class Tray(QObject):
         m = self.menu
         recognize = m.addAction("Reconocer ahora" + self._hint("recognize"))
         recognize.triggered.connect(self.recognize_requested)
+        self.auto_detect_action = m.addAction("Detección automática")
+        self.auto_detect_action.setCheckable(True)
+        self.auto_detect_action.toggled.connect(self.auto_detect_toggled)
         m.addSeparator()
 
         self._windows_menu = m.addMenu("Ventana del emulador")

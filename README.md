@@ -35,8 +35,9 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
    - Con el juego indicado, la ficha usa sus **formas regionales** (Alola, Galar, Hisui, Paldea) y los tipos y la tabla de eficacias de **su generación**.
    - Al cambiar de juego, el perfil correspondiente **se activa solo**.
    - Para cambiar el juego de un perfil: bandeja → **Juego del perfil activo**.
-3. **En cada combate:** pulsa `Ctrl+Alt+P`. La ficha aparece junto al emulador.
-   - Haz clic en ella o pulsa `Ctrl+Alt+H` para ocultarla. Arrástrala para moverla.
+3. **En cada combate, la ficha aparece sola** junto al emulador en cuanto se ve el nombre del rival (**detección automática**) y se oculta unos segundos después de terminar el combate.
+   - Si la desactivas desde la bandeja (**Detección automática**), pulsa `Ctrl+Alt+P` para reconocer a mano.
+   - Haz clic en la ficha o pulsa `Ctrl+Alt+H` para ocultarla. Arrástrala para moverla.
 
 ### Configuración
 
@@ -47,6 +48,9 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
 | `hotkeys.recognize` / `calibrate` / `hide` | `Ctrl+Alt+P` / `C` / `H` | Atajos globales. Necesitan un modificador, porque las teclas F las usan los emuladores para los estados guardados |
 | `recognition.threshold` | `80` | Puntuación mínima (0-100) para dar un nombre por reconocido |
 | `recognition.debug` | `false` | Guarda en `debug/` cada recorte y lo que leyó el OCR |
+| `detection.enabled` | `true` | Detección automática del combate (también desde la bandeja) |
+| `detection.interval_ms` | `500` | Cada cuánto se vigila la región del nombre |
+| `detection.hide_after_seconds` | `4` | Segundos sin ver al rival hasta ocultar la ficha (0 = nunca) |
 | `overlay.language` | `es` | Idioma de la ficha: `es`, `en`, `fr`, `de`, `it` |
 | `overlay.auto_hide_seconds` | `0` | Ocultar la ficha tras N segundos (0 = nunca) |
 

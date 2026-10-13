@@ -29,6 +29,14 @@ threshold = 80
 # Guarda recortes e imágenes preprocesadas en la carpeta debug/.
 debug = false
 
+[detection]
+# Reconoce al rival automáticamente al entrar en combate (también se activa/desactiva desde la bandeja).
+enabled = true
+# Cada cuántos milisegundos se vigila la región del nombre (200-5000).
+interval_ms = 500
+# Segundos sin ver al rival hasta ocultar la ficha al terminar el combate (0 = no se oculta sola).
+hide_after_seconds = 4
+
 [overlay]
 # Idioma de la ficha: es, en, fr, de, it.
 language = "es"
@@ -50,6 +58,9 @@ class Config:
     debug: bool = False
     language: str = "es"
     auto_hide_seconds: float = 0.0
+    detection_enabled: bool = True
+    detection_interval_ms: int = 500
+    detection_hide_after_seconds: float = 4.0
 
     @classmethod
     def from_toml(cls, text: str) -> Config:
@@ -60,6 +71,7 @@ class Config:
         hk = data.get("hotkeys", {})
         rec = data.get("recognition", {})
         ov = data.get("overlay", {})
+        det = data.get("detection", {})
         default = cls()
         cfg = cls(
             hotkey_recognize=hk.get("recognize", default.hotkey_recognize),
@@ -69,6 +81,9 @@ class Config:
             debug=rec.get("debug", default.debug),
             language=ov.get("language", default.language),
             auto_hide_seconds=ov.get("auto_hide_seconds", default.auto_hide_seconds),
+            detection_enabled=det.get("enabled", default.detection_enabled),
+            detection_interval_ms=det.get("interval_ms", default.detection_interval_ms),
+            detection_hide_after_seconds=det.get("hide_after_seconds", default.detection_hide_after_seconds),
         )
         cfg._validate()
         return cfg
@@ -83,6 +98,12 @@ class Config:
             raise ConfigError("recognition.debug debe ser true o false")
         if not isinstance(self.auto_hide_seconds, (int, float)) or self.auto_hide_seconds < 0:
             raise ConfigError("overlay.auto_hide_seconds debe ser un número >= 0")
+        if not isinstance(self.detection_enabled, bool):
+            raise ConfigError("detection.enabled debe ser true o false")
+        if not isinstance(self.detection_interval_ms, int) or not 200 <= self.detection_interval_ms <= 5000:
+            raise ConfigError("detection.interval_ms debe ser un entero entre 200 y 5000")
+        if not isinstance(self.detection_hide_after_seconds, (int, float)) or self.detection_hide_after_seconds < 0:
+            raise ConfigError("detection.hide_after_seconds debe ser un número >= 0")
 
 
 def load_config(path: Path) -> Config:
@@ -99,6 +120,7 @@ class AppState:
     last_window_title: str | None = None
     active_profile: str | None = None
     overlay_pos: list[int] | None = field(default=None)
+    auto_detect: bool | None = None  # conmutador de la bandeja; tiene prioridad sobre detection.enabled
 
     @classmethod
     def load(cls, path: Path) -> AppState:

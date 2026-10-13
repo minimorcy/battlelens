@@ -160,3 +160,34 @@ def test_juego_ida_y_vuelta_y_busqueda(tmp_path):
     reloaded.set_active(esp2.id)
     assert reloaded.find_by_game("sword-shield") == esp2  # se mantiene el activo si ya es de ese juego
     assert reloaded.find_by_game("platinum") is None
+
+
+def test_config_antigua_sin_deteccion_usa_valores_por_defecto(tmp_path):
+    path = tmp_path / "config.toml"
+    path.write_text('[recognition]\nthreshold = 80\n', encoding="utf-8")
+    cfg = load_config(path)
+    assert cfg.detection_enabled is True and cfg.detection_interval_ms == 500
+    assert cfg.detection_hide_after_seconds == 4
+
+
+def test_plantilla_incluye_deteccion(tmp_path):
+    path = tmp_path / "config.toml"
+    load_config(path)
+    assert "[detection]" in path.read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    "text", ["[detection]\ninterval_ms = 50\n", "[detection]\nenabled = 1\n", "[detection]\nhide_after_seconds = -1\n"]
+)
+def test_deteccion_invalida(tmp_path, text):
+    path = tmp_path / "config.toml"
+    path.write_text(text, encoding="utf-8")
+    with pytest.raises(ConfigError):
+        load_config(path)
+
+
+def test_estado_auto_detect(tmp_path):
+    path = tmp_path / "state.json"
+    assert AppState.load(path).auto_detect is None
+    AppState(auto_detect=False).save(path)
+    assert AppState.load(path).auto_detect is False

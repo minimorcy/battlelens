@@ -16,7 +16,7 @@ from PIL import Image
 from .core.matcher import MatchResult, NameMatcher
 from .core.pokedex import Pokedex, Species
 from .core.profiles import Profile
-from .vision.preprocess import crop_region, preprocess_variants
+from .vision.preprocess import crop_region, fingerprint, preprocess_variants
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +33,7 @@ class RecognitionResult:
     match: MatchResult
     species: Species | None
     timings_ms: dict[str, float] = field(default_factory=dict)
+    fingerprint: np.ndarray | None = None  # huella del recorte (detección automática)
 
     @property
     def recognized(self) -> bool:
@@ -112,7 +113,7 @@ class RecognitionPipeline:
         )
         if self.debug_dir is not None:
             self._dump(crop, best_image, profile, best, timings, readings)
-        return RecognitionResult(best, species, timings)
+        return RecognitionResult(best, species, timings, fingerprint(crop))
 
     def _dump(self, crop, processed, profile, match: MatchResult, timings, readings: list[str]) -> None:
         try:

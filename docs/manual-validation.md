@@ -11,6 +11,7 @@ Con `recognition.debug = true` en `%APPDATA%\BattleLens\config.toml`: calibra, r
 - [ ] **GBA** — p. ej. Esmeralda o Rojo Fuego (mGBA). Aciertos: __/10
 - [ ] **NDS** — p. ej. Platino o Negro (melonDS/DeSmuME). Aciertos: __/10
 - [ ] **Forma regional** — un Pokémon de Galar en Espada (Zigzagoon, Ponyta…): la ficha muestra la forma de Galar.
+- [ ] **Detección automática** — en un juego real, la ficha aparece al entrar en combate, cambia con cada rival y se oculta al terminar; caminando por el mapa no aparece nada.
 - [ ] **Activación automática** — con perfiles de dos juegos, cambiar de juego en el emulador y comprobar que se activa el perfil correcto.
 
 ## Instalador y publicación

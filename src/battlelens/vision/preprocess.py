@@ -84,3 +84,17 @@ def preprocess_variants(crop: np.ndarray) -> list[np.ndarray]:
     variants += [gray_variant(crop, h) for h in GRAY_HEIGHTS]
     variants += [preprocess(crop, h, b) for b in VARIANT_BLURS for h in VARIANT_HEIGHTS]
     return variants
+
+
+FINGERPRINT_SIZE = (32, 12)
+
+
+def fingerprint(crop: np.ndarray) -> np.ndarray:
+    """Huella barata del recorte para detectar cambios: miniatura en gris de 32×12 (battle-detection)."""
+    small = Image.fromarray(to_gray(crop)).resize(FINGERPRINT_SIZE, Image.Resampling.BOX)
+    return np.asarray(small, dtype=np.uint8)
+
+
+def fingerprint_distance(a: np.ndarray, b: np.ndarray) -> float:
+    """Diferencia media absoluta (0-255) entre dos huellas."""
+    return float(np.mean(np.abs(a.astype(np.int16) - b.astype(np.int16))))
