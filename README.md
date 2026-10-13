@@ -1,74 +1,97 @@
-# Pokémon Stats Live
+# BattleLens
 
-Detecta el Pokémon rival cuando juegas en **cualquier emulador** de PC y muestra su ficha (tipos, debilidades, resistencias, inmunidades, estadísticas base y habilidades) en una ventana superpuesta.
+**Ficha instantánea del Pokémon rival para juegos de Pokémon en cualquier emulador de PC.**
 
-No lee la memoria del emulador: lee **el nombre del rival en pantalla** con el OCR nativo de Windows. Por eso funciona con cualquier emulador y cualquier juego de cualquier generación, después de calibrar una vez por juego dónde aparece el nombre.
+Pulsa una tecla durante un combate y BattleLens muestra junto al emulador los tipos del rival, sus debilidades, resistencias e inmunidades, sus estadísticas base y sus habilidades.
 
-## Requisitos
+No lee la memoria del emulador: lee **el nombre del rival en pantalla** con el OCR de Windows. Por eso funciona con cualquier emulador (mGBA, DeSmuME, melonDS, Citra…) y con cualquier generación, después de calibrar una vez por juego.
 
-- Windows 10 (2004 o posterior) u 11.
-- [uv](https://docs.astral.sh/uv/). Descarga Python 3.12 automáticamente.
-- Un paquete de idioma de Windows con **OCR** (español o inglés). Normalmente ya está instalado. Si no, la app lo indica al arrancar. Para instalarlo: *Configuración → Hora e idioma → Idioma y región → añadir idioma*, o en PowerShell como administrador:
-  ```powershell
-  Add-WindowsCapability -Online -Name "Language.OCR~~~es-ES~0.0.1.0"
-  ```
+> BattleLens es un proyecto de fans no oficial. No está afiliado ni respaldado por Nintendo, The Pokémon Company, Creatures Inc. ni GAME FREAK inc. Pokémon y los nombres de los Pokémon son marcas registradas de sus respectivos titulares.
 
-## Arranque
+---
 
-```bash
-uv sync
-uv run pokemon-stats-live
-```
+## Para jugadores
 
-Aparece un icono de Poké Ball en la bandeja del sistema.
+### Instalación
 
-## Uso
+1. Ve a [**Releases**](https://github.com/minimorcy/battlelens/releases/latest) y descarga `BattleLens-Setup-x.y.z.exe`.
+   - ¿Prefieres no instalar nada? Descarga `BattleLens-x.y.z-portable.zip`, descomprímelo y ejecuta `BattleLens.exe`.
+2. Ejecuta el instalador. **No pide permisos de administrador.**
+3. **Aviso de SmartScreen.** Si Windows muestra «Windows protegió su PC», pulsa **Más información → Ejecutar de todas formas**. Aparece porque el ejecutable no está firmado con un certificado de pago. Si quieres comprobar la descarga, compárala con `SHA256SUMS.txt`:
+   ```powershell
+   Get-FileHash .\BattleLens-Setup-x.y.z.exe -Algorithm SHA256
+   ```
 
-1. **Elige la ventana del emulador:** bandeja → *Ventana del emulador*. La app la recuerda para la próxima vez.
-2. **Calibra el juego** (una sola vez por juego): entra en un combate y pulsa `Ctrl+Alt+C`. Dibuja un rectángulo que cubra **solo el nombre del rival**, sin el nivel ni el símbolo de género si puedes. Pulsa `Enter` y ponle nombre al perfil.
-3. **En cada combate:** pulsa `Ctrl+Alt+P`. Aparece la ficha junto a la ventana del emulador.
-   - Haz clic en la ficha o pulsa `Ctrl+Alt+H` para ocultarla.
-   - Arrástrala para moverla; la posición se recuerda.
+Requisitos: Windows 10 (versión 2004 o posterior) u 11, de 64 bits.
 
-Desde la bandeja también puedes cambiar de perfil, recalibrar, eliminar perfiles y abrir la carpeta de datos.
+### OCR de Windows
 
-## Configuración
+BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equipos lo tienen ya en su idioma. Si falta, la app avisa al arrancar y ofrece **«Instalar OCR de Windows…»** en su menú; Windows te pedirá permiso para instalarlo.
 
-`%APPDATA%\pokemon-stats-live\config.toml` (se crea en el primer arranque):
+### Uso
+
+1. Busca el icono de BattleLens en la bandeja del sistema (junto al reloj) y elige **Ventana del emulador**.
+2. **Calibra el juego** (una sola vez por juego): en un combate, pulsa `Ctrl+Alt+C`, dibuja un rectángulo que cubra el **nombre del rival** (cuanto más ajustado, mejor) y pulsa `Enter`.
+3. **En cada combate:** pulsa `Ctrl+Alt+P`. La ficha aparece junto al emulador.
+   - Haz clic en ella o pulsa `Ctrl+Alt+H` para ocultarla. Arrástrala para moverla.
+
+### Configuración
+
+`%APPDATA%\BattleLens\config.toml` (se crea en el primer arranque):
 
 | Clave | Por defecto | Descripción |
 |---|---|---|
-| `hotkeys.recognize` / `calibrate` / `hide` | `Ctrl+Alt+P` / `C` / `H` | Atajos globales. Requieren al menos un modificador, porque las teclas F las usan los emuladores para los estados guardados |
+| `hotkeys.recognize` / `calibrate` / `hide` | `Ctrl+Alt+P` / `C` / `H` | Atajos globales. Necesitan un modificador, porque las teclas F las usan los emuladores para los estados guardados |
 | `recognition.threshold` | `80` | Puntuación mínima (0-100) para dar un nombre por reconocido |
-| `recognition.debug` | `false` | Guarda en `debug/` cada recorte, la imagen preprocesada y un JSON con lo leído |
+| `recognition.debug` | `false` | Guarda en `debug/` cada recorte y lo que leyó el OCR |
 | `overlay.language` | `es` | Idioma de la ficha: `es`, `en`, `fr`, `de`, `it` |
-| `overlay.auto_hide_seconds` | `0` | Ocultar la ficha automáticamente tras N segundos (0 = nunca) |
+| `overlay.auto_hide_seconds` | `0` | Ocultar la ficha tras N segundos (0 = nunca) |
 
-Otros archivos en la misma carpeta: `profiles/*.json` (perfiles), `state.json` (última ventana, perfil activo y posición de la ficha) y `app.log`.
+### Si no reconoce bien
 
-## Si no reconoce bien
+1. Pon `recognition.debug = true`, reinicia BattleLens y reconoce varios rivales.
+2. En `%APPDATA%\BattleLens\debug\`, el archivo `*-recorte.png` debe contener solo el nombre. Si no, usa **Recalibrar perfil activo**.
+3. Si el recorte es correcto y aun así falla, abre un [issue](https://github.com/minimorcy/battlelens/issues) adjuntando esos archivos.
 
-1. Activa `recognition.debug = true`, reinicia y reconoce varios rivales.
-2. Mira `debug/*-recorte.png`: ¿contiene solo el nombre? Si no, recalibra.
-3. Mira `debug/*.json`: `lecturas` muestra lo que leyó el OCR en cada variante.
-
-## Desarrollo
-
-```bash
-uv run pytest                    # todos los tests (incluidos los que usan Win32/OCR/Qt)
-uv run pytest -m "not windows"   # solo la lógica pura
-uv run python tools/build_dataset.py   # regenera data/pokedex.json desde PokéAPI
-```
-
-Estructura: `core/` (lógica pura: dataset, normalización, coincidencia, perfiles, configuración), `vision/` (preprocesado), `platform/` (Win32, captura, OCR, atajos), `ui/` (ficha, calibrador, bandeja), `pipeline.py` y `app.py`.
-
-El proyecto sigue un desarrollo guiado por especificaciones con [OpenSpec](https://github.com/Fission-AI/OpenSpec): ver `openspec/`.
-
-## Limitaciones conocidas
+### Limitaciones conocidas
 
 - **Tabla de tipos moderna (Gen 6+).** En juegos antiguos difiere: no existe el tipo Hada, Clefairy era de tipo Normal, etc.
-- **Formas regionales** (Vulpix de Alola, etc.): se muestra la forma original.
-- **Combates dobles:** solo se lee una región.
-- **Ventana tapada:** la captura toma lo que hay en pantalla. Si otra ventana tapa el nombre, no se leerá. La propia ficha está excluida de la captura.
-- **Bandas negras:** si el emulador las añade al cambiar la proporción, la región puede descuadrarse. Recalibra.
-- **Datos de Pokémon:** de [PokéAPI](https://pokeapi.co/) (CSV públicos), incluidos en `src/pokemon_stats_live/data/pokedex.json`.
+- **Formas regionales:** se muestra la forma original.
+- **Combates dobles:** todavía no se admiten.
+
+### Desinstalar
+
+Desde *Configuración → Aplicaciones → Aplicaciones instaladas → BattleLens*. Al desinstalar, se te pregunta si quieres borrar también tus perfiles.
+
+---
+
+## Para desarrolladores
+
+Requisitos: Windows 10/11 y [uv](https://docs.astral.sh/uv/), que descarga Python 3.12 automáticamente.
+
+```bash
+uv sync
+uv run battlelens                         # ejecutar desde el código
+uv run pytest                             # tests (los de OCR se omiten si no hay paquete de OCR)
+uv run python tools/build_dataset.py      # regenerar data/pokedex.json desde PokéAPI
+uv run python packaging/make_icon.py      # regenerar el icono
+uv run python packaging/build.py --self-test   # .exe + instalador (requiere Inno Setup 6) + ZIP
+```
+
+Estructura: `core/` (lógica pura), `vision/` (preprocesado), `platform/` (Win32, captura, OCR, atajos), `ui/`, `pipeline.py`, `app.py`. Empaquetado en `packaging/`; CI y publicación en `.github/workflows/`.
+
+### Publicar una versión
+
+1. Actualiza `version` en `pyproject.toml` y añade su sección en `CHANGELOG.md` con fecha.
+2. Haz commit, crea la etiqueta y súbela:
+   ```bash
+   git tag v0.2.0 && git push origin main v0.2.0
+   ```
+3. GitHub Actions ejecuta los tests, compila, hace la autocomprobación del `.exe` y publica la Release con el instalador, el ZIP y `SHA256SUMS.txt`.
+
+El proyecto sigue un desarrollo guiado por especificaciones con [OpenSpec](https://github.com/Fission-AI/OpenSpec): cada cambio tiene su propuesta, especificaciones, diseño y tareas en `openspec/`.
+
+## Licencia y créditos
+
+- Código: [MIT](LICENSE).
+- Datos de Pokémon: [PokéAPI](https://github.com/PokeAPI/pokeapi) (BSD-3-Clause).

@@ -4,10 +4,10 @@ from dataclasses import dataclass
 import numpy as np
 import pytest
 
-from pokemon_stats_live.core.matcher import NameMatcher
-from pokemon_stats_live.core.pokedex import Pokedex
-from pokemon_stats_live.core.profiles import Profile, Region
-from pokemon_stats_live.pipeline import RecognitionPipeline
+from battlelens.core.matcher import NameMatcher
+from battlelens.core.pokedex import Pokedex
+from battlelens.core.profiles import Profile, Region
+from battlelens.pipeline import RecognitionPipeline
 
 
 class FakeCaptureError(RuntimeError):
@@ -49,8 +49,7 @@ def test_reconocimiento_correcto(dex, profile):
     result = p.run(1234, profile)
     assert result.recognized and result.species.id == 6
     assert seen["hwnd"] == 1234 and seen["langs"] == ("es",)
-    assert seen["shape"][0] > 24  # recibió una imagen preprocesada (con margen)
-    assert set(result.timings_ms) == {"captura", "preprocesado", "ocr", "total"}
+    assert set(result.timings_ms) == {"captura", "recorte", "ocr", "total"}
 
 
 def test_se_queda_con_la_mejor_variante(dex, profile):

@@ -7,8 +7,9 @@ import os
 import tempfile
 from pathlib import Path
 
-APP_NAME = "pokemon-stats-live"
-HOME_ENV = "POKEMON_STATS_LIVE_HOME"
+from .. import APP_NAME
+
+HOME_ENV = "BATTLELENS_HOME"
 
 
 def app_data_dir() -> Path:

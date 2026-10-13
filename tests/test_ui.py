@@ -8,14 +8,14 @@ pytestmark = [pytest.mark.windows, pytest.mark.skipif(sys.platform != "win32", r
 
 @pytest.fixture(scope="module")
 def dex():
-    from pokemon_stats_live.core.pokedex import Pokedex
+    from battlelens.core.pokedex import Pokedex
 
     return Pokedex.load()
 
 
 @pytest.fixture
 def overlay(qapp, dex):
-    from pokemon_stats_live.ui.overlay import Overlay
+    from battlelens.ui.overlay import Overlay
 
     o = Overlay(dex, "es")
     yield o
@@ -105,7 +105,7 @@ def test_clic_oculta(qapp, overlay, dex):
 def test_auto_ocultar(qapp, dex):
     from PyQt6.QtTest import QTest
 
-    from pokemon_stats_live.ui.overlay import Overlay
+    from battlelens.ui.overlay import Overlay
 
     o = Overlay(dex, "es", auto_hide_seconds=0.2)
     o.show_species(dex.get_species(6), None)
@@ -125,7 +125,7 @@ def _drag(widget, start, end):
 
 
 def test_calibrador_region_relativa(qapp):
-    from pokemon_stats_live.ui.calibrator import CalibrationDialog
+    from battlelens.ui.calibrator import CalibrationDialog
 
     image = np.zeros((160, 240, 3), dtype=np.uint8)
     dialog = CalibrationDialog(image, "test")
@@ -140,7 +140,7 @@ def test_calibrador_region_relativa(qapp):
 
 
 def test_calibrador_rechaza_region_pequena(qapp):
-    from pokemon_stats_live.ui.calibrator import CalibrationDialog
+    from battlelens.ui.calibrator import CalibrationDialog
 
     image = np.zeros((160, 240, 3), dtype=np.uint8)
     dialog = CalibrationDialog(image, "test")
@@ -156,7 +156,7 @@ def test_calibrador_esc_cancela(qapp):
     from PyQt6.QtCore import Qt
     from PyQt6.QtTest import QTest
 
-    from pokemon_stats_live.ui.calibrator import CalibrationDialog
+    from battlelens.ui.calibrator import CalibrationDialog
 
     dialog = CalibrationDialog(np.zeros((160, 240, 3), dtype=np.uint8), "test")
     dialog.show()

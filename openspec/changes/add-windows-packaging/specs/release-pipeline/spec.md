@@ -19,7 +19,7 @@ WHEN se publica una etiqueta con formato `vX.Y.Z`, el sistema de CI SHALL: compr
 
 #### Scenario: Publicación correcta
 - **WHEN** se publica la etiqueta `v0.2.0` y `pyproject.toml` indica 0.2.0
-- **THEN** aparece en GitHub la Release «v0.2.0» con `PokemonStatsLive-Setup-0.2.0.exe`, `PokemonStatsLive-0.2.0-portable.zip` y `SHA256SUMS.txt`
+- **THEN** aparece en GitHub la Release «v0.2.0» con `BattleLens-Setup-0.2.0.exe`, `BattleLens-0.2.0-portable.zip` y `SHA256SUMS.txt`
 
 #### Scenario: Versión no coincidente
 - **WHEN** se publica la etiqueta `v0.2.1` y `pyproject.toml` indica 0.2.0

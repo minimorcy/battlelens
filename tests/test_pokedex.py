@@ -1,6 +1,6 @@
 import pytest
 
-from pokemon_stats_live.core.pokedex import DatasetMissingError, Pokedex
+from battlelens.core.pokedex import DatasetMissingError, Pokedex
 
 
 @pytest.fixture(scope="module")

@@ -13,7 +13,7 @@ from .storage import write_json_atomic, write_text_atomic
 log = logging.getLogger(__name__)
 
 DEFAULT_CONFIG_TOML = """\
-# Configuración de pokemon-stats-live.
+# Configuración de BattleLens.
 # Los cambios se aplican al reiniciar la aplicación.
 
 [hotkeys]

@@ -29,7 +29,7 @@ Se crea la aplicación desde cero (MVP) como app de escritorio para Windows en P
 
 ## Impact
 
-- **Código nuevo**: paquete `src/pokemon_stats_live/`, script `tools/build_dataset.py`, tests en `tests/`.
+- **Código nuevo**: paquete `src/battlelens/`, script `tools/build_dataset.py`, tests en `tests/`.
 - **Dependencias**: PyQt6, mss, opencv-python-headless, numpy, pillow, winrt (Windows.Media.Ocr), rapidfuzz; pytest como dependencia de desarrollo. Gestión con `uv`.
 - **Sistema**: solo Windows 10/11. El OCR usa el motor nativo de Windows y requiere tener instalado al menos un paquete de idioma con OCR (inglés o español).
-- **Datos de usuario**: perfiles y configuración en `%APPDATA%\pokemon-stats-live\`. No se envía nada a la red en tiempo de ejecución.
+- **Datos de usuario**: perfiles y configuración en `%APPDATA%\BattleLens\`. No se envía nada a la red en tiempo de ejecución.

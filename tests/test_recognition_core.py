@@ -1,8 +1,8 @@
 import pytest
 
-from pokemon_stats_live.core.matcher import NameMatcher
-from pokemon_stats_live.core.normalize import normalize_name
-from pokemon_stats_live.core.pokedex import Pokedex
+from battlelens.core.matcher import NameMatcher
+from battlelens.core.normalize import normalize_name
+from battlelens.core.pokedex import Pokedex
 
 
 @pytest.fixture(scope="module")
@@ -62,3 +62,19 @@ def test_no_reconocido(matcher, raw):
 def test_umbral_configurable():
     strict = NameMatcher(Pokedex.load(), threshold=95)
     assert not strict.match("P1DGEY").recognized
+
+
+@pytest.mark.parametrize(
+    ("raw", "species_id"),
+    [("Stufiul 10", 759), ("StuffulO", 759), ("StutfulO", 759), ("Stuffu16", 759), ("~~ Stufful ##", 759),
+     ("Mr. Mime", 122), ("Mime Jr.", 439)],
+)
+def test_texto_con_ruido(matcher, raw, species_id):
+    result = matcher.match(raw)
+    assert result.species_id == species_id
+    assert result.score >= 82  # con margen sobre el umbral de 80
+
+
+def test_palabra_corta_no_da_falso_positivo(matcher):
+    # "PII" es el nombre alemán de Cleffa: una palabra suelta tan corta no debe bastar.
+    assert not matcher.match("PII NG").recognized

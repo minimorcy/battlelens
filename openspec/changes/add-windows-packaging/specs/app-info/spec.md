@@ -5,7 +5,7 @@ El menú de la bandeja SHALL incluir «Acerca de…», que muestra: nombre y ver
 
 #### Scenario: Consultar la versión
 - **WHEN** el usuario abre «Acerca de…» en la versión 0.2.0
-- **THEN** ve «Pokémon Stats Live 0.2.0» y un enlace clicable al repositorio
+- **THEN** ve «BattleLens 0.2.0» y un enlace clicable al repositorio
 
 ### Requirement: Aviso de proyecto no oficial
 La ventana «Acerca de», el README y la descripción de cada Release SHALL indicar que se trata de un proyecto de fans no afiliado ni respaldado por Nintendo, The Pokémon Company, Creatures Inc. o GAME FREAK inc., y que «Pokémon» y los nombres de Pokémon son marcas registradas de sus titulares.
@@ -26,4 +26,4 @@ El repositorio SHALL contener un archivo `LICENSE`, que MUST incluirse también 
 
 #### Scenario: Licencia en el paquete
 - **WHEN** se instala la aplicación
-- **THEN** el archivo `LICENSE` está en la carpeta de instalación y el instalador lo muestra antes de instalar
+- **THEN** el archivo `LICENSE.txt` está en la carpeta de instalación y el instalador lo muestra antes de instalar

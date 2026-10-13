@@ -1,5 +1,7 @@
 ## Context
 
+> Nota: el proyecto se renombró a **BattleLens** en el cambio `add-windows-packaging` (paquete `battlelens`, datos en `%APPDATA%\BattleLens`). Este documento ya usa los nombres nuevos.
+
 Proyecto nuevo. El objetivo es identificar al Pokémon rival en **cualquier emulador y cualquier juego** sin leer la memoria del emulador. La única señal común a todos los juegos es visual: el recuadro con el nombre del rival que aparece durante el combate. Restricciones:
 
 - Solo Windows 10/11 (versión 2004 o posterior) en esta fase.
@@ -27,7 +29,7 @@ Se fija Python 3.12 en `.python-version` y las dependencias en `pyproject.toml`/
 
 ### D2. Estructura en módulos con un núcleo puro
 ```
-src/pokemon_stats_live/
+src/battlelens/
   core/           # sin dependencias de Windows ni Qt → probado con pytest
     normalize.py  # normalización de texto
     matcher.py    # índice de nombres + rapidfuzz
@@ -55,6 +57,9 @@ tests/
 Con `GetClientRect` + `ClientToScreen` (ctypes) se obtiene el rectángulo en píxeles físicos y `mss` captura esa zona de la pantalla. Qt 6 ya hace que el proceso sea consciente del DPI de cada monitor, así que las coordenadas de Win32 son físicas.
 *Alternativa descartada:* Windows Graphics Capture (`windows-capture`). Captura aunque la ventana esté tapada, pero es asíncrona y basada en sesiones, lo que complica una captura puntual. El caso de uso (estás jugando) garantiza que la ventana está visible. Se puede cambiar más adelante gracias a la interfaz de `capture.py`.
 *Alternativa descartada:* `PrintWindow`. Devuelve una imagen en negro en emuladores que dibujan con la GPU (OpenGL o Vulkan).
+
+### D3b. Revisión tras probar con juegos reales (tarea 9.2): PrintWindow primero
+Al probar con Pokémon Espada en Eden (Vulkan) se vio que, con el emulador tapado por otra ventana, `mss` capturaba la ventana de encima. `PrintWindow(hwnd, PW_CLIENTONLY | PW_RENDERFULLCONTENT)` obtiene el contenido real a través de DWM aunque la ventana esté tapada, también con Vulkan. Se usa primero y, si devuelve una imagen negra (algunas aplicaciones no lo admiten), se recurre a `mss`.
 
 ### D4. Excluir el overlay de las capturas
 Al overlay se le aplica `SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)`. Así, aunque quede encima del juego, nunca aparece en el recorte. Se evita tener que ocultarlo y volver a mostrarlo antes de cada captura, que provocaría parpadeos.
@@ -90,12 +95,14 @@ El hilo de la interfaz (Qt) nunca hace trabajo pesado. Cada reconocimiento es un
 - `state.json`: lo escribe la app (última ventana, perfil activo, posición del overlay). Separarlos evita reescribir el archivo del usuario y perder sus comentarios.
 
 ### D13. Instancia única con un mutex con nombre de Win32
-`CreateMutex("Local\\pokemon-stats-live")`. Si devuelve `ERROR_ALREADY_EXISTS`, ya hay otra instancia en marcha.
+`CreateMutex("Local\\pokemon-stats-live")`. Si devuelve `ERROR_ALREADY_EXISTS`, ya hay otra instancia en marcha. (El nombre pasa a `BattleLens` en `add-windows-packaging`, D6, para que el instalador pueda detectar la app abierta.)
 
 ### D14. Overlay
 Un `QWidget` con las opciones `FramelessWindowHint | WindowStaysOnTopHint | Tool | WindowDoesNotAcceptFocus` y el atributo `WA_ShowWithoutActivating`. Se dibuja con widgets de Qt y una hoja de estilos con los colores oficiales de cada tipo. La posición se calcula en píxeles físicos (Win32) y se convierte a coordenadas lógicas de Qt dividiendo por el `devicePixelRatio` de la pantalla correspondiente.
 
 ## Risks / Trade-offs
+
+- [Juegos 3D (Switch, 3DS) con texto suavizado y regiones holgadas] → Descubierto en la tarea 9.2: las variantes binarizadas fallaban con fondos mezclados (hierba + caja blanca). Se añaden el recorte original y variantes en gris al principio de la lista, y la búsqueda por palabras y con recorte del final. Caso real: con la región del usuario, Stufful pasó de «no reconocido» a 84 puntos.
 
 - [Los nombres en mayúsculas con fuente de 8×8 de las Gen 1-3 pueden leerse mal] → El preprocesado de D6, la coincidencia aproximada y el volcado de depuración permiten ajustar con capturas reales. Si no basta, se cambia de motor de OCR (la interfaz de D7 lo permite) o se reconocen plantillas de letras por juego.
 - [Al usuario le falta el paquete de OCR de su idioma] → Error explícito al arrancar con instrucciones (Configuración → Hora e idioma → Idioma → Opciones → Reconocimiento óptico de caracteres).
@@ -107,7 +114,7 @@ Un `QWidget` con las opciones `FramelessWindowHint | WindowStaysOnTopHint | Tool
 
 ## Migration Plan
 
-No aplica (proyecto nuevo). Para desinstalar basta con borrar la carpeta del proyecto y `%APPDATA%\pokemon-stats-live\`.
+No aplica (proyecto nuevo). Para desinstalar basta con borrar la carpeta del proyecto y `%APPDATA%\BattleLens\`.
 
 ## Open Questions
 

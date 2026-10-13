@@ -83,7 +83,8 @@ class CalibrationDialog(QDialog):
         max_size = screen.size() * 0.85
 
         help_text = QLabel(
-            "Dibuja un rectángulo que cubra <b>solo el nombre del Pokémon rival</b>. "
+            "Dibuja un rectángulo que cubra el <b>nombre del Pokémon rival</b>; cuanto más ajustado, mejor "
+            "(no pasa nada si incluye el nivel). "
             "<b>Enter</b> confirma · <b>Esc</b> cancela."
         )
         help_text.setTextFormat(Qt.TextFormat.RichText)

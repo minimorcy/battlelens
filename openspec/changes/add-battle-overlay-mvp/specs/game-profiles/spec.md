@@ -27,7 +27,7 @@ El sistema SHALL ofrecer un modo de calibración que muestre una captura de la v
 - **THEN** se le indica que seleccione primero una ventana y no se abre la calibración
 
 ### Requirement: Persistencia de perfiles
-El sistema SHALL guardar cada perfil como un archivo JSON en `%APPDATA%\pokemon-stats-live\profiles\` y MUST cargarlos todos al arrancar.
+El sistema SHALL guardar cada perfil como un archivo JSON en `%APPDATA%\BattleLens\profiles\` y MUST cargarlos todos al arrancar.
 
 #### Scenario: Recarga tras reinicio
 - **WHEN** se crea un perfil y se reinicia la aplicación

@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Comprobar que la etiqueta coincide con pyproject.toml
+        shell: pwsh
+        run: |
+          $version = uv run --no-project python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])"
+          if ("v$version" -ne "${{ github.ref_name }}") {
+            Write-Error "La etiqueta ${{ github.ref_name }} no coincide con la versión de pyproject.toml ($version)"
+            exit 1
+          }
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Dependencias
+        run: uv sync --locked
+
+      - name: Tests
+        run: uv run pytest -q -rs
+
+      - name: Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup -y --no-progress
+          }
+
+      - name: Compilar, autocomprobar e instalar
+        run: uv run python packaging/build.py --self-test --require-installer
+
+      - name: Notas de la versión
+        run: uv run python packaging/release_notes.py ${{ env.VERSION }} --output dist/release-notes.md
+
+      - name: Publicar Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" `
+            "dist/BattleLens-Setup-$env:VERSION.exe" `
+            "dist/BattleLens-$env:VERSION-portable.zip" `
+            "dist/SHA256SUMS.txt" `
+            --title "BattleLens $env:VERSION" `
+            --notes-file dist/release-notes.md

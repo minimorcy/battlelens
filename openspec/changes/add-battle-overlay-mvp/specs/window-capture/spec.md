@@ -29,6 +29,10 @@ El sistema SHALL capturar el área cliente de la ventana objetivo (sin bordes ni
 - **WHEN** se solicita una captura y la ventana objetivo está visible
 - **THEN** se obtiene una imagen cuyas dimensiones coinciden con el área cliente en píxeles físicos
 
+#### Scenario: Ventana tapada por otras
+- **WHEN** se solicita una captura y otra ventana tapa total o parcialmente al emulador
+- **THEN** la imagen contiene el contenido del emulador, no el de la ventana que lo tapa (PrintWindow con PW_RENDERFULLCONTENT; si devuelve una imagen negra, se recurre a copiar la zona de la pantalla)
+
 #### Scenario: Pantalla con escalado DPI
 - **WHEN** Windows tiene un escalado del 150 % y se solicita una captura
 - **THEN** la imagen corresponde exactamente al área cliente, sin desplazamiento ni recorte

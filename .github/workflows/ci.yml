@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Dependencias
+        run: uv sync --locked
+
+      - name: Tests
+        run: uv run pytest -q -rs
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validar especificaciones (OpenSpec)
+        run: npx --yes @fission-ai/openspec@1.4.1 validate --all --strict
+
+  build:
+    # Compilación de main: instalador y ZIP como artefactos descargables durante 14 días
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Dependencias
+        run: uv sync --locked
+
+      - name: Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup -y --no-progress
+          }
+
+      - name: Compilar
+        run: uv run python packaging/build.py --self-test --require-installer
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: battlelens-${{ github.sha }}
+          path: |
+            dist/*.exe
+            dist/*.zip
+            dist/SHA256SUMS.txt
+          retention-days: 14

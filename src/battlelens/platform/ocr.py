@@ -6,7 +6,6 @@ import asyncio
 from dataclasses import dataclass
 from functools import lru_cache
 
-import cv2
 import numpy as np
 from winrt.windows.globalization import Language
 from winrt.windows.graphics.imaging import BitmapPixelFormat, SoftwareBitmap
@@ -58,7 +57,9 @@ def _engine(language_tag: str) -> OcrEngine:
 
 
 def _to_bitmap(image: np.ndarray) -> SoftwareBitmap:
-    rgba = cv2.cvtColor(image, cv2.COLOR_GRAY2RGBA if image.ndim == 2 else cv2.COLOR_RGB2RGBA)
+    rgb = np.repeat(image[:, :, None], 3, axis=2) if image.ndim == 2 else image[:, :, :3]
+    alpha = np.full((*rgb.shape[:2], 1), 255, dtype=np.uint8)
+    rgba = np.ascontiguousarray(np.concatenate([rgb, alpha], axis=2), dtype=np.uint8)
     writer = DataWriter()
     writer.write_bytes(rgba.tobytes())
     return SoftwareBitmap.create_copy_from_buffer(

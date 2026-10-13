@@ -4,34 +4,14 @@ from __future__ import annotations
 
 from typing import Callable
 
-from PyQt6.QtCore import QObject, QRectF, Qt, pyqtSignal
-from PyQt6.QtGui import QAction, QActionGroup, QColor, QIcon, QPainter, QPen, QPixmap
+from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtGui import QAction, QActionGroup
 from PyQt6.QtWidgets import QMenu, QSystemTrayIcon
 
+from .. import APP_NAME
 from ..core.profiles import Profile
 from ..platform.windows import WindowInfo
-
-
-def pokeball_icon(size: int = 64) -> QIcon:
-    pix = QPixmap(size, size)
-    pix.fill(Qt.GlobalColor.transparent)
-    p = QPainter(pix)
-    p.setRenderHint(QPainter.RenderHint.Antialiasing)
-    r = QRectF(2, 2, size - 4, size - 4)
-    p.setPen(Qt.PenStyle.NoPen)
-    p.setBrush(QColor("#ffffff"))
-    p.drawEllipse(r)
-    p.setBrush(QColor("#e3350d"))
-    p.drawPie(r, 0, 180 * 16)
-    pen = QPen(QColor("#1b1b1b"), size / 16)
-    p.setPen(pen)
-    p.setBrush(Qt.BrushStyle.NoBrush)
-    p.drawEllipse(r)
-    p.drawLine(int(r.left()), size // 2, int(r.right()), size // 2)
-    p.setBrush(QColor("#ffffff"))
-    p.drawEllipse(QRectF(size * 0.38, size * 0.38, size * 0.24, size * 0.24))
-    p.end()
-    return QIcon(pix)
+from .icons import app_icon
 
 
 class Tray(QObject):
@@ -42,6 +22,8 @@ class Tray(QObject):
     recalibrate_requested = pyqtSignal()
     delete_profile_requested = pyqtSignal()
     open_data_requested = pyqtSignal()
+    install_ocr_requested = pyqtSignal()
+    about_requested = pyqtSignal()
     quit_requested = pyqtSignal()
 
     def __init__(
@@ -57,7 +39,7 @@ class Tray(QObject):
         self._get_profiles = get_profiles
         self._hotkeys = hotkey_texts
 
-        self.icon = QSystemTrayIcon(pokeball_icon())
+        self.icon = QSystemTrayIcon(app_icon())
         self.menu = QMenu()
         self._build_menu()
         self.icon.setContextMenu(self.menu)
@@ -72,13 +54,16 @@ class Tray(QObject):
 
     def notify(self, message: str, warning: bool = False) -> None:
         kind = QSystemTrayIcon.MessageIcon.Warning if warning else QSystemTrayIcon.MessageIcon.Information
-        self.icon.showMessage("Pokémon Stats Live", message, kind, 4000)
+        self.icon.showMessage(APP_NAME, message, kind, 4000)
+
+    def set_ocr_missing(self, missing: bool) -> None:
+        self.install_ocr_action.setVisible(missing)
 
     def refresh_tooltip(self) -> None:
         target = self._get_target()
         profiles, active_id = self._get_profiles()
         active = next((p for p in profiles if p.id == active_id), None)
-        lines = ["Pokémon Stats Live"]
+        lines = [APP_NAME]
         lines.append(f"Ventana: {target.exe if target else '— selecciona una —'}")
         lines.append(f"Perfil: {active.name if active else '— calibra uno —'}")
         self.icon.setToolTip("\n".join(lines))
@@ -104,7 +89,11 @@ class Tray(QObject):
         self._delete = m.addAction("Eliminar perfil activo…")
         self._delete.triggered.connect(self.delete_profile_requested)
         m.addSeparator()
+        self.install_ocr_action = m.addAction("Instalar OCR de Windows…")
+        self.install_ocr_action.triggered.connect(self.install_ocr_requested)
+        self.install_ocr_action.setVisible(False)
         m.addAction("Abrir carpeta de datos").triggered.connect(self.open_data_requested)
+        m.addAction("Acerca de…").triggered.connect(self.about_requested)
         m.addAction("Salir").triggered.connect(self.quit_requested)
         m.aboutToShow.connect(self._update_enabled)
 

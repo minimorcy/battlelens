@@ -19,11 +19,11 @@ def _battle_frame(name: str) -> np.ndarray:
 
 @pytest.fixture
 def controller(qapp, tmp_path, monkeypatch):
-    from pokemon_stats_live.app import Controller
-    from pokemon_stats_live.core.config import Config
-    from pokemon_stats_live.core.pokedex import Pokedex
+    from battlelens.app import Controller
+    from battlelens.core.config import Config
+    from battlelens.core.pokedex import Pokedex
 
-    monkeypatch.setenv("POKEMON_STATS_LIVE_HOME", str(tmp_path))
+    monkeypatch.setenv("BATTLELENS_HOME", str(tmp_path))
     config = Config(
         hotkey_recognize="Ctrl+Alt+Shift+F20",
         hotkey_calibrate="Ctrl+Alt+Shift+F21",
@@ -66,9 +66,9 @@ def _wait(qapp, predicate, timeout=5.0):
     return False
 
 
-def test_reconocimiento_completo(qapp, controller, fake_emulator, tmp_path):
-    from pokemon_stats_live.core.profiles import Profile, Region
-    from pokemon_stats_live.platform.windows import WindowInfo
+def test_reconocimiento_completo(qapp, controller, fake_emulator, tmp_path, requires_ocr):
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.platform.windows import WindowInfo
 
     controller.select_window(WindowInfo(int(fake_emulator.winId()), "Fake emulator", "python.exe", 0))
     controller.profiles.save(Profile("Fake", Region.from_pixels(14, 16, 70, 13, 240, 160)))
@@ -89,7 +89,7 @@ def test_sin_ventana_ni_perfil_avisa(qapp, controller):
     controller.recognize()
     assert "ventana" in messages[-1]
 
-    from pokemon_stats_live.platform.windows import WindowInfo
+    from battlelens.platform.windows import WindowInfo
 
     controller.target = WindowInfo(1, "x", "x.exe", 0)
     controller.recognize()
@@ -98,8 +98,8 @@ def test_sin_ventana_ni_perfil_avisa(qapp, controller):
 
 
 def test_ventana_cerrada_borra_objetivo(qapp, controller, fake_emulator):
-    from pokemon_stats_live.core.profiles import Profile, Region
-    from pokemon_stats_live.platform.windows import WindowInfo
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.platform.windows import WindowInfo
 
     messages = []
     controller.tray.notify = lambda msg, warning=False: messages.append(msg)
@@ -111,9 +111,9 @@ def test_ventana_cerrada_borra_objetivo(qapp, controller, fake_emulator):
     assert "no está disponible" in messages[-1]
 
 
-def test_reconocimiento_simultaneo_se_ignora(qapp, controller, fake_emulator):
-    from pokemon_stats_live.core.profiles import Profile, Region
-    from pokemon_stats_live.platform.windows import WindowInfo
+def test_reconocimiento_simultaneo_se_ignora(qapp, controller, fake_emulator, requires_ocr):
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.platform.windows import WindowInfo
 
     controller.select_window(WindowInfo(int(fake_emulator.winId()), "Fake emulator", "python.exe", 0))
     controller.profiles.save(Profile("Fake", Region.from_pixels(14, 16, 70, 13, 240, 160)))
@@ -124,3 +124,19 @@ def test_reconocimiento_simultaneo_se_ignora(qapp, controller, fake_emulator):
     controller.recognize()
     assert len(started) == 1
     assert _wait(qapp, lambda: not controller._busy)
+
+
+@pytest.mark.parametrize(
+    ("outcome", "available", "expected"),
+    [("cancelled", False, "cancelada"), ("success", True, "Ya puedes"), ("success", False, "Reinicia")],
+)
+def test_resultado_instalacion_ocr(qapp, controller, monkeypatch, outcome, available, expected):
+    from battlelens.platform.ocr_setup import InstallOutcome, InstallResult
+
+    messages = []
+    controller.tray.notify = lambda msg, warning=False: messages.append(msg)
+    monkeypatch.setattr(type(controller), "ocr_available", staticmethod(lambda: available))
+    controller.tray.set_ocr_missing(True)
+    controller._on_ocr_installed(InstallResult(InstallOutcome(outcome), "es-ES", 0))
+    assert expected in messages[-1]
+    assert controller.tray.install_ocr_action.isVisible() == (not (outcome == "success" and available))

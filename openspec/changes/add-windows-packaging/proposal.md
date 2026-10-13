@@ -1,11 +1,12 @@
 ## Why
 
-Ahora mismo, para usar Pokémon Stats Live hay que clonar el repositorio, instalar `uv` y ejecutarlo desde la consola. Queremos publicarlo en GitHub para que cualquier jugador pueda descargarlo e instalarlo como una aplicación normal de Windows, sin conocimientos técnicos ni Python.
+Ahora mismo, para usar la app hay que clonar el repositorio, instalar `uv` y ejecutarlo desde la consola. Queremos publicarlo en GitHub para que cualquier jugador pueda descargarlo e instalarlo como una aplicación normal de Windows, sin conocimientos técnicos ni Python.
 
 ## What Changes
 
+- **Nombre público BattleLens** (repositorio `github.com/minimorcy/battlelens`): el paquete Python pasa a `battlelens`, los datos de usuario a `%APPDATA%\BattleLens` y la variable de entorno a `BATTLELENS_HOME`. Se elige un nombre sin la marca «Pokémon» para reducir el riesgo legal. No hace falta migrar datos, porque no hay usuarios. Licencia MIT.
 - Empaquetado con PyInstaller (modo carpeta, *onedir*) que incluye Python, las dependencias y `pokedex.json`.
-- Instalador `PokemonStatsLive-Setup-<versión>.exe` (Inno Setup): acceso directo en el menú Inicio, arranque con Windows opcional, desinstalador. Además, un ZIP portable.
+- Instalador `BattleLens-Setup-<versión>.exe` (Inno Setup): acceso directo en el menú Inicio, arranque con Windows opcional, desinstalador. Además, un ZIP portable.
 - Pipeline de GitHub Actions: al publicar una etiqueta `v*` ejecuta los tests, compila, hace una prueba de humo del ejecutable y publica una *Release* con el instalador, el ZIP y sus sumas SHA-256.
 - **Reducción de tamaño:** se sustituye OpenCV (unos 113 MB) por numpy + Pillow en el preprocesado, sin cambiar su comportamiento.
 - Ayuda guiada para instalar el paquete de OCR de Windows cuando falta (el requisito más probable con el que se encontrará un usuario nuevo).
@@ -29,7 +30,7 @@ Ahora mismo, para usar Pokémon Stats Live hay que clonar el repositorio, instal
 
 ## Impact
 
-- **Código:** `vision/preprocess.py` (sin OpenCV), `pipeline.py` (escritura de PNG con Pillow), `platform/ocr.py` (conversión de imagen y comprobación de idiomas), nuevos `ui/about.py` y `platform/ocr_setup.py`, menú de la bandeja.
+- **Código:** renombrado de `src/pokemon_stats_live/` a `src/battlelens/` (imports, tests, entry point, rutas de datos); `vision/preprocess.py` (sin OpenCV), `pipeline.py` (escritura de PNG con Pillow), `platform/ocr.py` (conversión de imagen y comprobación de idiomas), nuevos `ui/about.py` y `platform/ocr_setup.py`, menú de la bandeja.
 - **Archivos nuevos:** `packaging/` (spec de PyInstaller, script de Inno Setup, icono `.ico`, script de compilación), `.github/workflows/release.yml` y `ci.yml`, `LICENSE`, `CHANGELOG.md`.
 - **Dependencias:** se elimina `opencv-python-headless`; se añaden `pyinstaller` (solo para desarrollo) e Inno Setup 6 (herramienta de compilación, en CI viene instalada en el runner `windows-latest`).
 - **Usuarios:** descargan el instalador desde GitHub Releases. Verán el aviso de SmartScreen por no estar firmado, documentado en el README.

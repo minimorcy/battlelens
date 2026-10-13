@@ -10,8 +10,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
-import cv2
 import numpy as np
+from PIL import Image
 
 from .core.matcher import MatchResult, NameMatcher
 from .core.pokedex import Pokedex, Species
@@ -37,6 +37,33 @@ class RecognitionResult:
     @property
     def recognized(self) -> bool:
         return self.species is not None
+
+
+@dataclass(frozen=True)
+class CropReading:
+    match: MatchResult
+    image: np.ndarray
+    readings: tuple[str, ...]
+
+
+def read_crop(crop: np.ndarray, ocr_fn: OcrFn, matcher: NameMatcher, languages: tuple[str, ...]) -> CropReading:
+    """Pasa cada variante preprocesada por el OCR y conserva la de mayor puntuación.
+
+    Se detiene en cuanto una variante alcanza 100.
+    """
+    variants = preprocess_variants(crop)
+    best: MatchResult | None = None
+    best_image = variants[0]
+    readings: list[str] = []
+    for image in variants:
+        text = ocr_fn(image, languages).text
+        readings.append(text)
+        match = matcher.match(text)
+        if best is None or match.score > best.score or (not best.raw_text.strip() and text.strip()):
+            best, best_image = match, image
+        if match.score >= 100:
+            break
+    return CropReading(best, best_image, tuple(readings))
 
 
 class RecognitionPipeline:
@@ -68,21 +95,9 @@ class RecognitionPipeline:
         frame = self.capture_fn(hwnd)
         lap("captura")
         crop = crop_region(frame, profile.region)
-        variants = preprocess_variants(crop)
-        lap("preprocesado")
-
-        # Se prueba cada variante y se conserva la de mayor puntuación (parada temprana con 100).
-        best: MatchResult | None = None
-        best_image = variants[0]
-        readings: list[str] = []
-        for image in variants:
-            text = self.ocr_fn(image, profile.ocr_languages).text
-            readings.append(text)
-            match = self.matcher.match(text)
-            if best is None or match.score > best.score or (not best.raw_text.strip() and text.strip()):
-                best, best_image = match, image
-            if match.score >= 100:
-                break
+        lap("recorte")
+        reading = read_crop(crop, self.ocr_fn, self.matcher, profile.ocr_languages)
+        best, best_image, readings = reading.match, reading.image, list(reading.readings)
         lap("ocr")
         timings["total"] = round(sum(timings.values()), 1)
 
@@ -103,7 +118,7 @@ class RecognitionPipeline:
         try:
             self.debug_dir.mkdir(parents=True, exist_ok=True)
             stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-            _write_png(self.debug_dir / f"{stamp}-recorte.png", cv2.cvtColor(crop, cv2.COLOR_RGB2BGR))
+            _write_png(self.debug_dir / f"{stamp}-recorte.png", crop)
             _write_png(self.debug_dir / f"{stamp}-preprocesado.png", processed)
             (self.debug_dir / f"{stamp}.json").write_text(
                 json.dumps(
@@ -126,7 +141,4 @@ class RecognitionPipeline:
 
 
 def _write_png(path: Path, image: np.ndarray) -> None:
-    # cv2.imwrite no admite rutas no ASCII en Windows; se codifica en memoria.
-    ok, buf = cv2.imencode(".png", image)
-    if ok:
-        path.write_bytes(buf.tobytes())
+    Image.fromarray(image).save(path, format="PNG")

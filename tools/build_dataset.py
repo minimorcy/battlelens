@@ -1,4 +1,4 @@
-"""Genera src/pokemon_stats_live/data/pokedex.json a partir de los CSV públicos de PokéAPI.
+"""Genera src/battlelens/data/pokedex.json a partir de los CSV públicos de PokéAPI.
 
 Uso:  uv run python tools/build_dataset.py [--no-cache]
 """
@@ -36,7 +36,7 @@ STAT_KEYS = {1: "hp", 2: "attack", 3: "defense", 4: "special_attack", 5: "specia
 MAX_STANDARD_TYPE_ID = 18  # excluye "stellar", "unknown" y "shadow"
 
 ROOT = Path(__file__).resolve().parent.parent
-OUTPUT = ROOT / "src" / "pokemon_stats_live" / "data" / "pokedex.json"
+OUTPUT = ROOT / "src" / "battlelens" / "data" / "pokedex.json"
 CACHE_DIR = Path(__file__).resolve().parent / ".cache"
 
 

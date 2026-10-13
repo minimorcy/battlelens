@@ -66,7 +66,7 @@ class Pokedex:
     @classmethod
     def load(cls, path: Path | None = None) -> Pokedex:
         if path is None:
-            resource = resources.files("pokemon_stats_live") / "data" / "pokedex.json"
+            resource = resources.files("battlelens") / "data" / "pokedex.json"
             if not resource.is_file():
                 raise DatasetMissingError(resource)
             return cls(json.loads(resource.read_text(encoding="utf-8")))

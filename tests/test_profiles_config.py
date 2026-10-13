@@ -3,8 +3,8 @@ import logging
 
 import pytest
 
-from pokemon_stats_live.core.config import AppState, Config, ConfigError, load_config
-from pokemon_stats_live.core.profiles import (
+from battlelens.core.config import AppState, Config, ConfigError, load_config
+from battlelens.core.profiles import (
     Profile,
     ProfileError,
     ProfileStore,

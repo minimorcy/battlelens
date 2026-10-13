@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Instalador sin permisos de administrador
-El proyecto SHALL generar con Inno Setup un instalador `PokemonStatsLive-Setup-<versión>.exe` que instale la aplicación solo para el usuario actual en `%LOCALAPPDATA%\Programs\PokemonStatsLive`, sin pedir permisos de administrador. El instalador MUST estar disponible en español e inglés y MUST mostrar la licencia.
+El proyecto SHALL generar con Inno Setup un instalador `BattleLens-Setup-<versión>.exe` que instale la aplicación solo para el usuario actual en `%LOCALAPPDATA%\Programs\BattleLens`, sin pedir permisos de administrador. El instalador MUST estar disponible en español e inglés y MUST mostrar la licencia.
 
 #### Scenario: Instalación estándar
 - **WHEN** un usuario sin permisos de administrador ejecuta el instalador y acepta los valores por defecto
@@ -26,19 +26,19 @@ WHEN se instala una versión nueva sobre una existente, el instalador SHALL reem
 - **THEN** el instalador detecta que está abierta y pide cerrarla antes de copiar archivos
 
 ### Requirement: Desinstalación
-El desinstalador SHALL eliminar los archivos del programa, los accesos directos y la entrada de inicio con Windows, y MUST preguntar si se borran también los datos del usuario (`%APPDATA%\pokemon-stats-live`). La respuesta por defecto es conservarlos.
+El desinstalador SHALL eliminar los archivos del programa, los accesos directos y la entrada de inicio con Windows, y MUST preguntar si se borran también los datos del usuario (`%APPDATA%\BattleLens`). La respuesta por defecto es conservarlos.
 
 #### Scenario: Desinstalación conservando datos
 - **WHEN** el usuario desinstala y responde «No» a borrar sus datos
-- **THEN** se elimina el programa y se mantiene `%APPDATA%\pokemon-stats-live`
+- **THEN** se elimina el programa y se mantiene `%APPDATA%\BattleLens`
 
 #### Scenario: Desinstalación completa
 - **WHEN** el usuario desinstala y responde «Sí»
 - **THEN** no queda ningún archivo de la aplicación en el equipo
 
 ### Requirement: Versión portable
-El proyecto SHALL generar `PokemonStatsLive-<versión>-portable.zip` con la carpeta del programa, ejecutable sin instalar.
+El proyecto SHALL generar `BattleLens-<versión>-portable.zip` con la carpeta del programa, ejecutable sin instalar.
 
 #### Scenario: Uso portable
-- **WHEN** el usuario descomprime el ZIP en cualquier carpeta y ejecuta `PokemonStatsLive.exe`
+- **WHEN** el usuario descomprime el ZIP en cualquier carpeta y ejecuta `BattleLens.exe`
 - **THEN** la aplicación funciona igual que la instalada

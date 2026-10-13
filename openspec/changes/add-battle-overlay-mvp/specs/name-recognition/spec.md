@@ -8,15 +8,19 @@ El sistema SHALL recortar de la captura la región del perfil activo, convirtien
 - **THEN** el recorte cubre la misma zona relativa del juego, escalada proporcionalmente
 
 ### Requirement: Preprocesado para OCR
-El sistema SHALL generar a partir del recorte varias variantes preprocesadas: conversión a escala de grises, binarización con normalización de polaridad a texto oscuro sobre fondo claro, normalización de la altura a varios valores entre 20 y 40 px (vecino más próximo al ampliar), con y sin un desenfoque leve, y margen blanco.
+El sistema SHALL generar a partir del recorte, en este orden: el recorte original sin procesar; variantes en escala de grises sin binarizar, con la altura normalizada a varios valores (para texto suavizado de juegos 3D y regiones con fondos mezclados); y variantes binarizadas para fuentes pixeladas (escala de grises, binarización con normalización de polaridad a texto oscuro sobre fondo claro y altura normalizada entre 18 y 40 px con vecino más próximo al ampliar, con y sin un desenfoque leve). Todas las variantes procesadas MUST llevar margen blanco.
 
 #### Scenario: Texto claro sobre fondo oscuro
 - **WHEN** el recorte contiene texto blanco sobre fondo oscuro
-- **THEN** todas las variantes contienen texto negro sobre fondo blanco
+- **THEN** las variantes binarizadas contienen texto negro sobre fondo blanco
 
 #### Scenario: Recorte de cualquier tamaño
 - **WHEN** el recorte mide 16 px o 120 px de alto
-- **THEN** cada variante tiene la altura de texto normalizada a su valor objetivo y las variantes sin desenfoque conservan los bordes nítidos (solo valores 0 y 255)
+- **THEN** cada variante binarizada tiene la altura normalizada a su valor objetivo y las que no llevan desenfoque conservan los bordes nítidos (solo valores 0 y 255)
+
+#### Scenario: Región holgada en un juego 3D
+- **WHEN** la región calibrada incluye el nombre, el nivel, la barra de PS y parte del fondo del escenario (p. ej. Pokémon Espada)
+- **THEN** alguna variante permite reconocer la especie correctamente
 
 ### Requirement: Ejecución del OCR
 El sistema SHALL ejecutar el OCR nativo de Windows sobre cada variante con los idiomas del perfil, en orden y quedándose con el primer resultado no vacío de cada variante. Después MUST conservar la lectura cuya coincidencia (ver «Coincidencia aproximada multilingüe») tenga mayor puntuación, y SHALL dejar de probar variantes en cuanto una alcance 100.
@@ -49,7 +53,7 @@ El sistema SHALL normalizar tanto el texto del OCR como los nombres del dataset:
 - **THEN** se eliminan los indicadores de nivel antes de comparar y queda "PIDGEY"
 
 ### Requirement: Coincidencia aproximada multilingüe
-El sistema SHALL comparar el texto normalizado con los nombres normalizados de todas las especies en inglés, español, francés, alemán e italiano, y MUST devolver la especie con mayor puntuación junto a esa puntuación (0–100).
+El sistema SHALL comparar con los nombres normalizados de todas las especies en inglés, español, francés, alemán e italiano los siguientes candidatos: el texto completo normalizado; si hay varias palabras, cada palabra y cada par de palabras contiguas de 4 o más caracteres (con una penalización de 5 puntos); y cada candidato de 6 o más caracteres sin sus 1-2 últimos caracteres (con una penalización de 2 puntos por carácter), para absorber símbolos de género leídos como letras. El sistema MUST devolver la especie con mayor puntuación penalizada (0–100) junto a esa puntuación.
 
 #### Scenario: Error típico de OCR
 - **WHEN** el OCR devuelve "P1DGEY"
@@ -58,6 +62,14 @@ El sistema SHALL comparar el texto normalizado con los nombres normalizados de t
 #### Scenario: Nombre en otro idioma
 - **WHEN** el OCR devuelve "SALAMÈCHE" en un juego en francés
 - **THEN** se resuelve a Charmander (#4)
+
+#### Scenario: Texto de más alrededor del nombre
+- **WHEN** el OCR devuelve "~~ Stufful ##" o "StutfulO" (con el símbolo ♂ leído como «O»)
+- **THEN** se resuelve a Stufful (#759) con puntuación ≥ 82
+
+#### Scenario: Palabra corta suelta
+- **WHEN** el OCR devuelve "PII NG"
+- **THEN** el resultado es "no reconocido": la palabra "PII" (nombre alemán de Cleffa) es demasiado corta para considerarse por separado
 
 #### Scenario: Puntuación insuficiente
 - **WHEN** la mejor coincidencia tiene una puntuación inferior al umbral
@@ -71,7 +83,7 @@ El sistema SHALL considerar reconocido un resultado solo si su puntuación es �
 - **THEN** el resultado es "no reconocido" y el overlay muestra el texto leído para ayudar a recalibrar
 
 ### Requirement: Volcado de depuración
-WHERE el modo depuración está activado en la configuración, el sistema SHALL guardar en `%APPDATA%\pokemon-stats-live\debug\` el recorte original, la imagen preprocesada y un JSON con el texto OCR, el candidato y la puntuación de cada reconocimiento.
+WHERE el modo depuración está activado en la configuración, el sistema SHALL guardar en `%APPDATA%\BattleLens\debug\` el recorte original, la imagen preprocesada y un JSON con el texto OCR, el candidato y la puntuación de cada reconocimiento.
 
 #### Scenario: Depuración activa
 - **WHEN** el modo depuración está activado y se ejecuta un reconocimiento

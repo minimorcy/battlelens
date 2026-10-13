@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from rapidfuzz import fuzz, process
 
-from .normalize import normalize_name
+from .normalize import name_candidates, normalize_name
 from .pokedex import Pokedex
 
 DEFAULT_THRESHOLD = 80.0
@@ -36,13 +36,14 @@ class NameMatcher:
                     self._index.setdefault(normalize_name(name), species.id)
 
     def match(self, raw_text: str) -> MatchResult:
-        query = normalize_name(raw_text)
-        if not query:
-            return MatchResult(None, 0.0, raw_text)
-        best = process.extractOne(query, self._index.keys(), scorer=fuzz.ratio)
+        best: tuple[str, float] | None = None
+        for query, penalty in name_candidates(raw_text):  # el texto completo va primero y gana los empates
+            found = process.extractOne(query, self._index.keys(), scorer=fuzz.ratio)
+            if found is not None and (best is None or found[1] - penalty > best[1]):
+                best = (found[0], found[1] - penalty)
         if best is None:
             return MatchResult(None, 0.0, raw_text)
-        name, score, _ = best
+        name, score = best
         if score < self.threshold:
             return MatchResult(None, score, raw_text, name)
         return MatchResult(self._index[name], score, raw_text, name)

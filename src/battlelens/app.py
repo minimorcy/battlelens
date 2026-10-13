@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import argparse
 import logging
 import os
 import sys
+from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
-from PyQt6.QtCore import QObject, QPoint, QRunnable, QThreadPool, pyqtSignal
+from PyQt6.QtCore import QLibraryInfo, QLocale, QObject, QPoint, QRunnable, QThreadPool, QTranslator, pyqtSignal
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
+from . import APP_NAME
 from .core.config import AppState, Config, ConfigError, load_config
 from .core.matcher import NameMatcher
 from .core.pokedex import DatasetMissingError, Pokedex
@@ -20,12 +23,22 @@ from .platform import windows
 from .platform.capture import CaptureError, WindowUnavailable, capture_client
 from .platform.hotkeys import Hotkey, HotkeyManager, HotkeyParseError, parse_hotkey
 from .platform.ocr import OcrLanguageError, recognize, resolve_languages
+from .platform.ocr_setup import (
+    MANUAL_INSTRUCTIONS,
+    InstallOutcome,
+    InstallResult,
+    install_ocr,
+    proposed_ocr_tag,
+    ui_language_tag,
+)
 from .platform.single_instance import SingleInstance
+from .ui.about import AboutDialog
 from .ui.calibrator import CalibrationDialog, ask_profile_name
+from .ui.icons import app_icon
 from .ui.overlay import Overlay
 from .ui.tray import Tray
 
-log = logging.getLogger("pokemon_stats_live")
+log = logging.getLogger("battlelens")
 
 
 class _WorkerSignals(QObject):
@@ -33,15 +46,17 @@ class _WorkerSignals(QObject):
     failed = pyqtSignal(object)
 
 
-class _RecognitionTask(QRunnable):
-    def __init__(self, pipeline: RecognitionPipeline, hwnd: int, profile: Profile) -> None:
+class _Task(QRunnable):
+    """Ejecuta `fn(*args)` en el QThreadPool y devuelve el resultado o la excepción por señales."""
+
+    def __init__(self, fn, *args) -> None:
         super().__init__()
         self.signals = _WorkerSignals()
-        self._pipeline, self._hwnd, self._profile = pipeline, hwnd, profile
+        self._fn, self._args = fn, args
 
     def run(self) -> None:
         try:
-            self.signals.finished.emit(self._pipeline.run(self._hwnd, self._profile))
+            self.signals.finished.emit(self._fn(*self._args))
         except Exception as exc:  # se gestiona en el hilo de la interfaz
             self.signals.failed.emit(exc)
 
@@ -88,6 +103,9 @@ class Controller(QObject):
         self.tray.recalibrate_requested.connect(self.recalibrate)
         self.tray.delete_profile_requested.connect(self.delete_profile)
         self.tray.open_data_requested.connect(lambda: os.startfile(self.data_dir))
+        self.tray.install_ocr_requested.connect(self.install_ocr)
+        self.tray.about_requested.connect(self.show_about)
+        self._about: AboutDialog | None = None
         self.tray.quit_requested.connect(self.quit)
         self.tray.show()
 
@@ -121,10 +139,9 @@ class Controller(QObject):
                 f"{labels[n]} ({bindings[n].text})" if n in bindings else f"{labels[n]} (inválido)" for n in failed
             )
             notices.append(f"No se pudieron registrar los atajos: {detail}. Cámbialos en config.toml.")
-        try:
-            resolve_languages(("es", "en"))
-        except OcrLanguageError as exc:
-            notices.append(str(exc))
+        if not self.ocr_available():
+            self.tray.set_ocr_missing(True)
+            notices.append("Falta el OCR de Windows. Instálalo desde el menú de la bandeja: «Instalar OCR de Windows…».")
         if self.target is None:
             notices.append("Selecciona la ventana del emulador en el menú de la bandeja.")
         elif self.profiles.active is None:
@@ -134,7 +151,53 @@ class Controller(QObject):
         else:
             self.tray.notify(f"Listo. Pulsa {self.config.hotkey_recognize} en un combate.")
 
+    @staticmethod
+    def ocr_available() -> bool:
+        try:
+            resolve_languages(("es", "en", "fr", "de", "it"))
+            return True
+        except OcrLanguageError:
+            return False
+
     # ---- acciones ----------------------------------------------------------
+
+    def install_ocr(self) -> None:
+        tag = proposed_ocr_tag(ui_language_tag())
+        answer = QMessageBox.question(
+            None,
+            "Instalar OCR de Windows",
+            f"Se instalará el reconocimiento de texto de Windows ({tag}).\n\n"
+            "Windows pedirá permiso de administrador y la descarga puede tardar unos minutos.",
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        self.tray.notify("Instalando el OCR de Windows… Te aviso al terminar.")
+        task = _Task(install_ocr, tag)
+        task.signals.finished.connect(self._on_ocr_installed)
+        task.signals.failed.connect(
+            lambda exc: self._on_ocr_installed(InstallResult(InstallOutcome.FAILED, tag, None))
+        )
+        self._pool.start(task)
+
+    def _on_ocr_installed(self, result: InstallResult) -> None:
+        if result.outcome is InstallOutcome.CANCELLED:
+            self.tray.notify("Instalación cancelada.")
+        elif result.outcome is InstallOutcome.FAILED:
+            log.warning("Fallo al instalar el OCR %s (código %s)", result.tag, result.exit_code)
+            QMessageBox.warning(
+                None, "OCR de Windows", f"No se pudo instalar el OCR ({result.tag}).\n\n{MANUAL_INSTRUCTIONS}"
+            )
+        elif self.ocr_available():
+            self.tray.set_ocr_missing(False)
+            self.tray.notify(f"OCR instalado. Ya puedes reconocer con {self.config.hotkey_recognize}.")
+        else:
+            self.tray.notify("OCR instalado. Reinicia BattleLens para empezar a usarlo.")
+
+    def show_about(self) -> None:
+        self._about = AboutDialog()
+        self._about.show()
+        self._about.raise_()
+        self._about.activateWindow()
 
     def _on_hotkey(self, name: str) -> None:
         {"recognize": self.recognize, "calibrate": self.calibrate_new, "hide": self.overlay.hide}[name]()
@@ -151,7 +214,7 @@ class Controller(QObject):
             self.tray.notify("No hay perfiles: calibra primero la región del nombre.", warning=True)
             return
         self._busy = True
-        task = _RecognitionTask(self.pipeline, self.target.hwnd, profile)
+        task = _Task(self.pipeline.run, self.target.hwnd, profile)
         task.signals.finished.connect(self._on_result)
         task.signals.failed.connect(self._on_failure)
         self._pool.start(task)
@@ -280,19 +343,38 @@ def _setup_logging() -> None:
 
 
 def _fatal(message: str) -> int:
-    QMessageBox.critical(None, "Pokémon Stats Live", message)
+    QMessageBox.critical(None, APP_NAME, message)
     return 1
 
 
-def main() -> int:
+def _parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(prog="BattleLens", add_help=False)
+    parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--self-test-output", type=Path)
+    args, _qt_args = parser.parse_known_args(argv)
+    return args
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parse_args(sys.argv[1:] if argv is None else argv)
+    if args.self_test:
+        from . import selftest
+
+        return selftest.main(args.self_test_output)
+
     _setup_logging()
     app = QApplication(sys.argv)
-    app.setApplicationName("Pokémon Stats Live")
+    app.setWindowIcon(app_icon())
+    # Botones estándar de Qt (Sí/No, Cancelar…) en el idioma del sistema
+    translator = QTranslator(app)
+    if translator.load(QLocale.system(), "qtbase", "_", QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)):
+        app.installTranslator(translator)
+    app.setApplicationName(APP_NAME)
     app.setQuitOnLastWindowClosed(False)
 
     instance = SingleInstance()
     if instance.already_running:
-        QMessageBox.information(None, "Pokémon Stats Live", "La aplicación ya se está ejecutando (mira la bandeja).")
+        QMessageBox.information(None, APP_NAME, "La aplicación ya se está ejecutando (mira la bandeja).")
         return 0
 
     try:
