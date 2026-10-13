@@ -129,8 +129,10 @@ def deployed(tmp_path):
 def _run_umami(deployed, **env):
     html, headers = deployed
     full_env = {"PATH": __import__("os").environ["PATH"], "UMAMI_HTML_PATH": str(html), "UMAMI_HEADERS_PATH": str(headers), **env}
+    # cwd junto a los archivos: algunos sed (Git Bash) crean el temporal de «sed -i» en el directorio
+    # de trabajo y fallan al moverlo entre unidades (repositorio en D:, temporales en C: en la CI)
     proc = subprocess.run([SH, str(SITE / "docker-entrypoint.d" / "40-umami.sh")], env=full_env,
-                          capture_output=True, text=True, timeout=30)
+                          capture_output=True, text=True, timeout=30, cwd=html.parent)
     assert proc.returncode == 0, proc.stderr
     return html.read_text(encoding="utf-8"), headers.read_text(encoding="utf-8"), proc.stdout
 
