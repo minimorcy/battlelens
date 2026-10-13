@@ -47,6 +47,7 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
 5. **Opcional: tu Pokémon y combates dobles.** En bandeja → **Regiones del perfil** puedes calibrar también el nombre de **tu Pokémon** y el del **2.º rival**:
    - Con tu Pokémon, cada ficha muestra **«Contra tu X»**: lo que le hacen tus tipos, lo que te hacen los suyos y un veredicto (**Ventaja / Neutral / Desventaja**). Si tu Pokémon tiene apodo, no se puede reconocer.
    - Con el 2.º rival, en los combates dobles aparecen dos fichas una al lado de la otra.
+   - **Tus movimientos:** calibra también el **menú de ataques** con el menú de «Luchar» abierto, sobre los 4 movimientos. Cada vez que lo abres, BattleLens lee los movimientos de tu Pokémon y los recuerda por especie; cada ficha muestra entonces **«Tus movimientos»** con cuánto le hace cada uno a ese rival. Mientras no se han leído, muestra los movimientos probables de tu Pokémon según su nivel.
 
 La interfaz de la app está en español; el contenido de la ficha (Pokémon, tipos, habilidades, movimientos) está disponible en español, inglés, francés, alemán e italiano (`overlay.language`).
 
@@ -85,6 +86,7 @@ BattleLens comprueba una vez al día si hay una versión nueva. Si la hay, te av
 - **Lectura del nivel:** el nivel solo se lee si la región calibrada lo incluye. BattleLens reintenta con más variantes y con la mitad derecha ampliada, y tolera dígitos leídos como letras («Nv. 1G»). Si aun así no lo lee, el modo Competitivo muestra la ficha sin movimientos probables ni estadísticas a su nivel. El modo Normal no lo necesita.
 - **Movimientos probables:** son los que llevaría un Pokémon salvaje o de un entrenador corriente; los líderes, los rivales y los equipos competitivos pueden llevar otros.
 - **Estadísticas a su nivel** con la fórmula de cada juego (Gen 1-2, Let's Go, Leyendas: Arceus y Gen 3 en adelante); Leyendas Z-A y Champions usan por ahora la de la Gen 3 en adelante.
+- **Tus movimientos** usan su tipo y potencia actuales (por ejemplo, Mordisco era Normal en la Gen 1), y los de tipo variable (Poder Oculto, Meteorobola, Teraexplosión) muestran su tipo base.
 - **La comparativa es por tipos** (ataques con STAB) y tiene en cuenta las habilidades que cambian la eficacia: si todas las que puede tener en ese juego hacen lo mismo (la Levitación de Flygon), se aplica; si solo alguna (Bronzong), la ficha avisa («si tiene Levitación»). No se tienen en cuenta los objetos ni las habilidades que ignoran otras (Rompemoldes).
 
 ### Desinstalar

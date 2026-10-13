@@ -433,6 +433,33 @@ def test_movimientos_de_una_mega(qapp, controller):
     assert len(_card_names(controller, "move")) == 4
 
 
+def test_menu_de_ataques_actualiza_la_ficha(qapp, controller):
+    from battlelens.core.learnsets import Learnsets
+    from battlelens.core.profiles import Profile, Region
+
+    profile = Profile("Espada", Region(0.6, 0.05, 0.2, 0.05), game="sword-shield")
+    controller.profiles.save(profile)
+    controller._show_battle((821, None, 813), "sword-shield", None, (None, None, None))
+    qapp.processEvents()
+    assert not _card_names(controller, "own-move")  # sin memoria ni nivel: no hay apartado
+    moves = tuple(Learnsets.get().move(i) for i in ("ember", "double-kick"))
+    controller._on_moves_read((profile, moves))
+    qapp.processEvents()
+    assert _card_names(controller, "own-move") == ["Ascuas", "Doble Patada"]
+    assert controller.move_memory.get(profile.id, 813) == ["ember", "double-kick"]
+    controller._on_moves_read((profile, ()))  # lectura no válida: no cambia nada
+    assert controller.move_memory.get(profile.id, 813) == ["ember", "double-kick"]
+
+
+def test_probables_de_tu_pokemon_con_nivel(qapp, controller):
+    from battlelens.core.profiles import Profile, Region
+
+    controller.profiles.save(Profile("Espada", Region(0.6, 0.05, 0.2, 0.05), game="sword-shield"))
+    controller._show_battle((821, None, 813), "sword-shield", None, (None, None, 15))
+    qapp.processEvents()
+    assert len(_card_names(controller, "own-move")) == 4
+
+
 def test_modo_desde_ajustes(qapp, controller):
     from dataclasses import replace
 

@@ -26,7 +26,7 @@ from ..core.competitive import (
     view_ranges,
     weight_move_power,
 )
-from ..core.learnsets import Learnsets, LearnsetsMissingError
+from ..core.learnsets import Learnsets, LearnsetsMissingError, Move
 from ..core.pokedex import Pokedex, Species, SpeciesView
 from ..core.matchup import Matchup, Verdict, effective_multiplier, matchup
 from . import theme
@@ -124,6 +124,7 @@ class Overlay(QWidget):
         self.language = language
         self.mode = mode
         self.form_hotkey = ""  # atajo «Cambiar de forma», para la pista de «Otras formas»
+        self._own_moves: tuple[list[Move], bool] = ([], False)  # «Tus movimientos» (spec own-moves)
         self.saved_pos: QPoint | None = None
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -196,8 +197,11 @@ class Overlay(QWidget):
         target_rect: tuple[int, int, int, int] | None,
         rival_levels: list[int | None] | None = None,
         own_level: int | None = None,
+        own_moves: list[Move] | None = None,
+        own_moves_probable: bool = False,
     ) -> None:
         """Una tarjeta por rival (dos en combates dobles), según el modo (spec display-modes)."""
+        self._own_moves = (list(own_moves or []), own_moves_probable)
         self._clear()
         # Ancho fijo por tarjeta (descontando los márgenes del panel): así el texto se parte
         # en líneas con el ancho real y no se recorta en los combates dobles.
@@ -255,6 +259,7 @@ class Overlay(QWidget):
         self._capture(view, layout)
         if versus is not None:  # lo más consultado en cada turno: justo debajo de los tipos
             self._matchup_section(versus, layout, view, ranges, own, own_level)
+            self._own_moves_section(view, layout)
         self._effectiveness(view, layout)
         if self.competitive:
             self._stats_detailed(view, ranges, layout)
@@ -362,6 +367,33 @@ class Overlay(QWidget):
             detail = note or ", ".join(f"{self._type_label(e.type)} {multiplier_text(e.factor)}" for e in effects)
             lines.append(f"{names}: {detail}" if certain else f"Si tiene {names}: {detail}")
         return lines
+
+    def _own_moves_section(self, rival: SpeciesView, layout: QVBoxLayout) -> None:
+        """«Tus movimientos»: los leídos del menú (o los probables) con su multiplicador contra el rival."""
+        moves, probable = self._own_moves
+        if not moves:
+            return
+        layout.addWidget(_section_title("Tus movimientos" + (" (probables)" if probable else "")))
+        chart = self.pokedex.type_chart(rival.generation)
+        grid = QGridLayout()
+        grid.setVerticalSpacing(3)
+        for i, move in enumerate(moves):
+            grid.addWidget(_pill(self._type_label(move.type) if move.type else "?", move.type), i, 0)
+            name = QLabel(move.name(self.language))
+            name.setObjectName("own-move")
+            grid.addWidget(name, i, 1)
+            if move.category == "status" or not move.type:
+                mult = self._muted("Estado", wrap=False)
+            else:
+                factor, effects = effective_multiplier(chart, move.type, rival)
+                mark = "*" if any(not e.certain for e in effects) else ""
+                mult = QLabel(multiplier_text(factor) + mark)
+                color = "#3ddc97" if factor > 1 else "#e5484d" if factor < 1 else theme.TEXT
+                mult.setStyleSheet(f"color:{color}; font-weight:700;")
+            mult.setObjectName("own-move-vs-rival")
+            grid.addWidget(mult, i, 2)
+        grid.setColumnStretch(1, 1)
+        layout.addLayout(grid)
 
     def _effectiveness(self, view: SpeciesView, layout: QVBoxLayout) -> None:
         groups = view.matchups

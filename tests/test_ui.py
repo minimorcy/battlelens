@@ -241,7 +241,8 @@ def test_submenu_de_regiones(qapp):
     tray = Tray(lambda: [], lambda: None, lambda: ([simple], simple.id), {})
     tray._populate_regions()
     labels = [a.text() for a in tray._regions_menu.actions()]
-    assert labels == ["Recalibrar rival", "Calibrar 2.º rival (combates dobles)…", "Calibrar tu Pokémon…"]
+    assert labels == ["Recalibrar rival", "Calibrar 2.º rival (combates dobles)…", "Calibrar tu Pokémon…",
+                      "Calibrar menú de ataques…"]
 
     full = simple.with_role_region("rival2", Region(0.1, 0.2, 0.2, 0.05))
     tray2 = Tray(lambda: [], lambda: None, lambda: ([full], full.id), {})
@@ -475,3 +476,43 @@ def test_ficha_que_cabe_no_se_desplaza(qapp, dex):
     qapp.processEvents()
     assert not o.scrollable and o.width() == 300
     o.close()
+
+
+# ---- tus movimientos (add-own-moves) -----------------------------------------------------
+
+def _moves(*identifiers):
+    from battlelens.core.learnsets import Learnsets
+
+    return [Learnsets.get().move(i) for i in identifiers]
+
+
+def test_tus_movimientos_contra_rookidee(qapp, dex):
+    from battlelens.ui.overlay import Overlay
+
+    o = Overlay(dex, "es")  # también en modo Normal
+    moves = _moves("ember", "tackle", "double-kick", "quick-attack")
+    o.show_battle([dex.view(821, "sword-shield")], dex.view(813, "sword-shield"), None, own_moves=moves)
+    qapp.processEvents()
+    assert _named(o, "own-move") == ["Ascuas", "Placaje", "Doble Patada", "Ataque Rápido"]
+    assert _named(o, "own-move-vs-rival") == ["×1", "×1", "×½", "×1"]
+    assert "TUS MOVIMIENTOS" in _labels(o)
+    o.close()
+
+
+def test_tus_movimientos_tierra_contra_flygon(qapp, overlay, dex):
+    overlay.show_battle([dex.view(330)], dex.view(51), None, own_moves=_moves("earthquake", "growl"))
+    qapp.processEvents()
+    assert _named(overlay, "own-move-vs-rival") == ["×0", "Estado"]
+
+
+def test_tus_movimientos_probables(qapp, overlay, dex):
+    overlay.show_battle([dex.view(16)], dex.view(813), None, own_moves=_moves("tackle", "growl"),
+                        own_moves_probable=True)
+    qapp.processEvents()
+    assert "TUS MOVIMIENTOS (PROBABLES)" in _labels(overlay)
+
+
+def test_sin_movimientos_no_hay_apartado(qapp, overlay, dex):
+    overlay.show_battle([dex.view(16)], dex.view(813), None)
+    qapp.processEvents()
+    assert not _named(overlay, "own-move")

@@ -23,7 +23,7 @@ class Tray(QObject):
     profile_game_selected = pyqtSignal(object)  # id de juego o None
     calibrate_requested = pyqtSignal()
     recalibrate_requested = pyqtSignal()
-    region_requested = pyqtSignal(str)  # calibrar "rival", "rival2" u "own"
+    region_requested = pyqtSignal(str)  # calibrar "rival", "rival2", "own" o "moves"
     region_remove_requested = pyqtSignal(str)
     delete_profile_requested = pyqtSignal()
     open_data_requested = pyqtSignal()
@@ -189,6 +189,7 @@ class Tray(QObject):
         for role, label, current in (
             ("rival2", "2.º rival (combates dobles)", active.rival2_region),
             ("own", "tu Pokémon", active.own_region),
+            ("moves", "menú de ataques", active.moves_region),
         ):
             verb = "Recalibrar" if current else "Calibrar"
             menu.addAction(f"{verb} {label}…").triggered.connect(lambda _=False, r=role: self.region_requested.emit(r))

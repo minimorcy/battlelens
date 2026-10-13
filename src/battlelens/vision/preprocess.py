@@ -98,6 +98,30 @@ def level_variants(crop: np.ndarray) -> list[np.ndarray]:
     return [gray_variant(right, h) for h in LEVEL_HEIGHTS]
 
 
+MOVES_SCALE = 2
+MOVES_HEIGHTS = (48, 64, 96)
+
+
+def moves_variants(crop: np.ndarray) -> list[np.ndarray]:
+    """Variantes del menú de ataques (add-own-moves D2): original, ampliadas ×2 (gris y binarizada),
+    alturas normalizadas y cada mitad por separado (el OCR a veces omite una columna de la rejilla 2×2)."""
+    h, w = crop.shape[:2]
+    size = (w * MOVES_SCALE, h * MOVES_SCALE)
+    gray = Image.fromarray(to_gray(crop)).resize(size, Image.Resampling.BICUBIC)
+    binary = Image.fromarray(binarize(crop)).resize(size, Image.Resampling.NEAREST)
+    variants = [
+        np.ascontiguousarray(crop),
+        np.pad(np.asarray(gray), PADDING_PX, constant_values=255),
+        np.pad(np.asarray(binary), PADDING_PX, constant_values=255),
+    ]
+    variants += [gray_variant(crop, height) for height in MOVES_HEIGHTS]
+    variants.append(preprocess(crop, MOVES_HEIGHTS[1]))
+    half = w // 2
+    if half > 0:
+        variants += [gray_variant(crop[:, :half], MOVES_HEIGHTS[0]), gray_variant(crop[:, half:], MOVES_HEIGHTS[0])]
+    return variants
+
+
 FINGERPRINT_SIZE = (32, 12)
 
 

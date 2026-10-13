@@ -38,6 +38,11 @@ def _clean(text: str) -> str:
     return _NON_ALNUM.sub("", text.upper())
 
 
+def clean_text(text: str) -> str:
+    """Mayúsculas sin acentos, espacios ni signos (para comparar nombres de movimiento)."""
+    return _clean(text)
+
+
 def normalize_name(text: str) -> str:
     return _clean(_strip_decorations(text))
 

@@ -13,11 +13,13 @@ from typing import Callable
 import numpy as np
 from PIL import Image
 
+from .core.learnsets import Move
 from .core.matcher import MatchResult, NameMatcher
+from .core.moves import MAX_MOVES, MIN_MOVES, MoveMatcher
 from .core.normalize import extract_level
 from .core.pokedex import Pokedex, Species
 from .core.profiles import Profile
-from .vision.preprocess import crop_region, fingerprint, level_variants, preprocess_variants
+from .vision.preprocess import crop_region, fingerprint, level_variants, moves_variants, preprocess_variants
 
 log = logging.getLogger(__name__)
 
@@ -38,6 +40,7 @@ class RecognitionResult:
     rival2: MatchResult | None = None  # 2.º rival (combates dobles), si el perfil tiene esa región
     own: MatchResult | None = None  # tu Pokémon, si el perfil tiene esa región
     levels: tuple[int | None, int | None, int | None] = (None, None, None)  # (rival, rival2, own)
+    moves: tuple[Move, ...] = ()  # movimientos leídos en el menú de ataques, si es una lectura válida
 
     @property
     def recognized(self) -> bool:
@@ -107,6 +110,21 @@ def _is_binary(image: np.ndarray) -> bool:
     return image.ndim == 2 and bool(np.isin(image, (0, 255)).all())
 
 
+def read_moves(crop: np.ndarray, ocr_fn: OcrFn, matcher: MoveMatcher, languages: tuple[str, ...]) -> tuple[Move, ...]:
+    """Movimientos del menú de ataques (spec own-moves): se combinan los de todas las variantes, primero
+    los que aparecen en más, hasta 4, en orden de aparición; vacío si son menos de 2."""
+    seen: dict[str, tuple[int, int, Move]] = {}  # identificador → (veces, orden de aparición, movimiento)
+    for image in moves_variants(crop):
+        for move in matcher.match(ocr_fn(image, languages).text):
+            count, order, _ = seen.get(move.identifier, (0, len(seen), move))
+            seen[move.identifier] = (count + 1, order, move)
+        if len(seen) >= MAX_MOVES and all(count > 1 for count, _, _ in seen.values()):
+            break
+    best = sorted(seen.values(), key=lambda v: (-v[0], v[1]))[:MAX_MOVES]
+    moves = tuple(move for _, _, move in sorted(best, key=lambda v: v[1]))
+    return moves if len(moves) >= MIN_MOVES else ()
+
+
 def crop_regions(frame: np.ndarray, profile: Profile) -> dict[str, np.ndarray]:
     """Recorta de una misma captura cada región configurada (rival, rival2, own)."""
     return {role: crop_region(frame, region) for role, region in profile.regions().items()}
@@ -135,12 +153,14 @@ class RecognitionPipeline:
         capture_fn: CaptureFn,
         ocr_fn: OcrFn,
         debug_dir: Path | None = None,
+        move_matcher: MoveMatcher | None = None,
     ) -> None:
         self.pokedex = pokedex
         self.matcher = matcher
         self.capture_fn = capture_fn
         self.ocr_fn = ocr_fn
         self.debug_dir = debug_dir
+        self.move_matcher = move_matcher
 
     def run(self, hwnd: int, profile: Profile) -> RecognitionResult:
         """Lanza CaptureError u OcrLanguageError si no se puede completar el ciclo."""
@@ -164,6 +184,10 @@ class RecognitionPipeline:
         rival2 = readings_by_role["rival2"].match if "rival2" in readings_by_role else None
         own = readings_by_role["own"].match if "own" in readings_by_role else None
         levels = levels_of(readings_by_role)
+        moves: tuple[Move, ...] = ()
+        if profile.moves_region is not None and self.move_matcher is not None:
+            moves = read_moves(crop_region(frame, profile.moves_region), self.ocr_fn, self.move_matcher,
+                               profile.ocr_languages)
         lap("ocr")
         timings["total"] = round(sum(timings.values()), 1)
 
@@ -178,7 +202,7 @@ class RecognitionPipeline:
         )
         if self.debug_dir is not None:
             self._dump(crop, best_image, profile, best, timings, readings)
-        return RecognitionResult(best, species, timings, combined_fingerprint(crops), rival2, own, levels)
+        return RecognitionResult(best, species, timings, combined_fingerprint(crops), rival2, own, levels, moves)
 
     def _dump(self, crop, processed, profile, match: MatchResult, timings, readings: list[str]) -> None:
         try:

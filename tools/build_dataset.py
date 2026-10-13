@@ -470,7 +470,8 @@ def build_learnsets(tables: dict[str, list[dict[str, str]]]) -> dict:
     moves = {}
     for r in tables["moves"]:
         mid = int(r["id"])
-        if mid in used_moves:
+        # Todos los movimientos con un tipo estándar, no solo los que se aprenden por nivel (add-own-moves D2)
+        if mid in used_moves or (r["type_id"] and int(r["type_id"]) in type_ident):
             moves[str(mid)] = {
                 "identifier": r["identifier"],
                 "names": move_names.get(mid, {}),

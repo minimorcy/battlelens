@@ -29,10 +29,12 @@ from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from . import APP_NAME, __version__
 from .core.config import AppState, Config, ConfigError, load_config, save_config
-from .core.detection import Action, BattleDetector
+from .core.detection import Action, BattleDetector, RegionWatcher
 from .core.games import GameDetector
 from .core.updates import Release, check_latest, due
+from .core.learnsets import Learnsets, LearnsetsMissingError
 from .core.matcher import NameMatcher
+from .core.moves import MoveMatcher, MoveMemory
 from .core.pokedex import DatasetMissingError, Pokedex
 from .core.profiles import Profile, ProfileStore
 from .core.storage import app_data_dir
@@ -42,6 +44,7 @@ from .pipeline import (
     combined_fingerprint,
     crop_regions,
     levels_of,
+    read_moves,
     read_regions,
 )
 from .platform import windows
@@ -63,7 +66,7 @@ from .ui.calibrator import CalibrationDialog, ask_profile
 from .ui.icons import app_icon
 from .ui.overlay import Overlay
 from .ui.tray import Tray
-from .vision.preprocess import fingerprint_distance
+from .vision.preprocess import crop_region, fingerprint, fingerprint_distance
 
 log = logging.getLogger("battlelens")
 
@@ -97,6 +100,8 @@ class Controller(QObject):
         self.state_path = self.data_dir / "state.json"
         self.state = AppState.load(self.state_path)
         self.profiles = ProfileStore(self.data_dir / "profiles")
+        self.move_memory = MoveMemory(self.data_dir / "moves.json")  # spec own-moves
+        self._move_matcher: MoveMatcher | None = None
         self.profiles.load(preferred_active=self.state.active_profile)
         self.target: windows.WindowInfo | None = windows.find_window(
             self.state.last_window_exe, self.state.last_window_title
@@ -124,6 +129,8 @@ class Controller(QObject):
 
         # Detección automática del combate (spec battle-detection)
         self.battle = BattleDetector(fingerprint_distance, config.detection_hide_after_seconds)
+        self.moves_watcher = RegionWatcher(fingerprint_distance)  # menú de ataques (add-own-moves D3)
+        self._moves_busy = False
         self._watch_busy = False
         self._modal_open = False
         self._watch_timer = QTimer(self)
@@ -407,12 +414,16 @@ class Controller(QObject):
 
     @staticmethod
     def _capture_crop(hwnd: int, profile: Profile):
-        crops = crop_regions(capture_client(hwnd), profile)
-        return crops, combined_fingerprint(crops), profile
+        frame = capture_client(hwnd)
+        crops = crop_regions(frame, profile)
+        moves_crop = crop_region(frame, profile.moves_region) if profile.moves_region is not None else None
+        return crops, combined_fingerprint(crops), profile, moves_crop
 
     def _on_watch_frame(self, payload) -> None:
         self._watch_busy = False
-        crop, fp, profile = payload
+        crop, fp, profile, moves_crop = payload
+        if moves_crop is not None:
+            self._watch_moves(moves_crop, profile)
         action = self.battle.on_frame(fp, time.monotonic())
         if action is Action.HIDE:
             self.overlay.hide()
@@ -427,6 +438,62 @@ class Controller(QObject):
         readings = read_regions(crops, recognize, self.pipeline.matcher, profile.ocr_languages)
         key = tuple(readings[r].match.species_id if r in readings else None for r in ("rival", "rival2", "own"))
         return key, fp, profile, levels_of(readings)
+
+    # ---- menú de ataques (spec own-moves) ------------------------------------------
+
+    def move_matcher(self) -> MoveMatcher:
+        if self._move_matcher is None:
+            self._move_matcher = MoveMatcher(Learnsets.get().all_moves())
+        return self._move_matcher
+
+    def _watch_moves(self, moves_crop, profile: Profile) -> None:
+        moves_fp = fingerprint(moves_crop)
+        if not self.moves_watcher.on_frame(moves_fp) or self._moves_busy:
+            return
+        self.moves_watcher.attempted(moves_fp)
+        self._moves_busy = True
+        task = _Task(self._read_moves, moves_crop, profile)
+        task.signals.finished.connect(self._on_moves_read)
+        task.signals.failed.connect(self._on_moves_failure)
+        self._pool.start(task)
+
+    def _read_moves(self, moves_crop, profile: Profile):
+        return profile, read_moves(moves_crop, recognize, self.move_matcher(), profile.ocr_languages)
+
+    def _on_moves_read(self, payload) -> None:
+        self._moves_busy = False
+        profile, moves = payload
+        self._remember_moves(profile, moves)
+
+    def _on_moves_failure(self, exc: Exception) -> None:
+        self._moves_busy = False
+        log.debug("Lectura del menú de ataques omitida: %s", exc)
+
+    def _remember_moves(self, profile: Profile, moves) -> None:
+        """Guarda los movimientos leídos para tu Pokémon actual y redibuja si cambian (D4)."""
+        own = self._last_battle[0][2] if self._last_battle is not None else None
+        if not moves or own is None:
+            return
+        if self.move_memory.store(profile.id, own, [m.identifier for m in moves]):
+            log.info("Movimientos de tu Pokémon %s: %s", own, [m.identifier for m in moves])
+            self._redraw_last_battle()
+
+    def _own_moves(self, own_view, own_level):
+        """(movimientos, probables): los guardados de tu Pokémon o, si no hay, los probables a su nivel."""
+        profile = self.profiles.active
+        try:
+            learnsets = Learnsets.get()
+        except LearnsetsMissingError:
+            return [], False
+        stored = self.move_memory.get(profile.id, own_view.species_id) if profile else []
+        moves = [m for m in (learnsets.move(i) for i in stored) if m is not None]
+        if moves:
+            return moves, False
+        if own_level:
+            game = self.pokedex.get_game(own_view.game_id)
+            return learnsets.probable_moves(own_view.pokemon or "", own_level, own_view.game_id,
+                                            game.generation if game else None), True
+        return [], False
 
     def _on_auto_result(self, payload) -> None:
         self._busy = False
@@ -446,7 +513,8 @@ class Controller(QObject):
         self.overlay.form_hotkey = self.config.hotkey_cycle_form
         rivals = [self.pokedex.view(sid, game, lang, self._form_choice.get(sid)) for sid, _ in pairs]
         own_view = self.pokedex.view(own, game, lang) if own is not None else None
-        self.overlay.show_battle(rivals, own_view, rect, [lvl for _, lvl in pairs], levels[2])
+        own_moves, probable = self._own_moves(own_view, levels[2]) if own_view is not None else ([], False)
+        self.overlay.show_battle(rivals, own_view, rect, [lvl for _, lvl in pairs], levels[2], own_moves, probable)
 
     def _on_auto_failure(self, exc: Exception) -> None:
         self._busy = False
@@ -472,6 +540,8 @@ class Controller(QObject):
         if profile is None:
             self.tray.notify("No hay perfiles: calibra primero la región del nombre.", warning=True)
             return
+        if profile.moves_region is not None:
+            self.pipeline.move_matcher = self.move_matcher()
         self._busy = True
         self._recognition_game = profile.game
         task = _Task(self.pipeline.run, self.target.hwnd, profile)
@@ -484,6 +554,8 @@ class Controller(QObject):
         rect = self._target_rect()
         if result.any_rival:
             self._show_battle(result.key, self._recognition_game, rect, result.levels)
+            if self.profiles.active is not None:
+                self._remember_moves(self.profiles.active, result.moves)
             self.battle.on_manual_result(result.key, result.fingerprint)
         else:
             self.overlay.show_unrecognized(result.match.raw_text, rect)
@@ -596,6 +668,7 @@ class Controller(QObject):
         "rival": "nombre del Pokémon rival",
         "rival2": "nombre del 2.º Pokémon rival",
         "own": "nombre de tu Pokémon",
+        "moves": "menú de ataques (los 4 movimientos)",
     }
 
     def recalibrate(self) -> None:
@@ -621,6 +694,7 @@ class Controller(QObject):
     def _save_region(self, profile: Profile, role: str, region) -> None:
         self.profiles.save(profile.with_role_region(role, region), activate=True)
         self.battle.reset()  # la huella cambia de forma al cambiar las regiones
+        self.moves_watcher.reset()
         self.tray.notify(f"«{profile.name}»: región del {self.REGION_TARGETS[role]} guardada.")
 
     def remove_region(self, role: str) -> None:

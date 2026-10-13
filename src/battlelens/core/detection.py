@@ -115,3 +115,36 @@ class BattleDetector:
     def on_hidden_by_user(self) -> None:
         # Se mantiene la especie como «mostrada» para no volver a abrir la ficha del mismo rival.
         self._hidden_by_user = True
+
+
+class RegionWatcher:
+    """Vigila una región con su propia huella y avisa cuando se estabiliza en algo nuevo
+    (menú de ataques, add-own-moves D3); no oculta ni muestra la ficha."""
+
+    def __init__(
+        self,
+        distance: Callable[[np.ndarray, np.ndarray], float],
+        change_threshold: float = CHANGE_THRESHOLD,
+        stable_ticks: int = STABLE_TICKS,
+    ) -> None:
+        self._distance = distance
+        self.change_threshold = change_threshold
+        self.stable_ticks = stable_ticks
+        self.reset()
+
+    def reset(self) -> None:
+        self._last: np.ndarray | None = None
+        self._stable = 0
+        self._last_read: np.ndarray | None = None
+
+    def _differs(self, a: np.ndarray | None, b: np.ndarray | None) -> bool:
+        return a is None or b is None or self._distance(a, b) > self.change_threshold
+
+    def on_frame(self, fp: np.ndarray) -> bool:
+        """True si toca leer la región: estable durante `stable_ticks` ciclos y distinta de la última leída."""
+        self._stable = 0 if self._differs(fp, self._last) else self._stable + 1
+        self._last = fp
+        return self._stable == self.stable_ticks and self._differs(fp, self._last_read)
+
+    def attempted(self, fp: np.ndarray) -> None:
+        self._last_read = fp

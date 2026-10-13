@@ -43,6 +43,7 @@ class Learnsets:
         self._pokemon: dict[str, dict[str, int]] = data["pokemon"]
         # grupo de versiones → (generación, orden)
         self._vg: dict[str, tuple[int, int]] = {k: tuple(v) for k, v in data["version_groups"].items()}
+        self._by_identifier: dict[str, str] | None = None
 
     @classmethod
     def get(cls) -> Learnsets:
@@ -75,18 +76,26 @@ class Learnsets:
                 return older[0]
         return ordered[0]
 
+    def _move(self, move_id: int | str, level: int = 0) -> Move:
+        m = self._moves[str(move_id)]
+        return Move(int(move_id), m["identifier"], m["names"], m["type"], m["class"], m["power"],
+                    m["accuracy"], m["pp"], m["priority"], level)
+
+    def move(self, identifier: str) -> Move | None:
+        """Movimiento del catálogo por su identificador (add-own-moves D2)."""
+        if self._by_identifier is None:
+            self._by_identifier = {m["identifier"]: mid for mid, m in self._moves.items()}
+        mid = self._by_identifier.get(identifier)
+        return self._move(mid) if mid is not None else None
+
+    def all_moves(self) -> list[Move]:
+        return [self._move(mid) for mid in self._moves]
+
     def level_up_moves(self, pokemon: str, version_group: str) -> list[Move]:
         index = self._pokemon.get(pokemon, {}).get(version_group)
         if index is None:
             return []
-        result = []
-        for level, move_id in self._sets[index]:
-            m = self._moves[str(move_id)]
-            result.append(
-                Move(move_id, m["identifier"], m["names"], m["type"], m["class"], m["power"],
-                     m["accuracy"], m["pp"], m["priority"], level)
-            )
-        return result
+        return [self._move(move_id, level) for level, move_id in self._sets[index]]
 
     def probable_moves(
         self, pokemon: str, level: int, game: str | None = None, generation: int | None = None

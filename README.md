@@ -47,6 +47,7 @@ BattleLens uses the text recognition that ships with Windows. Almost every PC al
 5. **Optional: your Pokémon and double battles.** In tray → **Profile regions** (*Regiones del perfil*) you can also calibrate the name of **your Pokémon** and of the **2nd opponent**:
    - With your Pokémon, each card shows **"Against your X"** (*Contra tu X*): what your types do to it, what its types do to you, and a verdict (**Advantage / Neutral / Disadvantage** — *Ventaja / Neutral / Desventaja*). Nicknamed Pokémon can't be recognised.
    - With the 2nd opponent, double battles show two cards side by side.
+   - **Your moves:** also calibrate the **move menu** (*Menú de ataques*) with the Fight menu open, over the 4 moves. Each time you open it, BattleLens reads your Pokémon's moves and remembers them per species; every card then shows **"Your moves"** (*Tus movimientos*) with how much each one does to that opponent. Until they're read, it shows your Pokémon's likely moves for its level.
 
 The app's interface is currently in Spanish (menu names are given in *italics* above); the card content (Pokémon, types, abilities, moves) is available in English, Spanish, French, German and Italian (`overlay.language`).
 
@@ -85,6 +86,7 @@ BattleLens checks once a day whether there's a new version. If there is, it lets
 - **Level reading:** the level is only read if the calibrated region includes it. BattleLens retries with extra variants and a zoomed-in read of the right half, and tolerates digits misread as letters ("Nv. 1G"), but if it still can't read it, Competitive mode shows the card without likely moves or stats at its level. Normal mode doesn't need it.
 - **Likely moves** are what a wild Pokémon or an ordinary trainer's Pokémon would know; gym leaders, rivals and competitive teams may carry others.
 - **Stats at its level** use each game's formula (Gen 1-2, Let's Go, Legends: Arceus and Gen 3+); Legends Z-A and Champions use the Gen 3+ one for now.
+- **Your moves** use their current type and power (e.g. Bite was Normal in Gen 1), and moves with a variable type (Hidden Power, Weather Ball, Tera Blast) show their base type.
 - **The matchup is type-based** (STAB attacks) and accounts for abilities that change effectiveness: when every ability the Pokémon can have in that game does the same thing (Flygon's Levitate), it's applied; when only some do (Bronzong), the card warns you ("if it has Levitate"). Held items and abilities that ignore others (Mold Breaker) aren't considered.
 
 ### Uninstall
