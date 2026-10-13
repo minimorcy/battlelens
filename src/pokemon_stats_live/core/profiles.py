@@ -1,0 +1,157 @@
+"""Perfiles de calibración por juego con regiones relativas al área cliente."""
+
+from __future__ import annotations
+
+import json
+import logging
+import uuid
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+
+from .storage import write_json_atomic
+
+log = logging.getLogger(__name__)
+
+MIN_REGION_PX = 8
+DEFAULT_OCR_LANGUAGES = ("es", "en")
+_EPS = 1e-6
+
+
+class ProfileError(ValueError):
+    pass
+
+
+class RegionTooSmallError(ProfileError):
+    def __init__(self, width: int, height: int) -> None:
+        super().__init__(
+            f"La región mide {width}×{height} px; el mínimo es {MIN_REGION_PX} px de ancho y de alto."
+        )
+
+
+@dataclass(frozen=True)
+class Region:
+    """Rectángulo en fracciones [0, 1] del área cliente."""
+
+    x: float
+    y: float
+    width: float
+    height: float
+
+    def __post_init__(self) -> None:
+        values = (self.x, self.y, self.width, self.height)
+        if not all(isinstance(v, (int, float)) for v in values):
+            raise ProfileError("La región debe contener números")
+        if not all(-_EPS <= v <= 1 + _EPS for v in values):
+            raise ProfileError("Las coordenadas de la región deben estar en [0, 1]")
+        if self.width <= 0 or self.height <= 0:
+            raise ProfileError("La región debe tener ancho y alto positivos")
+        if self.x + self.width > 1 + _EPS or self.y + self.height > 1 + _EPS:
+            raise ProfileError("La región se sale del área cliente")
+
+    @classmethod
+    def from_pixels(cls, x: int, y: int, width: int, height: int, client_w: int, client_h: int) -> Region:
+        if width < MIN_REGION_PX or height < MIN_REGION_PX:
+            raise RegionTooSmallError(width, height)
+        return cls(
+            round(x / client_w, 6),
+            round(y / client_h, 6),
+            round(width / client_w, 6),
+            round(height / client_h, 6),
+        )
+
+    def to_pixels(self, client_w: int, client_h: int) -> tuple[int, int, int, int]:
+        x = min(max(round(self.x * client_w), 0), client_w - 1)
+        y = min(max(round(self.y * client_h), 0), client_h - 1)
+        w = max(1, min(round(self.width * client_w), client_w - x))
+        h = max(1, min(round(self.height * client_h), client_h - y))
+        return x, y, w, h
+
+
+@dataclass(frozen=True)
+class Profile:
+    name: str
+    region: Region
+    ocr_languages: tuple[str, ...] = DEFAULT_OCR_LANGUAGES
+    id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat(timespec="seconds"))
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.name, str) or not self.name.strip():
+            raise ProfileError("El perfil necesita un nombre")
+        if not self.ocr_languages or not all(isinstance(lang, str) for lang in self.ocr_languages):
+            raise ProfileError("El perfil necesita al menos un idioma de OCR")
+
+    def with_region(self, region: Region) -> Profile:
+        return Profile(self.name, region, self.ocr_languages, self.id, self.created_at)
+
+    def to_dict(self) -> dict:
+        data = asdict(self)
+        data["ocr_languages"] = list(self.ocr_languages)
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict) -> Profile:
+        try:
+            region = Region(**data["region"])
+            return cls(
+                name=data["name"],
+                region=region,
+                ocr_languages=tuple(data.get("ocr_languages") or DEFAULT_OCR_LANGUAGES),
+                id=data["id"],
+                created_at=data["created_at"],
+            )
+        except (KeyError, TypeError) as exc:
+            raise ProfileError(f"Perfil con formato inválido: {exc}") from exc
+
+
+class ProfileStore:
+    """Perfiles en disco (un JSON por perfil) y selección del perfil activo."""
+
+    def __init__(self, directory: Path) -> None:
+        self.directory = directory
+        self.profiles: dict[str, Profile] = {}
+        self.active_id: str | None = None
+
+    def load(self, preferred_active: str | None = None) -> None:
+        self.profiles.clear()
+        if self.directory.is_dir():
+            for path in sorted(self.directory.glob("*.json")):
+                try:
+                    profile = Profile.from_dict(json.loads(path.read_text(encoding="utf-8")))
+                except (OSError, ValueError) as exc:
+                    log.warning("Perfil ignorado (%s): %s", path.name, exc)
+                    continue
+                self.profiles[profile.id] = profile
+        self.active_id = preferred_active if preferred_active in self.profiles else self._first_id()
+
+    @property
+    def active(self) -> Profile | None:
+        return self.profiles.get(self.active_id) if self.active_id else None
+
+    def sorted_profiles(self) -> list[Profile]:
+        return sorted(self.profiles.values(), key=lambda p: p.name.lower())
+
+    def set_active(self, profile_id: str) -> None:
+        if profile_id not in self.profiles:
+            raise KeyError(profile_id)
+        self.active_id = profile_id
+
+    def save(self, profile: Profile, activate: bool = True) -> None:
+        write_json_atomic(self._path(profile.id), profile.to_dict())
+        self.profiles[profile.id] = profile
+        if activate or self.active_id is None:
+            self.active_id = profile.id
+
+    def delete(self, profile_id: str) -> None:
+        self._path(profile_id).unlink(missing_ok=True)
+        self.profiles.pop(profile_id, None)
+        if self.active_id == profile_id or self.active_id not in self.profiles:
+            self.active_id = self._first_id()
+
+    def _first_id(self) -> str | None:
+        ordered = self.sorted_profiles()
+        return ordered[0].id if ordered else None
+
+    def _path(self, profile_id: str) -> Path:
+        return self.directory / f"{profile_id}.json"
