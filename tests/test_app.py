@@ -254,3 +254,40 @@ def test_conmutador_de_deteccion_persiste(qapp, controller, tmp_path):
     controller.set_auto_detect(False)
     assert not controller.auto_detect and not controller.tray.auto_detect_action.isChecked()
     assert AppState.load(tmp_path / "state.json").auto_detect is False
+
+
+def _double_frame(rival: str, own: str) -> np.ndarray:
+    img = Image.new("RGB", (240, 160), (112, 200, 160))
+    d = ImageDraw.Draw(img)
+    d.fontmode = "1"
+    font = ImageFont.truetype("consola.ttf", 10)
+    d.rectangle((10, 14, 110, 44), fill=(248, 248, 216), outline=(64, 64, 64))
+    d.text((16, 17), rival, fill=(64, 64, 64), font=font)
+    d.rectangle((130, 110, 230, 140), fill=(248, 248, 216), outline=(64, 64, 64))
+    d.text((136, 113), own, fill=(64, 64, 64), font=font)
+    return np.array(img.resize((720, 480), Image.NEAREST))
+
+
+def test_auto_actualiza_al_cambiar_tu_pokemon(qapp, auto_controller, fake_emulator, requires_ocr):
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.platform.windows import WindowInfo
+
+    c = auto_controller
+    c.tray.notify = lambda msg, warning=False: None
+    profile = Profile("Fake", Region.from_pixels(14, 16, 70, 13, 240, 160),
+                      own_region=Region.from_pixels(134, 112, 70, 13, 240, 160))
+    c.profiles.save(profile)
+    _show_frame(qapp, fake_emulator, _double_frame("GEODUDE", "TENTACOOL"))
+    c.select_window(WindowInfo(int(fake_emulator.winId()), "Fake emulator", "python.exe", 0))
+
+    def verdict():
+        from PyQt6.QtWidgets import QLabel
+
+        labels = [w.text() for w in c.overlay.findChildren(QLabel) if w.objectName() == "verdict"]
+        return labels[0] if labels and c.overlay.isVisible() else None
+
+    # Tentacool (Agua/Veneno) contra Geodude (Roca/Tierra): ventaja
+    assert _wait(qapp, lambda: verdict() == "Ventaja", timeout=6)
+    # Sacas a Pidgey (Normal/Volador) contra Geodude: desventaja
+    _show_frame(qapp, fake_emulator, _double_frame("GEODUDE", "PIDGEY"))
+    assert _wait(qapp, lambda: verdict() == "Desventaja", timeout=6)

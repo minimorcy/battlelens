@@ -33,11 +33,26 @@ class RecognitionResult:
     match: MatchResult
     species: Species | None
     timings_ms: dict[str, float] = field(default_factory=dict)
-    fingerprint: np.ndarray | None = None  # huella del recorte (detección automática)
+    fingerprint: np.ndarray | None = None  # huella combinada de las regiones (detección automática)
+    rival2: MatchResult | None = None  # 2.º rival (combates dobles), si el perfil tiene esa región
+    own: MatchResult | None = None  # tu Pokémon, si el perfil tiene esa región
 
     @property
     def recognized(self) -> bool:
         return self.species is not None
+
+    @property
+    def any_rival(self) -> bool:
+        return self.species is not None or (self.rival2 is not None and self.rival2.recognized)
+
+    @property
+    def key(self) -> tuple[int | None, int | None, int | None]:
+        """Combinación (rival, 2.º rival, tu Pokémon) para la detección automática."""
+        return (
+            self.match.species_id,
+            self.rival2.species_id if self.rival2 else None,
+            self.own.species_id if self.own else None,
+        )
 
 
 @dataclass(frozen=True)
@@ -65,6 +80,22 @@ def read_crop(crop: np.ndarray, ocr_fn: OcrFn, matcher: NameMatcher, languages: 
         if match.score >= 100:
             break
     return CropReading(best, best_image, tuple(readings))
+
+
+def crop_regions(frame: np.ndarray, profile: Profile) -> dict[str, np.ndarray]:
+    """Recorta de una misma captura cada región configurada (rival, rival2, own)."""
+    return {role: crop_region(frame, region) for role, region in profile.regions().items()}
+
+
+def combined_fingerprint(crops: dict[str, np.ndarray]) -> np.ndarray:
+    """Huellas de todas las regiones concatenadas en horizontal (design.md D3)."""
+    return np.hstack([fingerprint(c) for c in crops.values()])
+
+
+def read_regions(
+    crops: dict[str, np.ndarray], ocr_fn: OcrFn, matcher: NameMatcher, languages: tuple[str, ...]
+) -> dict[str, CropReading]:
+    return {role: read_crop(crop, ocr_fn, matcher, languages) for role, crop in crops.items()}
 
 
 class RecognitionPipeline:
@@ -95,10 +126,14 @@ class RecognitionPipeline:
 
         frame = self.capture_fn(hwnd)
         lap("captura")
-        crop = crop_region(frame, profile.region)
+        crops = crop_regions(frame, profile)
         lap("recorte")
-        reading = read_crop(crop, self.ocr_fn, self.matcher, profile.ocr_languages)
+        readings_by_role = read_regions(crops, self.ocr_fn, self.matcher, profile.ocr_languages)
+        reading = readings_by_role["rival"]
+        crop = crops["rival"]
         best, best_image, readings = reading.match, reading.image, list(reading.readings)
+        rival2 = readings_by_role["rival2"].match if "rival2" in readings_by_role else None
+        own = readings_by_role["own"].match if "own" in readings_by_role else None
         lap("ocr")
         timings["total"] = round(sum(timings.values()), 1)
 
@@ -113,7 +148,7 @@ class RecognitionPipeline:
         )
         if self.debug_dir is not None:
             self._dump(crop, best_image, profile, best, timings, readings)
-        return RecognitionResult(best, species, timings, fingerprint(crop))
+        return RecognitionResult(best, species, timings, combined_fingerprint(crops), rival2, own)
 
     def _dump(self, crop, processed, profile, match: MatchResult, timings, readings: list[str]) -> None:
         try:

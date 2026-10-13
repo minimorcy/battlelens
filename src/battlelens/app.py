@@ -31,7 +31,7 @@ from .core.matcher import NameMatcher
 from .core.pokedex import DatasetMissingError, Pokedex
 from .core.profiles import Profile, ProfileStore
 from .core.storage import app_data_dir
-from .pipeline import RecognitionPipeline, RecognitionResult, read_crop
+from .pipeline import RecognitionPipeline, RecognitionResult, combined_fingerprint, crop_regions, read_regions
 from .platform import windows
 from .platform.capture import CaptureError, WindowMinimized, WindowUnavailable, capture_client
 from .platform.hotkeys import Hotkey, HotkeyManager, HotkeyParseError, parse_hotkey
@@ -50,7 +50,7 @@ from .ui.calibrator import CalibrationDialog, ask_profile
 from .ui.icons import app_icon
 from .ui.overlay import Overlay
 from .ui.tray import Tray
-from .vision.preprocess import crop_region, fingerprint, fingerprint_distance
+from .vision.preprocess import fingerprint_distance
 
 log = logging.getLogger("battlelens")
 
@@ -130,6 +130,8 @@ class Controller(QObject):
         self.tray.profile_game_selected.connect(self.set_profile_game)
         self.tray.calibrate_requested.connect(self.calibrate_new)
         self.tray.recalibrate_requested.connect(self.recalibrate)
+        self.tray.region_requested.connect(self.calibrate_region)
+        self.tray.region_remove_requested.connect(self.remove_region)
         self.tray.delete_profile_requested.connect(self.delete_profile)
         self.tray.open_data_requested.connect(lambda: os.startfile(self.data_dir))
         self.tray.install_ocr_requested.connect(self.install_ocr)
@@ -271,8 +273,8 @@ class Controller(QObject):
 
     @staticmethod
     def _capture_crop(hwnd: int, profile: Profile):
-        crop = crop_region(capture_client(hwnd), profile.region)
-        return crop, fingerprint(crop), profile
+        crops = crop_regions(capture_client(hwnd), profile)
+        return crops, combined_fingerprint(crops), profile
 
     def _on_watch_frame(self, payload) -> None:
         self._watch_busy = False
@@ -287,17 +289,25 @@ class Controller(QObject):
             task.signals.failed.connect(self._on_auto_failure)
             self._pool.start(task)
 
-    def _read_auto(self, crop, fp, profile: Profile):
-        reading = read_crop(crop, recognize, self.pipeline.matcher, profile.ocr_languages)
-        return reading.match, fp, profile
+    def _read_auto(self, crops, fp, profile: Profile):
+        readings = read_regions(crops, recognize, self.pipeline.matcher, profile.ocr_languages)
+        key = tuple(readings[r].match.species_id if r in readings else None for r in ("rival", "rival2", "own"))
+        return key, fp, profile
 
     def _on_auto_result(self, payload) -> None:
         self._busy = False
-        match, fp, profile = payload
-        if self.battle.on_result(match.species_id, fp, time.monotonic()) is Action.SHOW:
-            log.info("Detección automática: %s (%.0f)", match.matched_name, match.score)
-            species = self.pokedex.get_species(match.species_id)
-            self.overlay.show_species(species, self._target_rect(), game=profile.game)
+        key, fp, profile = payload
+        if self.battle.on_result(key, fp, time.monotonic()) is Action.SHOW:
+            log.info("Detección automática: %s", key)
+            self._show_battle(key, profile.game, self._target_rect())
+
+    def _show_battle(self, key, game: str | None, rect) -> None:
+        """Muestra las tarjetas de los rivales de la clave (rival, rival2, own) y la comparativa."""
+        rival, rival2, own = key
+        lang = self.config.language
+        rivals = [self.pokedex.view(sid, game, lang) for sid in (rival, rival2) if sid is not None]
+        own_view = self.pokedex.view(own, game, lang) if own is not None else None
+        self.overlay.show_battle(rivals, own_view, rect)
 
     def _on_auto_failure(self, exc: Exception) -> None:
         self._busy = False
@@ -333,9 +343,9 @@ class Controller(QObject):
     def _on_result(self, result: RecognitionResult) -> None:
         self._busy = False
         rect = self._target_rect()
-        if result.recognized:
-            self.overlay.show_species(result.species, rect, game=self._recognition_game)
-            self.battle.on_manual_result(result.species.id, result.fingerprint)
+        if result.any_rival:
+            self._show_battle(result.key, self._recognition_game, rect)
+            self.battle.on_manual_result(result.key, result.fingerprint)
         else:
             self.overlay.show_unrecognized(result.match.raw_text, rect)
 
@@ -443,22 +453,44 @@ class Controller(QObject):
         self.tray.refresh_tooltip()
         self.tray.notify(f"Perfil «{name}» creado y activo.")
 
+    REGION_TARGETS = {
+        "rival": "nombre del Pokémon rival",
+        "rival2": "nombre del 2.º Pokémon rival",
+        "own": "nombre de tu Pokémon",
+    }
+
     def recalibrate(self) -> None:
+        self.calibrate_region("rival")
+
+    def calibrate_region(self, role: str) -> None:
         profile = self.profiles.active
         if profile is None:
             return
         image = self._capture_for_calibration()
         if image is None:
             return
-        dialog = CalibrationDialog(image, f"Recalibrar «{profile.name}»")
+        target = self.REGION_TARGETS[role]
+        dialog = CalibrationDialog(image, f"«{profile.name}»: {target}", target)
         self._modal_open = True
         try:
             accepted = dialog.exec()
         finally:
             self._modal_open = False
         if accepted and dialog.region is not None:
-            self.profiles.save(profile.with_region(dialog.region), activate=True)
-            self.tray.notify(f"Región de «{profile.name}» actualizada.")
+            self._save_region(profile, role, dialog.region)
+
+    def _save_region(self, profile: Profile, role: str, region) -> None:
+        self.profiles.save(profile.with_role_region(role, region), activate=True)
+        self.battle.reset()  # la huella cambia de forma al cambiar las regiones
+        self.tray.notify(f"«{profile.name}»: región del {self.REGION_TARGETS[role]} guardada.")
+
+    def remove_region(self, role: str) -> None:
+        profile = self.profiles.active
+        if profile is None or role == "rival":
+            return
+        self.profiles.save(profile.with_role_region(role, None), activate=True)
+        self.battle.reset()
+        self.tray.notify(f"«{profile.name}»: región del {self.REGION_TARGETS[role]} quitada.")
 
     def delete_profile(self) -> None:
         profile = self.profiles.active

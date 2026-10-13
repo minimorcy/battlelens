@@ -1,13 +1,15 @@
 """Detección automática del combate: cuándo reconocer, mostrar y ocultar (spec battle-detection).
 
 Lógica pura, sin Qt ni reloj real: la hora llega como parámetro (design.md D1).
+La «clave» de un combate es cualquier valor comparable: el id de una especie o una tupla
+(rival, 2.º rival, tu Pokémon). `has_rival(clave)` decide si la clave cuenta como reconocida.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable
+from typing import Callable, Hashable
 
 import numpy as np
 
@@ -22,9 +24,17 @@ class Action(Enum):
     HIDE = "hide"
 
 
+def default_has_rival(key: Hashable | None) -> bool:
+    if key is None:
+        return False
+    if isinstance(key, tuple):
+        return any(k is not None for k in key[:2])  # (rival, rival2, own): basta con un rival
+    return True
+
+
 @dataclass
 class _Shown:
-    species_id: int
+    key: Hashable
     fingerprint: np.ndarray
     away_since: float | None = None
 
@@ -36,7 +46,9 @@ class BattleDetector:
         hide_after_seconds: float = 4.0,
         change_threshold: float = CHANGE_THRESHOLD,
         stable_ticks: int = STABLE_TICKS,
+        has_rival: Callable[[Hashable | None], bool] = default_has_rival,
     ) -> None:
+        self._has_rival = has_rival
         self._distance = distance
         self.hide_after_seconds = hide_after_seconds
         self.change_threshold = change_threshold
@@ -51,8 +63,10 @@ class BattleDetector:
         self._hidden_by_user = False
 
     @property
-    def shown_species(self) -> int | None:
-        return self._shown.species_id if self._shown else None
+    def shown_key(self) -> Hashable | None:
+        return self._shown.key if self._shown else None
+
+    shown_species = shown_key  # compatibilidad: con claves simples es el id de la especie
 
     def _differs(self, a: np.ndarray | None, b: np.ndarray | None) -> bool:
         return a is None or b is None or self._distance(a, b) > self.change_threshold
@@ -79,22 +93,22 @@ class BattleDetector:
             return Action.RECOGNIZE
         return Action.NONE
 
-    def on_result(self, species_id: int | None, fp: np.ndarray, now: float) -> Action:
+    def on_result(self, key: Hashable | None, fp: np.ndarray, now: float) -> Action:
         self._last_attempt = fp
-        if species_id is None:
+        if not self._has_rival(key):
             return Action.NONE
-        if self._shown is not None and self._shown.species_id == species_id:
+        if self._shown is not None and self._shown.key == key:
             self._shown.fingerprint = fp
             self._shown.away_since = None
             return Action.NONE
-        self._shown = _Shown(species_id, fp)
+        self._shown = _Shown(key, fp)
         self._hidden_by_user = False
         return Action.SHOW
 
-    def on_manual_result(self, species_id: int | None, fp: np.ndarray | None) -> None:
+    def on_manual_result(self, key: Hashable | None, fp: np.ndarray | None) -> None:
         """Un reconocimiento manual también cuenta como mostrado, para no repetirlo en automático."""
-        if species_id is not None and fp is not None:
-            self._shown = _Shown(species_id, fp)
+        if self._has_rival(key) and fp is not None:
+            self._shown = _Shown(key, fp)
             self._last_attempt = fp
             self._hidden_by_user = False
 

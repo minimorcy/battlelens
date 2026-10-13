@@ -22,6 +22,8 @@ class Tray(QObject):
     profile_game_selected = pyqtSignal(object)  # id de juego o None
     calibrate_requested = pyqtSignal()
     recalibrate_requested = pyqtSignal()
+    region_requested = pyqtSignal(str)  # calibrar "rival", "rival2" u "own"
+    region_remove_requested = pyqtSignal(str)
     delete_profile_requested = pyqtSignal()
     open_data_requested = pyqtSignal()
     install_ocr_requested = pyqtSignal()
@@ -98,8 +100,8 @@ class Tray(QObject):
         self._game_menu.aboutToShow.connect(self._populate_games)
 
         m.addAction("Calibrar nuevo perfil…" + self._hint("calibrate")).triggered.connect(self.calibrate_requested)
-        self._recalibrate = m.addAction("Recalibrar perfil activo")
-        self._recalibrate.triggered.connect(self.recalibrate_requested)
+        self._regions_menu = m.addMenu("Regiones del perfil")
+        self._regions_menu.aboutToShow.connect(self._populate_regions)
         self._delete = m.addAction("Eliminar perfil activo…")
         self._delete.triggered.connect(self.delete_profile_requested)
         m.addSeparator()
@@ -113,7 +115,7 @@ class Tray(QObject):
 
     def _update_enabled(self) -> None:
         _, active_id = self._get_profiles()
-        self._recalibrate.setEnabled(active_id is not None)
+        self._regions_menu.setEnabled(active_id is not None)
         self._game_menu.setEnabled(active_id is not None)
         self._delete.setEnabled(active_id is not None)
 
@@ -145,6 +147,25 @@ class Tray(QObject):
             action.triggered.connect(lambda _=False, pid=profile.id: self.profile_selected.emit(pid))
             group.addAction(action)
             menu.addAction(action)
+
+    def _populate_regions(self) -> None:
+        menu = self._regions_menu
+        menu.clear()
+        profiles, active_id = self._get_profiles()
+        active = next((p for p in profiles if p.id == active_id), None)
+        if active is None:
+            return
+        menu.addAction("Recalibrar rival").triggered.connect(lambda: self.recalibrate_requested.emit())
+        for role, label, current in (
+            ("rival2", "2.º rival (combates dobles)", active.rival2_region),
+            ("own", "tu Pokémon", active.own_region),
+        ):
+            verb = "Recalibrar" if current else "Calibrar"
+            menu.addAction(f"{verb} {label}…").triggered.connect(lambda _=False, r=role: self.region_requested.emit(r))
+            if current:
+                menu.addAction(f"Quitar {label}").triggered.connect(
+                    lambda _=False, r=role: self.region_remove_requested.emit(r)
+                )
 
     def _populate_games(self) -> None:
         menu = self._game_menu

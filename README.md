@@ -38,6 +38,9 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
 3. **En cada combate, la ficha aparece sola** junto al emulador en cuanto se ve el nombre del rival (**detección automática**) y se oculta unos segundos después de terminar el combate.
    - Si la desactivas desde la bandeja (**Detección automática**), pulsa `Ctrl+Alt+P` para reconocer a mano.
    - Haz clic en la ficha o pulsa `Ctrl+Alt+H` para ocultarla. Arrástrala para moverla.
+4. **Opcional: tu Pokémon y combates dobles.** En bandeja → **Regiones del perfil** puedes calibrar también el nombre de **tu Pokémon** y el del **2.º rival**:
+   - Con tu Pokémon, cada ficha muestra **«Contra tu X»**: lo que le hacen tus tipos, lo que te hacen los suyos y un veredicto (**Ventaja / Neutral / Desventaja**). Si tu Pokémon tiene apodo, no se puede reconocer.
+   - Con el 2.º rival, en los combates dobles aparecen dos fichas una al lado de la otra.
 
 ### Configuración
 
@@ -64,7 +67,7 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
 
 - **Estadísticas base actuales.** Los tipos y la tabla de eficacias se ajustan a la generación del juego, pero las estadísticas no (por ejemplo, el «Especial» único de la Gen 1).
 - **Formas no regionales** (megaevoluciones, Gigamax, formas de Rotom…): se muestra la forma original.
-- **Combates dobles:** todavía no se admiten.
+- **La comparativa es por tipos** (ataques con STAB): no tiene en cuenta movimientos concretos, habilidades como Levitación ni objetos.
 
 ### Desinstalar
 

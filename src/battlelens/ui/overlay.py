@@ -19,9 +19,16 @@ from PyQt6.QtWidgets import (
 )
 
 from ..core.pokedex import STAT_ORDER, Pokedex, Species, SpeciesView
+from ..core.matchup import Matchup, Verdict, matchup
 from . import theme
 
 WIDTH = 320
+CARD_SPACING = 14
+VERDICT_COLORS = {
+    Verdict.ADVANTAGE: "#2e9d5b",
+    Verdict.NEUTRAL: "#5b6274",
+    Verdict.DISADVANTAGE: "#c8414b",
+}
 MARGIN = 8
 _DRAG_THRESHOLD = 4
 _WDA_EXCLUDEFROMCAPTURE = 0x11
@@ -131,14 +138,50 @@ class Overlay(QWidget):
         self.show_view(self.pokedex.view(species.id, game, self.language), target_rect)
 
     def show_view(self, view: SpeciesView, target_rect: tuple[int, int, int, int] | None) -> None:
+        self.show_battle([view], None, target_rect)
+
+    def show_battle(
+        self,
+        rivals: list[SpeciesView],
+        own: SpeciesView | None,
+        target_rect: tuple[int, int, int, int] | None,
+    ) -> None:
+        """Una tarjeta por rival (dos en combates dobles), con la comparativa si se conoce tu Pokémon."""
         self._clear()
-        self._content.addWidget(self._card(view))
+        self.setFixedWidth(WIDTH * len(rivals) + CARD_SPACING * (len(rivals) - 1))
+        row = QHBoxLayout()
+        row.setSpacing(CARD_SPACING)
+        for rival in rivals:
+            versus = matchup(own, rival, self.pokedex.type_chart(rival.generation)) if own else None
+            row.addWidget(self._card(rival, versus), 1, Qt.AlignmentFlag.AlignTop)
+        self._content.addLayout(row)
         self._present(target_rect)
+
+    def _matchup_section(self, m: Matchup, layout: QVBoxLayout) -> None:
+        header = QHBoxLayout()
+        header.addWidget(_section_title(f"Contra tu {m.own_name}"))
+        verdict = _pill(m.verdict.value, bg=VERDICT_COLORS[m.verdict])
+        verdict.setObjectName("verdict")
+        header.addStretch(1)
+        header.addWidget(verdict)
+        layout.addLayout(header)
+        for label, pairs in (("Tú", m.offense), ("Él", m.defense)):
+            row = QHBoxLayout()
+            who = QLabel(label)
+            who.setFixedWidth(26)
+            who.setStyleSheet(f"color:{theme.ACCENT}; font-weight:700;")
+            row.addWidget(who, alignment=Qt.AlignmentFlag.AlignTop)
+            pills = [
+                _pill(f"{self.pokedex.type_name(t, self.language)} {theme.MULTIPLIER_LABELS.get(x, '×1')}", t)
+                for t, x in pairs
+            ]
+            row.addWidget(_FlowRow(pills, per_row=2), 1)
+            layout.addLayout(row)
 
     def _types_row(self, types) -> QWidget:
         return _FlowRow([_pill(self.pokedex.type_name(t, self.language), t) for t in types])
 
-    def _card(self, view: SpeciesView) -> QWidget:
+    def _card(self, view: SpeciesView, versus: Matchup | None = None) -> QWidget:
         """Ficha de una especie (un widget, para poder mostrar varias en el futuro)."""
         card = QWidget()
         layout = QVBoxLayout(card)
@@ -157,6 +200,8 @@ class Overlay(QWidget):
         header.addWidget(number, alignment=Qt.AlignmentFlag.AlignTop)
         layout.addLayout(header)
         add(self._types_row(view.types))
+        if versus is not None:  # lo más consultado en cada turno: justo debajo de los tipos
+            self._matchup_section(versus, layout)
 
         groups = view.matchups
         sections = (

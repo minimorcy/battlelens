@@ -85,7 +85,7 @@ class _Selector(QWidget):
 class CalibrationDialog(QDialog):
     """Devuelve la región elegida en `self.region` si el usuario confirma con Enter."""
 
-    def __init__(self, image: np.ndarray, title: str) -> None:
+    def __init__(self, image: np.ndarray, title: str, target: str = "nombre del Pokémon rival") -> None:
         super().__init__(None, Qt.WindowType.WindowStaysOnTopHint)
         self.setWindowTitle(title)
         self.region: Region | None = None
@@ -93,7 +93,7 @@ class CalibrationDialog(QDialog):
         max_size = screen.size() * 0.85
 
         help_text = QLabel(
-            "Dibuja un rectángulo que cubra el <b>nombre del Pokémon rival</b>; cuanto más ajustado, mejor "
+            f"Dibuja un rectángulo que cubra el <b>{target}</b>; cuanto más ajustado, mejor "
             "(no pasa nada si incluye el nivel). "
             "<b>Enter</b> confirma · <b>Esc</b> cancela."
         )

@@ -76,6 +76,8 @@ class Profile:
     id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat(timespec="seconds"))
     game: str | None = None  # id del grupo de versiones (p. ej. "sword-shield"); None = sin especificar
+    rival2_region: Region | None = None  # nombre del 2.º rival (combates dobles)
+    own_region: Region | None = None  # nombre de tu Pokémon
 
     def __post_init__(self) -> None:
         if not isinstance(self.name, str) or not self.name.strip():
@@ -88,6 +90,23 @@ class Profile:
 
     def with_game(self, game: str | None) -> Profile:
         return replace(self, game=game)
+
+    def with_role_region(self, role: str, region: Region | None) -> Profile:
+        """Cambia la región de un rol: "rival", "rival2" u "own" (None la quita, salvo "rival")."""
+        if role == "rival":
+            if region is None:
+                raise ProfileError("La región del rival es obligatoria")
+            return replace(self, region=region)
+        if role == "rival2":
+            return replace(self, rival2_region=region)
+        if role == "own":
+            return replace(self, own_region=region)
+        raise ValueError(role)
+
+    def regions(self) -> dict[str, Region]:
+        """Regiones configuradas en orden fijo: rival, rival2, own (design.md D1)."""
+        found = {"rival": self.region, "rival2": self.rival2_region, "own": self.own_region}
+        return {role: region for role, region in found.items() if region is not None}
 
     def to_dict(self) -> dict:
         data = asdict(self)
@@ -105,6 +124,8 @@ class Profile:
                 id=data["id"],
                 created_at=data["created_at"],
                 game=data.get("game"),
+                rival2_region=Region(**data["rival2_region"]) if data.get("rival2_region") else None,
+                own_region=Region(**data["own_region"]) if data.get("own_region") else None,
             )
         except (KeyError, TypeError) as exc:
             raise ProfileError(f"Perfil con formato inválido: {exc}") from exc

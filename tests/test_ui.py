@@ -205,3 +205,48 @@ def test_menu_juego_del_perfil(qapp):
     actions[1].trigger()
     assert chosen == ["emerald"]
     tray.hide()
+
+
+def test_combate_doble_con_comparativa(qapp, overlay, dex):
+    rivals = [dex.view(3), dex.view(76)]  # Venusaur y Golem
+    overlay.show_battle(rivals, dex.view(6), None)  # contra tu Charizard
+    qapp.processEvents()
+    from PyQt6.QtWidgets import QLabel
+
+    names = [w.text() for w in overlay.findChildren(QLabel) if w.objectName() == "species-name"]
+    verdicts = [w.text() for w in overlay.findChildren(QLabel) if w.objectName() == "verdict"]
+    assert names == ["Venusaur", "Golem"]
+    assert verdicts == ["Ventaja", "Desventaja"]
+    texts = " | ".join(_labels(overlay))
+    assert "CONTRA TU CHARIZARD" in texts and "Fuego ×2" in texts and "Planta ×¼" in texts
+    assert overlay.width() > 600
+
+
+def test_sin_tu_pokemon_no_hay_comparativa(qapp, overlay, dex):
+    overlay.show_battle([dex.view(3)], None, None)
+    qapp.processEvents()
+    assert "CONTRA TU" not in " | ".join(_labels(overlay))
+    assert overlay.width() == 320
+
+
+def test_submenu_de_regiones(qapp):
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.ui.tray import Tray
+
+    simple = Profile("Simple", Region(0.1, 0.1, 0.2, 0.05))
+    tray = Tray(lambda: [], lambda: None, lambda: ([simple], simple.id), {})
+    tray._populate_regions()
+    labels = [a.text() for a in tray._regions_menu.actions()]
+    assert labels == ["Recalibrar rival", "Calibrar 2.º rival (combates dobles)…", "Calibrar tu Pokémon…"]
+
+    full = simple.with_role_region("rival2", Region(0.1, 0.2, 0.2, 0.05))
+    tray2 = Tray(lambda: [], lambda: None, lambda: ([full], full.id), {})
+    removed = []
+    tray2.region_remove_requested.connect(removed.append)
+    tray2._populate_regions()
+    actions = {a.text(): a for a in tray2._regions_menu.actions()}
+    assert "Quitar 2.º rival (combates dobles)" in actions and "Quitar tu Pokémon" not in actions
+    actions["Quitar 2.º rival (combates dobles)"].trigger()
+    assert removed == ["rival2"]
+    tray.hide()
+    tray2.hide()

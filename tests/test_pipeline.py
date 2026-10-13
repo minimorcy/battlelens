@@ -97,3 +97,33 @@ def test_sin_depuracion_no_escribe(dex, profile, tmp_path):
     p, _ = _pipeline(dex, "PIDGEY", debug_dir=None)
     p.run(1, profile)
     assert not any(tmp_path.iterdir())
+
+
+def test_tres_regiones_desde_una_captura(dex):
+    from battlelens.core.profiles import Region
+
+    captures = []
+    texts = ["PIDGEY", "RATTATA"]  # después, el propio con apodo ("MiPerrito"): no reconocido
+
+    def capture(hwnd):
+        captures.append(hwnd)
+        return np.full((640, 960, 3), 255, dtype=np.uint8)
+
+    def ocr(image, langs):
+        return FakeOcr(texts.pop(0) if texts else "MiPerrito")
+
+    profile = Profile("Dobles", Region(0.6, 0.05, 0.2, 0.05),
+                      rival2_region=Region(0.6, 0.15, 0.2, 0.05), own_region=Region(0.05, 0.8, 0.2, 0.05))
+    result = RecognitionPipeline(dex, NameMatcher(dex), capture, ocr).run(7, profile)
+    assert captures == [7]
+    assert result.species.id == 16 and result.rival2.species_id == 19
+    assert result.own is not None and not result.own.recognized
+    assert result.key == (16, 19, None)
+    assert result.fingerprint.shape == (12, 96)
+
+
+def test_perfil_de_una_region_sin_cambios(dex, profile):
+    p, _ = _pipeline(dex, "PIDGEY")
+    result = p.run(1, profile)
+    assert result.rival2 is None and result.own is None
+    assert result.key == (16, None, None) and result.fingerprint.shape == (12, 32)
