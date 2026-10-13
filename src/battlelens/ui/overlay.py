@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QProgressBar,
+    QScrollArea,
     QVBoxLayout,
     QWidget,
 )
@@ -34,6 +35,7 @@ WIDTH = 320  # ancho histórico; cada modo define el suyo en card_width()
 MODE_WIDTHS = {"normal": 300, "competitive": 360}
 CARD_SPACING = 14
 PANEL_PADDING = 14  # margen interior izquierdo/derecho del panel
+SCROLLBAR_WIDTH = 8  # barra de desplazamiento cuando la ficha no cabe en la pantalla
 CATEGORY_LABELS = {"physical": "Físico", "special": "Especial", "status": "Estado"}
 CAPTURE_COLORS = {"Fácil": "#3ddc97", "Media": "#ffcb05", "Difícil": "#ff8c42", "Muy difícil": "#e5484d"}
 ABILITY_EFFECT_COLOR = "#3a4a6b"
@@ -136,9 +138,31 @@ class Overlay(QWidget):
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
         outer.addWidget(self._panel)
-        self._content = QVBoxLayout(self._panel)
+        # El contenido va dentro de un área desplazable: si la ficha es más alta que la pantalla
+        # (p. ej. modo Competitivo en una pantalla de 720 px), se limita y se desplaza con la rueda.
+        panel_layout = QVBoxLayout(self._panel)
+        panel_layout.setContentsMargins(1, 1, 1, 1)
+        self._scroll = QScrollArea(self._panel)
+        self._scroll.setWidgetResizable(True)
+        self._scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._scroll.setStyleSheet(
+            "QScrollArea, #inner { background: transparent; }"
+            f"QScrollBar:vertical {{ background: transparent; width: {SCROLLBAR_WIDTH}px; margin: 6px 2px 6px 0; }}"
+            "QScrollBar::handle:vertical { background: #4a5268; border-radius: 3px; min-height: 30px; }"
+            "QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::sub-page "
+            "{ background: none; height: 0; }"
+        )
+        self._scroll.viewport().setAutoFillBackground(False)
+        self._inner = QWidget()
+        self._inner.setObjectName("inner")
+        self._scroll.setWidget(self._inner)
+        panel_layout.addWidget(self._scroll)
+        self._content = QVBoxLayout(self._inner)
         self._content.setContentsMargins(PANEL_PADDING, 12, PANEL_PADDING, 12)
         self._content.setSpacing(6)
+        self._base_width = card_width(mode)
 
         self._hide_timer = QTimer(self)
         self._hide_timer.setSingleShot(True)
@@ -177,7 +201,7 @@ class Overlay(QWidget):
         # Ancho fijo por tarjeta (descontando los márgenes del panel): así el texto se parte
         # en líneas con el ancho real y no se recorta en los combates dobles.
         inner = card_width(self.mode) - 2 * PANEL_PADDING
-        self.setFixedWidth(inner * len(rivals) + CARD_SPACING * (len(rivals) - 1) + 2 * PANEL_PADDING)
+        self._base_width = inner * len(rivals) + CARD_SPACING * (len(rivals) - 1) + 2 * PANEL_PADDING
         levels = list(rival_levels or []) + [None] * len(rivals)
         row = QHBoxLayout()
         row.setSpacing(CARD_SPACING)
@@ -470,6 +494,7 @@ class Overlay(QWidget):
 
     def show_unrecognized(self, raw_text: str, target_rect: tuple[int, int, int, int] | None) -> None:
         self._clear()
+        self._base_width = card_width(self.mode)
         title = QLabel("No reconocido")
         title.setStyleSheet("font-size:16px; font-weight:700;")
         self._content.addWidget(title)
@@ -499,8 +524,39 @@ class Overlay(QWidget):
 
     # ---- posición y visibilidad -------------------------------------------
 
+    def _available_height(self, target_rect: tuple[int, int, int, int] | None) -> int:
+        point = physical_to_logical(target_rect[0], target_rect[1]) if target_rect else None
+        screen = (QGuiApplication.screenAt(point) if point else None) or QGuiApplication.primaryScreen()
+        return screen.availableGeometry().height() - 2 * MARGIN
+
+    def _chrome(self) -> tuple[int, int]:
+        """Ancho y alto que ocupan el borde del panel y sus márgenes alrededor del área desplazable."""
+        frame = self._panel.contentsMargins()
+        layout = self._panel.layout().contentsMargins()
+        return (frame.left() + frame.right() + layout.left() + layout.right(),
+                frame.top() + frame.bottom() + layout.top() + layout.bottom())
+
+    def _fit_to_screen(self, target_rect: tuple[int, int, int, int] | None) -> None:
+        """Tamaño final: alto del contenido, sin pasar del de la pantalla (con desplazamiento si no cabe)."""
+        chrome_w, chrome_h = self._chrome()
+        inner_width = self._base_width - chrome_w
+        self._inner.setFixedWidth(inner_width)
+        self._content.activate()
+        hint = self._content.totalSizeHint().height()
+        if self._content.hasHeightForWidth():  # textos partidos en líneas (ver show_battle)
+            hint = max(hint, self._content.totalHeightForWidth(inner_width))
+        content_height = hint + chrome_h
+        available = self._available_height(target_rect)
+        scrolling = content_height > available
+        self.setFixedSize(self._base_width + (SCROLLBAR_WIDTH if scrolling else 0), min(content_height, available))
+        self._scroll.verticalScrollBar().setValue(0)
+
+    @property
+    def scrollable(self) -> bool:
+        return self._scroll.verticalScrollBar().maximum() > 0
+
     def _present(self, target_rect: tuple[int, int, int, int] | None) -> None:
-        self.adjustSize()
+        self._fit_to_screen(target_rect)
         self.move(self._position(target_rect))
         self.show()
         if not self._capture_excluded:

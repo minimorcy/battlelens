@@ -64,8 +64,12 @@ def test_ventana_no_activa_ni_en_barra_de_tareas(overlay):
     assert overlay.testAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
 
 
-def test_posicion_junto_a_la_ventana(qapp, overlay, dex):
+def test_posicion_junto_a_la_ventana(qapp, dex):
     from PyQt6.QtGui import QGuiApplication
+
+    from battlelens.ui.overlay import Overlay
+
+    overlay = Overlay(dex, "es")  # ficha Normal: cabe en cualquier pantalla, también en la del runner de CI
 
     screen = QGuiApplication.primaryScreen()
     dpr = screen.devicePixelRatio()
@@ -410,3 +414,27 @@ def test_doble_no_recorta_textos_largos(scale):
     env = {**os.environ, "QT_SCALE_FACTOR": scale}
     proc = subprocess.run([sys.executable, "-c", _HIDPI_CHECK], env=env, capture_output=True, text=True, timeout=60)
     assert proc.returncode == 0, proc.stdout + proc.stderr
+
+
+
+def test_ficha_mas_alta_que_la_pantalla_se_desplaza(qapp, dex, monkeypatch):
+    """La ficha competitiva (~860 px) no cabe en una pantalla de 720 px: se limita y se desplaza."""
+    from battlelens.ui.overlay import Overlay
+
+    o = Overlay(dex, "es", mode="competitive")
+    monkeypatch.setattr(o, "_available_height", lambda rect: 500)
+    o.show_species(dex.get_species(759), None, game="sword-shield", level=10)
+    qapp.processEvents()
+    assert o.height() == 500 and o.scrollable
+    assert o.width() > 360  # se reserva sitio para la barra sin recortar la tarjeta
+    o.close()
+
+
+def test_ficha_que_cabe_no_se_desplaza(qapp, dex):
+    from battlelens.ui.overlay import Overlay
+
+    o = Overlay(dex, "es")
+    o.show_species(dex.get_species(759), None)
+    qapp.processEvents()
+    assert not o.scrollable and o.width() == 300
+    o.close()
