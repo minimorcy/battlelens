@@ -22,3 +22,5 @@ Con `recognition.debug = true` en `%APPDATA%\BattleLens\config.toml`: calibra, r
 - [ ] Instalar el OCR desde «Instalar OCR de Windows…» en una máquina que no lo tenga.
 - [ ] Primera ejecución de la CI en GitHub en verde.
 - [ ] Primera Release publicada con el instalador, el ZIP y `SHA256SUMS.txt`.
+- [ ] Con una versión instalada anterior a la última Release, aparece el aviso de versión nueva y «Descargar…» abre la página correcta.
+- [ ] Las plantillas de issues aparecen al pulsar «New issue» en GitHub.

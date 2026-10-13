@@ -12,37 +12,51 @@ from .storage import write_json_atomic, write_text_atomic
 
 log = logging.getLogger(__name__)
 
-DEFAULT_CONFIG_TOML = """\
+CONFIG_TEMPLATE = """\
 # Configuración de BattleLens.
-# Los cambios se aplican al reiniciar la aplicación.
+# Puedes editar este archivo (los cambios se aplican al reiniciar) o usar «Ajustes…» en la bandeja,
+# que lo reescribe con estos mismos comentarios.
 
 [hotkeys]
 # Combinaciones con al menos un modificador (Ctrl, Alt, Shift, Win).
 # Las teclas F solas no se permiten: los emuladores las usan para los estados guardados.
-recognize = "Ctrl+Alt+P"
-calibrate = "Ctrl+Alt+C"
-hide = "Ctrl+Alt+H"
+recognize = {hotkey_recognize}
+calibrate = {hotkey_calibrate}
+hide = {hotkey_hide}
 
 [recognition]
 # Puntuación mínima (0-100) para dar por reconocido un nombre.
-threshold = 80
+threshold = {threshold}
 # Guarda recortes e imágenes preprocesadas en la carpeta debug/.
-debug = false
+debug = {debug}
 
 [detection]
 # Reconoce al rival automáticamente al entrar en combate (también se activa/desactiva desde la bandeja).
-enabled = true
+enabled = {detection_enabled}
 # Cada cuántos milisegundos se vigila la región del nombre (200-5000).
-interval_ms = 500
+interval_ms = {detection_interval_ms}
 # Segundos sin ver al rival hasta ocultar la ficha al terminar el combate (0 = no se oculta sola).
-hide_after_seconds = 4
+hide_after_seconds = {detection_hide_after_seconds}
 
 [overlay]
 # Idioma de la ficha: es, en, fr, de, it.
-language = "es"
+language = {language}
 # Segundos hasta ocultar el overlay automáticamente (0 = no se oculta solo).
-auto_hide_seconds = 0
+auto_hide_seconds = {auto_hide_seconds}
+
+[updates]
+# Comprueba una vez al día si hay una versión nueva en GitHub (única conexión de la app).
+check = {updates_check}
 """
+LANGUAGES = ("es", "en", "fr", "de", "it")
+
+
+def _toml_value(value) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, str):
+        return json.dumps(value, ensure_ascii=False)  # cadena básica TOML válida
+    return repr(value)
 
 
 class ConfigError(ValueError):
@@ -61,6 +75,7 @@ class Config:
     detection_enabled: bool = True
     detection_interval_ms: int = 500
     detection_hide_after_seconds: float = 4.0
+    updates_check: bool = True
 
     @classmethod
     def from_toml(cls, text: str) -> Config:
@@ -72,6 +87,7 @@ class Config:
         rec = data.get("recognition", {})
         ov = data.get("overlay", {})
         det = data.get("detection", {})
+        upd = data.get("updates", {})
         default = cls()
         cfg = cls(
             hotkey_recognize=hk.get("recognize", default.hotkey_recognize),
@@ -84,6 +100,7 @@ class Config:
             detection_enabled=det.get("enabled", default.detection_enabled),
             detection_interval_ms=det.get("interval_ms", default.detection_interval_ms),
             detection_hide_after_seconds=det.get("hide_after_seconds", default.detection_hide_after_seconds),
+            updates_check=upd.get("check", default.updates_check),
         )
         cfg._validate()
         return cfg
@@ -94,6 +111,10 @@ class Config:
                 raise ConfigError(f"{name} debe ser un texto")
         if not isinstance(self.threshold, (int, float)) or not 0 <= self.threshold <= 100:
             raise ConfigError("recognition.threshold debe estar entre 0 y 100")
+        if self.language not in LANGUAGES:
+            raise ConfigError(f"overlay.language debe ser uno de: {', '.join(LANGUAGES)}")
+        if not isinstance(self.updates_check, bool):
+            raise ConfigError("updates.check debe ser true o false")
         if not isinstance(self.debug, bool):
             raise ConfigError("recognition.debug debe ser true o false")
         if not isinstance(self.auto_hide_seconds, (int, float)) or self.auto_hide_seconds < 0:
@@ -104,6 +125,19 @@ class Config:
             raise ConfigError("detection.interval_ms debe ser un entero entre 200 y 5000")
         if not isinstance(self.detection_hide_after_seconds, (int, float)) or self.detection_hide_after_seconds < 0:
             raise ConfigError("detection.hide_after_seconds debe ser un número >= 0")
+
+
+def render_config(cfg: Config) -> str:
+    """config.toml con los comentarios de la plantilla y los valores de `cfg` (design.md D1)."""
+    return CONFIG_TEMPLATE.format(**{k: _toml_value(v) for k, v in asdict(cfg).items()})
+
+
+DEFAULT_CONFIG_TOML = render_config(Config())
+
+
+def save_config(path: Path, cfg: Config) -> None:
+    cfg._validate()
+    write_text_atomic(path, render_config(cfg))
 
 
 def load_config(path: Path) -> Config:
@@ -121,6 +155,7 @@ class AppState:
     active_profile: str | None = None
     overlay_pos: list[int] | None = field(default=None)
     auto_detect: bool | None = None  # conmutador de la bandeja; tiene prioridad sobre detection.enabled
+    last_update_check: str | None = None  # ISO 8601 de la última consulta a GitHub
 
     @classmethod
     def load(cls, path: Path) -> AppState:

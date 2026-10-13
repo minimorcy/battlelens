@@ -18,12 +18,15 @@ REQUIRED_MODULES = (
     "numpy",
     "PIL.Image",
     "rapidfuzz",
+    "ssl",  # comprobación de actualizaciones por HTTPS
     "battlelens.platform.ocr",
     "battlelens.platform.capture",
     "battlelens.platform.hotkeys",
     "battlelens.ui.overlay",
     "battlelens.ui.tray",
     "battlelens.ui.about",
+    "battlelens.ui.settings",
+    "battlelens.core.updates",
 )
 
 

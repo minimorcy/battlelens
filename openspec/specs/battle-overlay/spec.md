@@ -60,7 +60,7 @@ El sistema SHALL ocultar el overlay al pulsar el atajo de ocultar, al hacer clic
 - **THEN** el overlay pasa a mostrar a Rattata sin abrir una segunda ventana
 
 ### Requirement: Icono en la bandeja del sistema
-El sistema SHALL mostrar un icono en la bandeja del sistema con un menú para: reconocer ahora, activar o desactivar la detección automática, seleccionar ventana objetivo, seleccionar perfil activo, cambiar el juego del perfil activo, gestionar las regiones del perfil activo (recalibrar el rival; calibrar o quitar el 2.º rival; calibrar o quitar tu Pokémon), calibrar un perfil nuevo, eliminar el perfil activo, abrir la carpeta de datos y salir.
+El sistema SHALL mostrar un icono en la bandeja del sistema con un menú para: reconocer ahora, activar o desactivar la detección automática, seleccionar ventana objetivo, seleccionar perfil activo, cambiar el juego del perfil activo, gestionar las regiones del perfil activo (recalibrar el rival; calibrar o quitar el 2.º rival; calibrar o quitar tu Pokémon), calibrar un perfil nuevo, eliminar el perfil activo, abrir los ajustes, abrir la carpeta de datos, descargar la versión nueva (solo si hay una disponible) y salir.
 
 #### Scenario: Salida limpia
 - **WHEN** el usuario elige "Salir"

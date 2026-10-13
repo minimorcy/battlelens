@@ -23,7 +23,7 @@ El proyecto SHALL incluir un script (`tools/build_dataset.py`) que descargue los
 - **THEN** su ratio de captura es 70, evoluciona de #759 (Stufful) por subida de nivel con nivel mínimo 27
 
 ### Requirement: Carga del dataset sin conexión
-La aplicación SHALL cargar el dataset desde el archivo `pokedex.json` incluido en el paquete y MUST NOT hacer peticiones de red en tiempo de ejecución.
+La aplicación SHALL cargar el dataset desde el archivo `pokedex.json` incluido en el paquete y MUST NOT hacer peticiones de red para obtener datos de Pokémon. La única petición de red permitida en tiempo de ejecución es la comprobación de actualizaciones (spec `update-check`), que se puede desactivar.
 
 #### Scenario: Sin conexión
 - **WHEN** la aplicación arranca sin conexión a Internet
@@ -32,6 +32,10 @@ La aplicación SHALL cargar el dataset desde el archivo `pokedex.json` incluido 
 #### Scenario: Dataset ausente
 - **WHEN** no existe `pokedex.json`
 - **THEN** la aplicación muestra un error que indica cómo generarlo y termina
+
+#### Scenario: Comprobación de actualizaciones desactivada
+- **WHEN** `updates.check = false` y la aplicación se usa durante una sesión completa
+- **THEN** no se realiza ninguna petición de red
 
 ### Requirement: Consulta de especie
 El sistema SHALL devolver la ficha completa de una especie a partir de su número de Pokédex.

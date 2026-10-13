@@ -44,7 +44,7 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
 
 ### Configuración
 
-`%APPDATA%\BattleLens\config.toml` (se crea en el primer arranque):
+Todo se puede cambiar desde bandeja → **Ajustes…** (los cambios se aplican al momento). Los mismos valores están en `%APPDATA%\BattleLens\config.toml`:
 
 | Clave | Por defecto | Descripción |
 |---|---|---|
@@ -56,12 +56,17 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
 | `detection.hide_after_seconds` | `4` | Segundos sin ver al rival hasta ocultar la ficha (0 = nunca) |
 | `overlay.language` | `es` | Idioma de la ficha: `es`, `en`, `fr`, `de`, `it` |
 | `overlay.auto_hide_seconds` | `0` | Ocultar la ficha tras N segundos (0 = nunca) |
+| `updates.check` | `true` | Avisar una vez al día si hay versión nueva en GitHub (única conexión de la app) |
 
 ### Si no reconoce bien
 
 1. Pon `recognition.debug = true`, reinicia BattleLens y reconoce varios rivales.
 2. En `%APPDATA%\BattleLens\debug\`, el archivo `*-recorte.png` debe contener solo el nombre. Si no, usa **Recalibrar perfil activo**.
-3. Si el recorte es correcto y aun así falla, abre un [issue](https://github.com/minimorcy/battlelens/issues) adjuntando esos archivos.
+3. Si el recorte es correcto y aun así falla, abre un [issue de tipo «Fallo»](https://github.com/minimorcy/battlelens/issues/new/choose): el formulario te pide la versión, el emulador y el juego, y te indica qué archivos adjuntar.
+
+### Actualizaciones
+
+BattleLens comprueba una vez al día si hay una versión nueva. Si la hay, te avisa y en la bandeja aparece **Descargar BattleLens X.Y.Z…**, que abre la página de descarga. Para instalarla, ejecuta el instalador nuevo: tus perfiles y ajustes se conservan. La comprobación se puede desactivar en **Ajustes**.
 
 ### Limitaciones conocidas
 

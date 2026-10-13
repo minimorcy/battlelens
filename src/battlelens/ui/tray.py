@@ -28,6 +28,8 @@ class Tray(QObject):
     open_data_requested = pyqtSignal()
     install_ocr_requested = pyqtSignal()
     about_requested = pyqtSignal()
+    settings_requested = pyqtSignal()
+    update_requested = pyqtSignal()
     quit_requested = pyqtSignal()
 
     def __init__(
@@ -62,6 +64,15 @@ class Tray(QObject):
         kind = QSystemTrayIcon.MessageIcon.Warning if warning else QSystemTrayIcon.MessageIcon.Information
         self.icon.showMessage(APP_NAME, message, kind, 4000)
 
+    def set_hotkey_hints(self, hotkey_texts: dict[str, str]) -> None:
+        self._hotkeys = hotkey_texts
+        self._recognize_action.setText("Reconocer ahora" + self._hint("recognize"))
+        self._calibrate_action.setText("Calibrar nuevo perfil…" + self._hint("calibrate"))
+
+    def show_update(self, version: str) -> None:
+        self.update_action.setText(f"Descargar BattleLens {version}…")
+        self.update_action.setVisible(True)
+
     def set_auto_detect(self, enabled: bool) -> None:
         self.auto_detect_action.blockSignals(True)
         self.auto_detect_action.setChecked(enabled)
@@ -85,7 +96,7 @@ class Tray(QObject):
 
     def _build_menu(self) -> None:
         m = self.menu
-        recognize = m.addAction("Reconocer ahora" + self._hint("recognize"))
+        recognize = self._recognize_action = m.addAction("Reconocer ahora" + self._hint("recognize"))
         recognize.triggered.connect(self.recognize_requested)
         self.auto_detect_action = m.addAction("Detección automática")
         self.auto_detect_action.setCheckable(True)
@@ -99,7 +110,8 @@ class Tray(QObject):
         self._game_menu = m.addMenu("Juego del perfil activo")
         self._game_menu.aboutToShow.connect(self._populate_games)
 
-        m.addAction("Calibrar nuevo perfil…" + self._hint("calibrate")).triggered.connect(self.calibrate_requested)
+        self._calibrate_action = m.addAction("Calibrar nuevo perfil…" + self._hint("calibrate"))
+        self._calibrate_action.triggered.connect(self.calibrate_requested)
         self._regions_menu = m.addMenu("Regiones del perfil")
         self._regions_menu.aboutToShow.connect(self._populate_regions)
         self._delete = m.addAction("Eliminar perfil activo…")
@@ -108,7 +120,11 @@ class Tray(QObject):
         self.install_ocr_action = m.addAction("Instalar OCR de Windows…")
         self.install_ocr_action.triggered.connect(self.install_ocr_requested)
         self.install_ocr_action.setVisible(False)
+        m.addAction("Ajustes…").triggered.connect(self.settings_requested)
         m.addAction("Abrir carpeta de datos").triggered.connect(self.open_data_requested)
+        self.update_action = m.addAction("Descargar versión nueva…")
+        self.update_action.triggered.connect(self.update_requested)
+        self.update_action.setVisible(False)
         m.addAction("Acerca de…").triggered.connect(self.about_requested)
         m.addAction("Salir").triggered.connect(self.quit_requested)
         m.aboutToShow.connect(self._update_enabled)

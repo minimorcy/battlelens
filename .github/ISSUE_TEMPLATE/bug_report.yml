@@ -1,0 +1,57 @@
+name: Fallo
+description: Algo no funciona como debería (reconocimiento, ficha, instalación…)
+title: "[Fallo] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ¡Gracias por avisar! Cuanta más información, antes se arregla.
+
+        **Si BattleLens no reconoce a un Pokémon o lo confunde:** activa `debug = true` en `%APPDATA%\BattleLens\config.toml` (o en **Ajustes… → Guardar recortes de depuración**), repite el combate y adjunta aquí los archivos de `%APPDATA%\BattleLens\debug\` (`*-recorte.png` y `*.json`).
+  - type: input
+    id: version
+    attributes:
+      label: Versión de BattleLens
+      description: Bandeja → Acerca de…
+      placeholder: "0.2.0"
+    validations:
+      required: true
+  - type: input
+    id: emulator
+    attributes:
+      label: Emulador y versión
+      placeholder: "mGBA 0.10.3, melonDS 0.9.5, Eden…"
+    validations:
+      required: true
+  - type: input
+    id: game
+    attributes:
+      label: Juego e idioma
+      placeholder: "Pokémon Esmeralda (español)"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: ¿Qué ocurrió?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: ¿Qué esperabas?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducirlo
+      placeholder: |
+        1. …
+        2. …
+  - type: textarea
+    id: files
+    attributes:
+      label: Archivos de depuración y app.log
+      description: Arrastra aquí los archivos de `%APPDATA%\BattleLens\debug\` y, si hubo un error, `%APPDATA%\BattleLens\app.log`.

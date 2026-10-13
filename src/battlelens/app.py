@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 import time
+from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
@@ -19,14 +20,17 @@ from PyQt6.QtCore import (
     QThreadPool,
     QTimer,
     QTranslator,
+    QUrl,
     pyqtSignal,
 )
+from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
-from . import APP_NAME
-from .core.config import AppState, Config, ConfigError, load_config
+from . import APP_NAME, __version__
+from .core.config import AppState, Config, ConfigError, load_config, save_config
 from .core.detection import Action, BattleDetector
 from .core.games import GameDetector
+from .core.updates import Release, check_latest, due
 from .core.matcher import NameMatcher
 from .core.pokedex import DatasetMissingError, Pokedex
 from .core.profiles import Profile, ProfileStore
@@ -46,6 +50,7 @@ from .platform.ocr_setup import (
 )
 from .platform.single_instance import SingleInstance
 from .ui.about import AboutDialog
+from .ui.settings import SettingsDialog
 from .ui.calibrator import CalibrationDialog, ask_profile
 from .ui.icons import app_icon
 from .ui.overlay import Overlay
@@ -136,6 +141,10 @@ class Controller(QObject):
         self.tray.open_data_requested.connect(lambda: os.startfile(self.data_dir))
         self.tray.install_ocr_requested.connect(self.install_ocr)
         self.tray.about_requested.connect(self.show_about)
+        self.tray.settings_requested.connect(self.show_settings)
+        self.tray.update_requested.connect(self.open_update)
+        self._settings: SettingsDialog | None = None
+        self.release: Release | None = None
         self._about: AboutDialog | None = None
         self.tray.quit_requested.connect(self.quit)
         self.tray.show()
@@ -149,16 +158,18 @@ class Controller(QObject):
         self.hotkeys.triggered.connect(self._on_hotkey)
         failed = self.hotkeys.start() + invalid
         self._startup_notices(failed, bindings)
+        self.check_for_updates()
 
     # ---- arranque ----------------------------------------------------------
 
-    def _parse_hotkeys(self) -> tuple[dict[str, Hotkey], list[str]]:
+    def _parse_hotkeys(self, config: Config | None = None) -> tuple[dict[str, Hotkey], list[str]]:
+        config = config or self.config
         bindings: dict[str, Hotkey] = {}
         invalid: list[str] = []
         for name, text in (
-            ("recognize", self.config.hotkey_recognize),
-            ("calibrate", self.config.hotkey_calibrate),
-            ("hide", self.config.hotkey_hide),
+            ("recognize", config.hotkey_recognize),
+            ("calibrate", config.hotkey_calibrate),
+            ("hide", config.hotkey_hide),
         ):
             try:
                 bindings[name] = parse_hotkey(text)
@@ -228,6 +239,66 @@ class Controller(QObject):
             self.tray.notify(f"OCR instalado. Ya puedes reconocer con {self.config.hotkey_recognize}.")
         else:
             self.tray.notify("OCR instalado. Reinicia BattleLens para empezar a usarlo.")
+
+    # ---- ajustes (spec app-settings) ----------------------------------------------
+
+    def show_settings(self) -> None:
+        self._settings = SettingsDialog(self.config)
+        self._modal_open = True
+        try:
+            accepted = self._settings.exec()
+        finally:
+            self._modal_open = False
+        if accepted and self._settings.result_config is not None:
+            self.apply_config(self._settings.result_config)
+
+    def apply_config(self, new: Config) -> None:
+        """Guarda config.toml y aplica los cambios sin reiniciar (design.md D3)."""
+        old = self.config
+        save_config(self.data_dir / "config.toml", new)
+        self.config = new
+        if (new.hotkey_recognize, new.hotkey_calibrate, new.hotkey_hide) != (
+            old.hotkey_recognize, old.hotkey_calibrate, old.hotkey_hide
+        ):
+            self.hotkeys.stop()
+            bindings, invalid = self._parse_hotkeys(new)
+            self.hotkeys = HotkeyManager(bindings)
+            self.hotkeys.triggered.connect(self._on_hotkey)
+            failed = self.hotkeys.start() + invalid
+            self.tray.set_hotkey_hints({name: hk.text for name, hk in bindings.items()})
+            if failed:
+                self.tray.notify(f"No se pudieron registrar los atajos: {', '.join(failed)}.", warning=True)
+        self.pipeline.matcher.threshold = new.threshold
+        self.pipeline.debug_dir = self.data_dir / "debug" if new.debug else None
+        self.overlay.language = new.language
+        self.overlay.auto_hide_seconds = new.auto_hide_seconds
+        self._watch_timer.setInterval(new.detection_interval_ms)
+        self.battle.hide_after_seconds = new.detection_hide_after_seconds
+        if new.detection_enabled != old.detection_enabled:
+            self.set_auto_detect(new.detection_enabled)
+        self.tray.notify("Ajustes guardados.")
+
+    # ---- actualizaciones (spec update-check) ------------------------------------
+
+    def check_for_updates(self, fetch=None) -> None:
+        if not self.config.updates_check or not due(self.state.last_update_check):
+            return
+        task = _Task(check_latest, *(() if fetch is None else (__version__, fetch)))
+        task.signals.finished.connect(self._on_update_checked)
+        task.signals.failed.connect(lambda exc: log.info("Comprobación de actualizaciones: %s", exc))
+        self._pool.start(task)
+
+    def _on_update_checked(self, release: Release | None) -> None:
+        self.state.last_update_check = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        self._save_state()
+        if release is not None:
+            self.release = release
+            self.tray.show_update(release.version)
+            self.tray.notify(f"BattleLens {release.version} disponible. Descárgala desde el menú de la bandeja.")
+
+    def open_update(self) -> None:
+        if self.release is not None:
+            QDesktopServices.openUrl(QUrl(self.release.url))
 
     def show_about(self) -> None:
         self._about = AboutDialog()

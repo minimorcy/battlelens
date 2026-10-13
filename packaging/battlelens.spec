@@ -25,8 +25,6 @@ excludes = [
     "pydoc",
     "pytest",
     "cv2",
-    "ssl",
-    "_ssl",
     "PyQt6.QtQml",
     "PyQt6.QtQuick",
     "PyQt6.QtQuickWidgets",

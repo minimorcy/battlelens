@@ -1,0 +1,20 @@
+name: Mejora
+description: Propón una función o un cambio
+title: "[Mejora] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: ¿Qué problema resolvería?
+      description: Cuéntalo desde el punto de vista del jugador.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: ¿Cómo te lo imaginas?
+  - type: input
+    id: game
+    attributes:
+      label: Juego o emulador donde lo echas en falta (si aplica)

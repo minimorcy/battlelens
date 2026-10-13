@@ -268,3 +268,46 @@ def test_sin_evolucion_no_hay_apartado(qapp, overlay, dex):
     overlay.show_species(dex.get_species(128), None)
     qapp.processEvents()
     assert "EVOLUCIÓN" not in " | ".join(_labels(overlay))
+
+
+def test_ajustes_muestran_valores_actuales(qapp):
+    from battlelens.core.config import Config
+    from battlelens.ui.settings import SettingsDialog
+
+    d = SettingsDialog(Config(language="fr", threshold=75, detection_interval_ms=800, updates_check=False))
+    assert d.language.currentData() == "fr" and d.threshold.value() == 75
+    assert d.interval.value() == 800 and not d.updates.isChecked()
+    assert d.hotkey_edits["hotkey_recognize"].text() == "Ctrl+Alt+P"
+
+
+def test_ajustes_rechazan_atajo_sin_modificador(qapp):
+    from battlelens.core.config import Config
+    from battlelens.ui.settings import SettingsDialog
+
+    d = SettingsDialog(Config())
+    d.hotkey_edits["hotkey_recognize"].setText("F8")
+    d._save()
+    assert d.result_config is None
+    assert not d.hotkey_errors["hotkey_recognize"].isHidden()
+    assert "modificador" in d.hotkey_errors["hotkey_recognize"].text()
+
+
+def test_ajustes_rechazan_atajos_repetidos(qapp):
+    from battlelens.core.config import Config
+    from battlelens.ui.settings import SettingsDialog
+
+    d = SettingsDialog(Config())
+    d.hotkey_edits["hotkey_hide"].setText("ctrl+alt+p")
+    config, errors = d.collect()
+    assert config is None and "hotkey_hide" in errors
+
+
+def test_ajustes_devuelven_configuracion(qapp):
+    from battlelens.core.config import Config
+    from battlelens.ui.settings import SettingsDialog
+
+    d = SettingsDialog(Config())
+    d.language.setCurrentIndex(d.language.findData("en"))
+    d.debug.setChecked(True)
+    config, errors = d.collect()
+    assert errors == {} and config.language == "en" and config.debug is True

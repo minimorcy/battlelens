@@ -28,6 +28,7 @@ def controller(qapp, tmp_path, monkeypatch):
         hotkey_recognize="Ctrl+Alt+Shift+F20",
         hotkey_calibrate="Ctrl+Alt+Shift+F21",
         hotkey_hide="Ctrl+Alt+Shift+F22",
+        updates_check=False,
         detection_enabled=False,
     )
     c = Controller(qapp, config, Pokedex.load())
@@ -204,6 +205,7 @@ def auto_controller(qapp, tmp_path, monkeypatch):
         hotkey_recognize="Ctrl+Alt+Shift+F20",
         hotkey_calibrate="Ctrl+Alt+Shift+F21",
         hotkey_hide="Ctrl+Alt+Shift+F22",
+        updates_check=False,
         detection_enabled=True,
         detection_interval_ms=200,
         detection_hide_after_seconds=1.0,
@@ -291,3 +293,61 @@ def test_auto_actualiza_al_cambiar_tu_pokemon(qapp, auto_controller, fake_emulat
     # Sacas a Pidgey (Normal/Volador) contra Geodude: desventaja
     _show_frame(qapp, fake_emulator, _double_frame("GEODUDE", "PIDGEY"))
     assert _wait(qapp, lambda: verdict() == "Desventaja", timeout=6)
+
+
+# ---- ajustes y actualizaciones (add-settings-and-updates) --------------------------
+
+def test_aplicar_ajustes_en_caliente(qapp, controller, tmp_path):
+    from dataclasses import replace
+
+    from battlelens.core.config import load_config
+    from battlelens.platform.hotkeys import HotkeyManager, parse_hotkey
+
+    controller.tray.notify = lambda msg, warning=False: None
+    new = replace(controller.config, language="en", threshold=70.0, hotkey_recognize="Ctrl+Alt+Shift+F19",
+                  detection_interval_ms=900)
+    controller.apply_config(new)
+    assert controller.overlay.language == "en" and controller.pipeline.matcher.threshold == 70.0
+    assert controller._watch_timer.interval() == 900
+    assert load_config(tmp_path / "config.toml") == new
+    # el atajo antiguo queda libre y el nuevo ocupado
+    probe_old = HotkeyManager({"x": parse_hotkey("Ctrl+Alt+Shift+F20")})
+    probe_new = HotkeyManager({"x": parse_hotkey("Ctrl+Alt+Shift+F19")})
+    try:
+        assert probe_old.start() == []
+        assert probe_new.start() == ["x"]
+    finally:
+        probe_old.stop()
+        probe_new.stop()
+    assert "Ctrl+Alt+Shift+F19" in controller.tray._recognize_action.text()
+
+
+def test_aviso_de_version_nueva(qapp, controller):
+    from battlelens.core.updates import Release
+
+    messages = []
+    controller.tray.notify = lambda msg, warning=False: messages.append(msg)
+    controller._on_update_checked(Release("9.9.9", "https://example.invalid/r"))
+    assert controller.tray.update_action.isVisible()
+    assert controller.tray.update_action.text() == "Descargar BattleLens 9.9.9…"
+    assert "9.9.9" in messages[-1]
+    assert controller.state.last_update_check is not None
+
+
+def test_sin_version_nueva_no_hay_opcion(qapp, controller):
+    controller._on_update_checked(None)
+    assert not controller.tray.update_action.isVisible()
+
+
+def test_comprobacion_desactivada_no_consulta(qapp, controller):
+    calls = []
+    controller.check_for_updates(fetch=lambda: calls.append(1) or {})
+    _wait_pool(qapp)
+    assert calls == []  # updates_check=False en el fixture
+
+
+def _wait_pool(qapp):
+    from PyQt6.QtCore import QThreadPool
+
+    QThreadPool.globalInstance().waitForDone(2000)
+    qapp.processEvents()
