@@ -24,6 +24,7 @@ CSV_FILES = [
     "pokemon",
     "pokemon_types",
     "pokemon_stats",
+    "pokemon_stats_past",
     "pokemon_abilities",
     "pokemon_abilities_past",
     "abilities",
@@ -50,6 +51,7 @@ CSV_FILES = [
 ]
 LANGUAGES = ["en", "es", "fr", "de", "it"]
 STAT_KEYS = {1: "hp", 2: "attack", 3: "defense", 4: "special_attack", 5: "special_defense", 6: "speed"}
+SPECIAL_STAT_ID = 9  # «Especial» de la Gen 1
 MAX_STANDARD_TYPE_ID = 18  # excluye "stellar", "unknown" y "shadow"
 DATASET_FORMAT = 2
 
@@ -159,6 +161,15 @@ def build(tables: dict[str, list[dict[str, str]]]) -> dict:
             poke_stats.setdefault(int(r["pokemon_id"]), {})[STAT_KEYS[sid]] = int(r["base_stat"])
             if int(r.get("effort") or 0):
                 poke_evs.setdefault(int(r["pokemon_id"]), {})[STAT_KEYS[sid]] = int(r["effort"])
+    # Estadísticas base de generaciones anteriores, con la Especial de la Gen 1 (add-generation-stats D1)
+    past_stat_keys = {**STAT_KEYS, SPECIAL_STAT_ID: "special"}
+    past_stats: dict[int, dict[int, dict[str, int]]] = {}
+    for r in tables.get("pokemon_stats_past", []):
+        sid = int(r["stat_id"])
+        if sid in past_stat_keys:
+            past_stats.setdefault(int(r["pokemon_id"]), {}).setdefault(int(r["generation_id"]), {})[
+                past_stat_keys[sid]
+            ] = int(r["base_stat"])
     poke_rows = {int(r["id"]): r for r in tables["pokemon"]}
     poke_abilities: dict[int, list[tuple[int, dict]]] = {}
     for r in tables["pokemon_abilities"]:
@@ -209,6 +220,9 @@ def build(tables: dict[str, list[dict[str, str]]]) -> dict:
             "types": [t for _, t in sorted(poke_types.get(pid, []))],
             "stats": stats,
             "abilities": [a for _, a in sorted(poke_abilities.get(pid, []), key=lambda x: x[0])],
+            "past_stats": [
+                {"until_generation": gen, "stats": values} for gen, values in sorted(past_stats.get(pid, {}).items())
+            ],
             "past_abilities": sorted(past_abilities.get(pid, []), key=lambda p: (p["until_generation"], p["slot"])),
             "weight_kg": int(row["weight"]) / 10 if row.get("weight") else None,
             "height_m": int(row["height"]) / 10 if row.get("height") else None,

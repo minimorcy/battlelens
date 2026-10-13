@@ -27,6 +27,7 @@ STAT_LABELS = {
     "hp": "PS",
     "attack": "Ataque",
     "defense": "Defensa",
+    "special": "Especial",
     "special_attack": "At. Esp.",
     "special_defense": "Def. Esp.",
     "speed": "Velocidad",

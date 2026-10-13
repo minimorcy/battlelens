@@ -98,6 +98,18 @@ def test_build_con_habilidades_anteriores():
     ]
 
 
+def test_build_con_estadisticas_anteriores():
+    tables = _mini_tables()
+    tables["pokemon_stats_past"] = _rows(
+        "pokemon_id,generation_id,stat_id,base_stat,effort", "263,1,9,30,0", "263,5,3,40,0", "263,5,5,35,0"
+    )
+    zig = build_dataset.build(tables)["species"][0]
+    assert zig["past_stats"] == [
+        {"until_generation": 1, "stats": {"special": 30}},
+        {"until_generation": 5, "stats": {"defense": 40, "special_defense": 35}},
+    ]
+
+
 def test_build_con_evoluciones_y_descripciones():
     tables = _mini_tables()
     tables["pokemon_species"] = _rows(

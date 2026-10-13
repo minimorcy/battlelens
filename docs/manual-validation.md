@@ -14,6 +14,7 @@ Con `recognition.debug = true` en `%APPDATA%\BattleLens\config.toml`: calibra, r
 - [ ] **Detección automática** — en un juego real, la ficha aparece al entrar en combate, cambia con cada rival y se oculta al terminar; caminando por el mapa no aparece nada.
 - [ ] **Tu Pokémon y dobles** — calibrar la región de tu Pokémon y la del 2.º rival en un juego con combates dobles (Espada): aparecen dos fichas con «Contra tu X», que se actualiza al cambiar de Pokémon.
 - [ ] **Modo competitivo** — con la región del rival incluyendo el nivel: se lee el nivel, los movimientos probables coinciden con los que usa el rival salvaje y `Ctrl+Alt+M` cambia de modo con la ficha abierta.
+- [ ] **Estadísticas por juego** — en Rojo/Azul la ficha competitiva muestra «Especial»; en Let's Go y Leyendas: Arceus, las estadísticas reales de un Pokémon propio (pantalla del equipo) caen dentro del rango de la ficha.
 - [ ] **Activación automática** — con perfiles de dos juegos, cambiar de juego en el emulador y comprobar que se activa el perfil correcto.
 
 ## Instalador y publicación

@@ -79,11 +79,10 @@ BattleLens checks once a day whether there's a new version. If there is, it lets
 
 ### Known limitations
 
-- **Current base stats.** Types and the type chart follow the game's generation, but stats don't (e.g. the single "Special" stat of Gen 1).
 - **Non-regional forms** (Mega Evolutions, Gigantamax, Rotom forms…): the original form is shown.
 - **Level reading in 3D games:** in Pokémon Sword/Shield the OCR doesn't always read the level (large font), so in Competitive mode the likely moves and stats at its level may be missing. Normal mode doesn't need it.
 - **Likely moves** are what a wild Pokémon or an ordinary trainer's Pokémon would know; gym leaders, rivals and competitive teams may carry others.
-- **Stats at its level** use the Gen 3+ formula (Gen 1-2 and Let's Go/Legends use different ones).
+- **Stats at its level** use each game's formula (Gen 1-2, Let's Go, Legends: Arceus and Gen 3+); Legends Z-A and Champions use the Gen 3+ one for now.
 - **The matchup is type-based** (STAB attacks) and accounts for abilities that change effectiveness: when every ability the Pokémon can have in that game does the same thing (Flygon's Levitate), it's applied; when only some do (Bronzong), the card warns you ("if it has Levitate"). Held items and abilities that ignore others (Mold Breaker) aren't considered.
 
 ### Uninstall

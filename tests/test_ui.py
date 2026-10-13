@@ -371,6 +371,14 @@ def test_competitivo_velocidad_y_movimientos_contra_ti(qapp, overlay, dex):
     assert sorted(_named(overlay, "move-vs-you")) == ["×0", "×2"]
 
 
+def test_competitivo_gen1_con_especial(qapp, overlay, dex):
+    overlay.show_species(dex.get_species(25), None, game="red-blue", level=5)
+    qapp.processEvents()
+    texts = _labels(overlay)
+    assert "Especial" in texts and "At. Esp." not in texts
+    assert _named(overlay, "range-special") == ["10-14"] and _named(overlay, "stat-total") == ["260"]
+
+
 # ---- habilidades en la eficacia (add-ability-aware-matchups) ----------------------------
 
 def test_normal_explica_inmunidad_por_habilidad(qapp, dex):

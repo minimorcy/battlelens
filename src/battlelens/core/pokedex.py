@@ -11,6 +11,9 @@ from pathlib import Path
 from .abilities import AbilityEffect, affects_typing, resolve
 
 STAT_ORDER = ("hp", "attack", "defense", "special_attack", "special_defense", "speed")
+# Orden en la ficha; «special» solo existe en la Gen 1 (add-generation-stats D3)
+STAT_DISPLAY_ORDER = ("hp", "attack", "defense", "special", "special_attack", "special_defense", "speed")
+SPECIAL_SPLIT_GENERATION = 2
 MULTIPLIER_GROUPS = (4.0, 2.0, 0.5, 0.25, 0.0)
 CURRENT_GENERATION = 9
 ABILITIES_FROM_GENERATION = 3
@@ -88,6 +91,34 @@ def abilities_in(
 
 
 @dataclass(frozen=True)
+class PastStats:
+    until_generation: int
+    stats: dict[str, int]
+
+
+def stats_in(stats: dict[str, int], past: tuple[PastStats, ...], generation: int) -> dict[str, int]:
+    """Estadísticas base vigentes en una generación; en la Gen 1, «special» sustituye a At. Esp. y Def. Esp."""
+    result = dict(stats)
+    chosen: dict[str, int] = {}
+    for p in past:
+        if p.until_generation < generation:
+            continue
+        for key, value in p.stats.items():
+            if key not in chosen or p.until_generation < chosen[key]:
+                chosen[key] = p.until_generation
+                result[key] = value
+    if generation < SPECIAL_SPLIT_GENERATION:
+        special = result.get("special", result.get("special_attack"))
+        result.pop("special_attack", None)
+        result.pop("special_defense", None)
+        if special is not None:
+            result["special"] = special
+    else:
+        result.pop("special", None)
+    return result
+
+
+@dataclass(frozen=True)
 class Evolution:
     trigger: str
     min_level: int | None = None
@@ -110,12 +141,16 @@ class Form:
     height_m: float | None = None
     ev_yield: dict[str, int] = field(default_factory=dict, compare=False)
     past_abilities: tuple[PastAbility, ...] = field(default=(), compare=False)
+    past_stats: tuple[PastStats, ...] = field(default=(), compare=False)
 
     def name(self, lang: str) -> str:
         return _localized(self.names, lang, self.identifier)
 
     def abilities_in(self, generation: int) -> tuple[Ability, ...]:
         return abilities_in(self.abilities, self.past_abilities, generation)
+
+    def stats_in(self, generation: int) -> dict[str, int]:
+        return stats_in(self.stats, self.past_stats, generation)
 
 
 @dataclass(frozen=True)
@@ -143,6 +178,7 @@ class Species:
     height_m: float | None = None
     ev_yield: dict[str, int] = field(default_factory=dict, compare=False)
     past_abilities: tuple[PastAbility, ...] = field(default=(), compare=False)
+    past_stats: tuple[PastStats, ...] = field(default=(), compare=False)
 
     def name(self, lang: str) -> str:
         return _localized(self.names, lang, self.identifier)
@@ -153,6 +189,9 @@ class Species:
 
     def abilities_in(self, generation: int) -> tuple[Ability, ...]:
         return abilities_in(self.abilities, self.past_abilities, generation)
+
+    def stats_in(self, generation: int) -> dict[str, int]:
+        return stats_in(self.stats, self.past_stats, generation)
 
     def types_in(self, generation: int) -> tuple[str, ...]:
         """Tipos de la forma por defecto vigentes en una generación (design.md D3)."""
@@ -206,6 +245,10 @@ class SpeciesView:
         return tuple(e for e in self.ability_effects if e.type == attacking)
 
     @property
+    def stat_keys(self) -> tuple[str, ...]:
+        return tuple(k for k in STAT_DISPLAY_ORDER if k in self.stats)
+
+    @property
     def stat_total(self) -> int:
         return sum(self.stats.values())
 
@@ -218,6 +261,10 @@ def _ability(a: dict, descriptions: dict[str, dict[str, str]], default_slot: int
 def _abilities(raw: list[dict], descriptions: dict[str, dict[str, str]] | None = None) -> tuple[Ability, ...]:
     descriptions = descriptions or {}
     return tuple(_ability(a, descriptions, i + 1) for i, a in enumerate(raw))
+
+
+def _past_stats(raw: list[dict]) -> tuple[PastStats, ...]:
+    return tuple(PastStats(p["until_generation"], p["stats"]) for p in raw)
 
 
 def _past_abilities(raw: list[dict], descriptions: dict[str, dict[str, str]]) -> tuple[PastAbility, ...]:
@@ -270,6 +317,7 @@ class Pokedex:
                         height_m=f.get("height_m"),
                         ev_yield=f.get("ev_yield", {}),
                         past_abilities=_past_abilities(f.get("past_abilities", []), descriptions),
+                        past_stats=_past_stats(f.get("past_stats", [])),
                     )
                     for f in s.get("forms", [])
                 ),
@@ -281,6 +329,7 @@ class Pokedex:
                 height_m=s.get("height_m"),
                 ev_yield=s.get("ev_yield", {}),
                 past_abilities=_past_abilities(s.get("past_abilities", []), descriptions),
+                past_stats=_past_stats(s.get("past_stats", [])),
             )
             if s.get("evolves_from"):
                 self._children.setdefault(s["evolves_from"], []).append(s["id"])
@@ -437,10 +486,10 @@ class Pokedex:
 
         source = form if form is not None else species
         if form is not None:
-            name, types, stats = form.name(lang), form.types, form.stats
+            name, types, stats = form.name(lang), form.types, form.stats_in(generation)
             abilities = form.abilities_in(generation)
         else:
-            name, types, stats = species.name(lang), species.types_in(generation), species.stats
+            name, types, stats = species.name(lang), species.types_in(generation), species.stats_in(generation)
             abilities = species.abilities_in(generation)
 
         if generation < ABILITIES_FROM_GENERATION:

@@ -23,11 +23,11 @@ from ..core.abilities import ABILITY_NOTES, AbilityEffect, ability_effects, mult
 from ..core.competitive import (
     compare_speed,
     stat_profile,
-    stat_ranges,
+    view_ranges,
     weight_move_power,
 )
 from ..core.learnsets import Learnsets, LearnsetsMissingError
-from ..core.pokedex import STAT_ORDER, Pokedex, Species, SpeciesView
+from ..core.pokedex import Pokedex, Species, SpeciesView
 from ..core.matchup import Matchup, Verdict, effective_multiplier, matchup
 from . import theme
 
@@ -247,7 +247,7 @@ class Overlay(QWidget):
         layout = QVBoxLayout(card)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
-        ranges = stat_ranges(view.stats, level, view.pokemon) if (self.competitive and level) else None
+        ranges = view_ranges(view, level) if (self.competitive and level) else None
 
         self._header(view, level, layout)
         layout.addWidget(self._types_row(view.types))
@@ -334,7 +334,7 @@ class Overlay(QWidget):
         for note in notes:
             layout.addWidget(self._muted(note, size=10, name="matchup-ability-note"))
         if self.competitive and rival_ranges and own is not None and own_level:
-            own_speed = stat_ranges(own.stats, own_level, own.pokemon)["speed"]
+            own_speed = view_ranges(own, own_level, own=True)["speed"]
             speed = compare_speed(own_speed, rival_ranges["speed"])
             text = (f"Velocidad: {speed.value} (tú {own_speed[0]}-{own_speed[1]}, "
                     f"él {rival_ranges['speed'][0]}-{rival_ranges['speed'][1]})")
@@ -414,7 +414,7 @@ class Overlay(QWidget):
         layout.addWidget(_section_title(title))
         stats = QGridLayout()
         stats.setVerticalSpacing(2)
-        for i, key in enumerate(STAT_ORDER):
+        for i, key in enumerate(view.stat_keys):
             value = view.stats[key]
             label = QLabel(theme.STAT_LABELS[key])
             label.setStyleSheet(f"color:{theme.TEXT_MUTED};")
@@ -444,8 +444,8 @@ class Overlay(QWidget):
         total.setObjectName("stat-total")
         total.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         total.setStyleSheet("font-weight:700;")
-        stats.addWidget(total_label, len(STAT_ORDER), 0)
-        stats.addWidget(total, len(STAT_ORDER), 1)
+        stats.addWidget(total_label, len(view.stat_keys), 0)
+        stats.addWidget(total, len(view.stat_keys), 1)
         stats.setColumnMinimumWidth(1, 30)
         stats.setColumnStretch(2, 1)
         layout.addLayout(stats)
