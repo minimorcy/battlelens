@@ -44,7 +44,30 @@ Para que cada cambio de la web se publique solo:
    - **Webhook** (repositorio público): en Coolify, **Configuration → Webhooks** → copia la URL de *GitHub* y define un *secret*. En GitHub: **Settings → Webhooks → Add webhook**, con *Payload URL* = esa URL, *Content type* = `application/json`, *Secret* = el mismo y el evento *Just the push event*.
    - **GitHub App** de Coolify: si ya la tienes conectada a tu cuenta, crea el recurso como *Private Repository (with GitHub App)* en lugar de *Public Repository*; el despliegue automático viene activado.
 
-## 6. Primer despliegue
+## 6. Analítica con Umami (opcional)
+
+La web puede usar tu Umami (sin cookies ni datos personales). El repositorio no lleva ningún identificador: se activa solo con variables de entorno.
+
+1. En **Umami** → *Settings → Websites → Add website*: nombre `BattleLens`, dominio `battlelens.minim-labs.app`. Copia el **Website ID** (un UUID).
+2. En **Coolify** → el recurso de la web → **Environment Variables**:
+
+   | Variable | Valor |
+   |---|---|
+   | `UMAMI_SCRIPT_URL` | URL del script de tu Umami, p. ej. `https://umami.minim-labs.app/script.js` |
+   | `UMAMI_WEBSITE_ID` | el UUID del paso 1 |
+   | `UMAMI_DOMAINS` | `battlelens.minim-labs.app` (opcional: solo cuenta las visitas a ese dominio) |
+
+   No hace falta marcarlas como *Build Variable*: se leen al arrancar el contenedor.
+3. **Redeploy**. En el log del contenedor aparece `40-umami: Umami activado (https://…)`. Si aparece un `AVISO`, algún valor no tiene el formato esperado y la web sigue funcionando sin analítica.
+
+Qué registra:
+- Visitas y páginas, como cualquier sitio de Umami.
+- Eventos `download` y `github` al pulsar los botones, con las propiedades `place` (`hero`, `install`, `nav`) y `lang` (`en` o `es`).
+- Con Umami activo, el pie de la web avisa de que hay analítica anónima sin cookies.
+
+La política de seguridad (CSP) se amplía solo al dominio de tu Umami. Sin las variables, la web no carga nada externo.
+
+## 7. Primer despliegue
 
 Pulsa **Deploy**. Cuando termine:
 

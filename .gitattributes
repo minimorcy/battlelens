@@ -2,3 +2,6 @@
 *.png binary
 *.ico binary
 *.json -text
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.conf text eol=lf

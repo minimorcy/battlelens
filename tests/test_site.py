@@ -104,3 +104,90 @@ def test_readme_bilingue():
     assert "battlelens.minim-labs.app" in en.splitlines()[2] and "battlelens.minim-labs.app" in es.splitlines()[2]
     for level in ("## ", "### "):
         assert sum(l.startswith(level) for l in en.splitlines()) == sum(l.startswith(level) for l in es.splitlines())
+
+
+# ---- analítica opcional con Umami (add-website-analytics) ---------------------------
+
+import shutil  # noqa: E402
+import subprocess  # noqa: E402
+
+SH = shutil.which("sh")
+UMAMI_URL = "https://umami.minim-labs.app/script.js"
+UMAMI_ID = "3f2a9c1e-7b4d-4e8a-9c2f-1a2b3c4d5e6f"
+
+
+@pytest.fixture
+def deployed(tmp_path):
+    """Copias de la página y de las cabeceras, como dentro del contenedor."""
+    html = tmp_path / "index.html"
+    headers = tmp_path / "security-headers.conf"
+    shutil.copy2(SITE / "index.html", html)
+    shutil.copy2(SITE / "security-headers.conf", headers)
+    return html, headers
+
+
+def _run_umami(deployed, **env):
+    html, headers = deployed
+    full_env = {"PATH": __import__("os").environ["PATH"], "UMAMI_HTML_PATH": str(html), "UMAMI_HEADERS_PATH": str(headers), **env}
+    proc = subprocess.run([SH, str(SITE / "docker-entrypoint.d" / "40-umami.sh")], env=full_env,
+                          capture_output=True, text=True, timeout=30)
+    assert proc.returncode == 0, proc.stderr
+    return html.read_text(encoding="utf-8"), headers.read_text(encoding="utf-8"), proc.stdout
+
+
+needs_sh = pytest.mark.skipif(SH is None, reason="hace falta sh")
+
+
+def test_marcador_y_eventos_en_la_pagina(page):
+    assert "<!-- umami -->" in (SITE / "index.html").read_text(encoding="utf-8")
+    events = [(a.get("data-umami-event"), a.get("href")) for t, a in page if t == "a" and a.get("data-umami-event")]
+    assert ("download", "https://github.com/minimorcy/battlelens/releases/latest") in events
+    assert any(e == "github" for e, _ in events)
+    (note,) = [a for _, a in page if a.get("id") == "analytics-note"]
+    assert "hidden" in note and "Umami" in note["data-en"] and "Umami" in note["data-es"]
+
+
+@needs_sh
+def test_sin_variables_no_cambia_nada(deployed):
+    html, headers, out = _run_umami(deployed)
+    assert "<!-- umami -->" in html and "<script defer" not in html
+    assert "script-src 'self';" in headers and "connect-src 'none'" in headers
+    assert "no configurado" in out
+
+
+@needs_sh
+def test_umami_configurado(deployed):
+    html, headers, out = _run_umami(deployed, UMAMI_SCRIPT_URL=UMAMI_URL, UMAMI_WEBSITE_ID=UMAMI_ID,
+                                    UMAMI_DOMAINS="battlelens.minim-labs.app")
+    assert f'<script defer src="{UMAMI_URL}" data-website-id="{UMAMI_ID}" data-domains="battlelens.minim-labs.app"></script>' in html
+    assert "<!-- umami -->" not in html
+    assert "script-src 'self' https://umami.minim-labs.app;" in headers
+    assert "connect-src https://umami.minim-labs.app;" in headers
+    assert "Umami activado" in out
+
+
+@needs_sh
+def test_reinicio_idempotente(deployed):
+    env = {"UMAMI_SCRIPT_URL": UMAMI_URL, "UMAMI_WEBSITE_ID": UMAMI_ID}
+    _run_umami(deployed, **env)
+    html, headers, out = _run_umami(deployed, **env)
+    assert html.count("data-website-id") == 1 and headers.count("https://umami.minim-labs.app") == 2  # script-src y connect-src
+    assert "ya estaba insertado" in out
+
+
+@needs_sh
+@pytest.mark.parametrize(
+    "env",
+    [
+        {"UMAMI_SCRIPT_URL": "http://umami.minim-labs.app/script.js", "UMAMI_WEBSITE_ID": UMAMI_ID},
+        {"UMAMI_SCRIPT_URL": 'https://evil.example/x.js" onload="alert(1)', "UMAMI_WEBSITE_ID": UMAMI_ID},
+        {"UMAMI_SCRIPT_URL": UMAMI_URL, "UMAMI_WEBSITE_ID": "no-es-un-uuid"},
+        {"UMAMI_SCRIPT_URL": UMAMI_URL, "UMAMI_WEBSITE_ID": UMAMI_ID, "UMAMI_DOMAINS": "a.com; b"},
+        {"UMAMI_SCRIPT_URL": UMAMI_URL},
+    ],
+)
+def test_valores_no_validos_no_insertan_nada(deployed, env):
+    html, headers, out = _run_umami(deployed, **env)
+    assert "<!-- umami -->" in html and "data-website-id" not in html
+    assert "script-src 'self';" in headers
+    assert "AVISO" in out

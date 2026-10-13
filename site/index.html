@@ -14,6 +14,7 @@
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/icon.png" type="image/png">
   <link rel="stylesheet" href="styles.css">
+  <!-- umami -->
 </head>
 <body>
   <header class="topbar">
@@ -24,7 +25,7 @@
     <nav class="topnav">
       <a href="#how" data-en="How it works" data-es="Cómo funciona">How it works</a>
       <a href="#modes" data-en="Modes" data-es="Modos">Modes</a>
-      <a href="https://github.com/minimorcy/battlelens">GitHub</a>
+      <a data-umami-event="github" data-umami-event-place="nav" href="https://github.com/minimorcy/battlelens">GitHub</a>
       <button class="lang" type="button" id="lang-toggle" aria-label="Cambiar a español"
               data-en-aria-label="Cambiar a español" data-es-aria-label="Switch to English"
               data-en="ES" data-es="EN">ES</button>
@@ -39,9 +40,9 @@
         <p class="lead" data-en="BattleLens reads the opponent's name on screen and shows its types, weaknesses, stats, abilities and catch rate right next to your emulator. Any emulator, any generation."
            data-es="BattleLens lee el nombre del rival en pantalla y muestra sus tipos, debilidades, estadísticas, habilidades y ratio de captura justo al lado de tu emulador. Cualquier emulador, cualquier generación.">BattleLens reads the opponent's name on screen and shows its types, weaknesses, stats, abilities and catch rate right next to your emulator. Any emulator, any generation.</p>
         <div class="cta">
-          <a class="button primary" id="download" href="https://github.com/minimorcy/battlelens/releases/latest"
+          <a class="button primary" id="download" data-umami-event="download" data-umami-event-place="hero" href="https://github.com/minimorcy/battlelens/releases/latest"
              data-en="Download for Windows" data-es="Descargar para Windows">Download for Windows</a>
-          <a class="button ghost" href="https://github.com/minimorcy/battlelens"
+          <a class="button ghost" data-umami-event="github" data-umami-event-place="hero" href="https://github.com/minimorcy/battlelens"
              data-en="View on GitHub" data-es="Ver en GitHub">View on GitHub</a>
         </div>
         <p class="fine" data-en="Free and open source · Windows 10/11 (64-bit) · No admin rights needed"
@@ -161,7 +162,7 @@
             data-es="Busca el icono en la bandeja del sistema, elige la ventana de tu emulador y calibra. La interfaz está en español; los datos de la ficha, en 5 idiomas.">Find the icon in the system tray, pick your emulator window and calibrate. The interface is in Spanish for now; the card data comes in 5 languages.</li>
       </ol>
       <div class="cta">
-        <a class="button primary" href="https://github.com/minimorcy/battlelens/releases/latest"
+        <a class="button primary" data-umami-event="download" data-umami-event-place="install" href="https://github.com/minimorcy/battlelens/releases/latest"
            data-en="Download for Windows" data-es="Descargar para Windows">Download for Windows</a>
         <a class="button ghost" href="https://github.com/minimorcy/battlelens#readme"
            data-en="Read the guide" data-es="Leer la guía">Read the guide</a>
@@ -175,6 +176,9 @@
     <p class="disclaimer" id="disclaimer"
        data-en="BattleLens is an unofficial fan project. It is not affiliated with, endorsed, sponsored or approved by Nintendo, The Pokémon Company, Creatures Inc. or GAME FREAK inc. Pokémon and Pokémon character names are trademarks of their respective owners."
        data-es="BattleLens es un proyecto de fans no oficial. No está afiliado ni respaldado por Nintendo, The Pokémon Company, Creatures Inc. ni GAME FREAK inc. Pokémon y los nombres de los Pokémon son marcas registradas de sus respectivos titulares.">BattleLens is an unofficial fan project. It is not affiliated with, endorsed, sponsored or approved by Nintendo, The Pokémon Company, Creatures Inc. or GAME FREAK inc. Pokémon and Pokémon character names are trademarks of their respective owners.</p>
+    <p class="analytics-note" id="analytics-note" hidden
+       data-en="This site uses anonymous, cookie-free analytics by Umami."
+       data-es="Esta web usa analítica anónima y sin cookies de Umami.">This site uses anonymous, cookie-free analytics by Umami.</p>
     <p class="made">minim-labs</p>
   </footer>
   <script src="app.js"></script>

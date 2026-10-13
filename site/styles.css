@@ -125,7 +125,7 @@ h3 { font-size: 1.1rem; margin: 0 0 8px; }
 }
 .footer p { margin: 0 0 10px; }
 .disclaimer { max-width: 60em; }
-.made { color: #6d7487; }
+.made, .analytics-note { color: #6d7487; }
 
 /* ---- adaptable ---- */
 @media (max-width: 900px) {

@@ -34,3 +34,4 @@ Siguiendo [deploy-website.md](deploy-website.md):
 - [ ] `https://battlelens.minim-labs.app` carga con HTTPS y `/health` responde `ok`.
 - [ ] La consola del navegador no muestra errores de CSP y el botón EN/ES funciona.
 - [ ] Un push que cambia `site/` vuelve a desplegar la web solo; uno que no la toca, no.
+- [ ] Con las variables de Umami en Coolify: el log muestra «Umami activado», Umami registra una visita y un evento `download`, y el pie muestra el aviso de analítica.

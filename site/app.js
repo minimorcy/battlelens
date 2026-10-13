@@ -31,6 +31,16 @@
     document.querySelectorAll("[data-" + lang + "-aria-label]").forEach(function (el) {
       el.setAttribute("aria-label", el.getAttribute("data-" + lang + "-aria-label"));
     });
+    // Eventos de Umami (si está activo): el idioma de la página como propiedad
+    document.querySelectorAll("[data-umami-event]").forEach(function (el) {
+      el.setAttribute("data-umami-event-lang", lang);
+    });
+  }
+
+  // Aviso de analítica solo si el contenedor ha insertado el script de Umami
+  var note = document.getElementById("analytics-note");
+  if (note && document.querySelector("script[data-website-id]")) {
+    note.hidden = false;
   }
 
   var current = initial();
