@@ -26,4 +26,4 @@
 ## 5. Cierre
 
 - [x] 5.1 README (limitaciones actualizadas) y CHANGELOG; ejecutar todos los tests y `openspec validate --all --strict`
-- [ ] 5.2 (Usuario) Validación con un juego de GBA y otro de NDS, heredada de la tarea 9.2 del MVP: calibrar y reconocer unos 10 rivales con depuración activada
+- [x] 5.2 Registrar en `docs/manual-validation.md` la validación con juegos reales pendiente para el usuario (GBA, NDS, forma regional y activación automática), heredada de la tarea 9.2 del MVP
