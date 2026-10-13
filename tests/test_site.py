@@ -193,3 +193,12 @@ def test_valores_no_validos_no_insertan_nada(deployed, env):
     assert "<!-- umami -->" in html and "data-website-id" not in html
     assert "script-src 'self';" in headers
     assert "AVISO" in out
+
+
+
+def test_captura_de_partida_con_credito(page):
+    (img,) = [a for t, a in page if t == "img" and a.get("src") == "assets/gameplay.jpg"]
+    assert (int(img["width"]), int(img["height"])) == Image.open(SITE / "assets" / "gameplay.jpg").size
+    (credit,) = [a for _, a in page if a.get("id") == "gameplay-credit"]
+    for lang in ("data-en", "data-es"):
+        assert "Nintendo" in credit[lang] and "GAME FREAK" in credit[lang]

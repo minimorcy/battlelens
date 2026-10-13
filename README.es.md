@@ -81,6 +81,7 @@ BattleLens comprueba una vez al día si hay una versión nueva. Si la hay, te av
 
 - **Estadísticas base actuales.** Los tipos y la tabla de eficacias se ajustan a la generación del juego, pero las estadísticas no (por ejemplo, el «Especial» único de la Gen 1).
 - **Formas no regionales** (megaevoluciones, Gigamax, formas de Rotom…): se muestra la forma original.
+- **Lectura del nivel en juegos 3D:** en Pokémon Espada/Escudo el OCR no siempre lee el nivel (fuente grande), así que en modo Competitivo pueden faltar los movimientos probables y las estadísticas a su nivel. El modo Normal no lo necesita.
 - **Movimientos probables:** son los que llevaría un Pokémon salvaje o de un entrenador corriente; los líderes, los rivales y los equipos competitivos pueden llevar otros.
 - **Estadísticas a su nivel** con la fórmula de la Gen 3 en adelante (en la Gen 1-2 y en Let's Go/Leyendas la fórmula es otra).
 - **La comparativa es por tipos** (ataques con STAB): no tiene en cuenta movimientos concretos, habilidades como Levitación ni objetos.

@@ -107,6 +107,12 @@ h3 { font-size: 1.1rem; margin: 0 0 8px; }
 .mode img { margin: 0 auto; width: 300px; }
 .mode img.tall { width: 320px; }
 
+.gameplay { margin: 0; }
+.gameplay img {
+  width: 100%; border-radius: var(--radius);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--border);
+}
+.gameplay figcaption { color: #6d7487; font-size: 0.8rem; margin-top: 10px; }
 .wide-shot { margin: 0; }
 .wide-shot img { width: 586px; margin: 0 auto; }
 
