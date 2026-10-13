@@ -9,11 +9,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Instalación guiada del paquete de OCR de Windows cuando falta.
 - Ventana «Acerca de» con versión, licencia y avisos.
 - Publicación automática de versiones con GitHub Actions.
+- Formas regionales (Alola, Galar, Hisui, Paldea), tipos y tabla de eficacias según la generación del juego.
+- Juego por perfil, detectado por el título de la ventana, y activación automática del perfil al cambiar de juego.
+- Captura del emulador aunque esté tapado por otras ventanas.
 
 ### Cambiado
 - El proyecto pasa a llamarse **BattleLens**.
 - Preprocesado sin OpenCV (descarga mucho más pequeña).
 - Icono propio.
+- Mejor reconocimiento en juegos 3D (Switch/3DS) y con regiones holgadas.
 
 ## [0.1.0] - 2026-10-13
 

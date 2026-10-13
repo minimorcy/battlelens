@@ -18,6 +18,7 @@ class Tray(QObject):
     recognize_requested = pyqtSignal()
     window_selected = pyqtSignal(object)  # WindowInfo
     profile_selected = pyqtSignal(str)
+    profile_game_selected = pyqtSignal(object)  # id de juego o None
     calibrate_requested = pyqtSignal()
     recalibrate_requested = pyqtSignal()
     delete_profile_requested = pyqtSignal()
@@ -32,12 +33,14 @@ class Tray(QObject):
         get_target: Callable[[], WindowInfo | None],
         get_profiles: Callable[[], tuple[list[Profile], str | None]],
         hotkey_texts: dict[str, str],
+        get_games: Callable[[], list[tuple[str, str]]] = lambda: [],
     ) -> None:
         super().__init__()
         self._list_windows = list_windows
         self._get_target = get_target
         self._get_profiles = get_profiles
         self._hotkeys = hotkey_texts
+        self._get_games = get_games  # [(id, etiqueta)] ordenados por generación
 
         self.icon = QSystemTrayIcon(app_icon())
         self.menu = QMenu()
@@ -82,6 +85,8 @@ class Tray(QObject):
         self._windows_menu.aboutToShow.connect(self._populate_windows)
         self._profiles_menu = m.addMenu("Perfil activo")
         self._profiles_menu.aboutToShow.connect(self._populate_profiles)
+        self._game_menu = m.addMenu("Juego del perfil activo")
+        self._game_menu.aboutToShow.connect(self._populate_games)
 
         m.addAction("Calibrar nuevo perfil…" + self._hint("calibrate")).triggered.connect(self.calibrate_requested)
         self._recalibrate = m.addAction("Recalibrar perfil activo")
@@ -100,6 +105,7 @@ class Tray(QObject):
     def _update_enabled(self) -> None:
         _, active_id = self._get_profiles()
         self._recalibrate.setEnabled(active_id is not None)
+        self._game_menu.setEnabled(active_id is not None)
         self._delete.setEnabled(active_id is not None)
 
     def _populate_windows(self) -> None:
@@ -128,6 +134,20 @@ class Tray(QObject):
             action = QAction(profile.name, menu, checkable=True)
             action.setChecked(profile.id == active_id)
             action.triggered.connect(lambda _=False, pid=profile.id: self.profile_selected.emit(pid))
+            group.addAction(action)
+            menu.addAction(action)
+
+    def _populate_games(self) -> None:
+        menu = self._game_menu
+        menu.clear()
+        profiles, active_id = self._get_profiles()
+        active = next((p for p in profiles if p.id == active_id), None)
+        current = active.game if active else None
+        group = QActionGroup(menu)
+        for game_id, label in [(None, "Sin especificar"), *self._get_games()]:
+            action = QAction(label, menu, checkable=True)
+            action.setChecked(game_id == current)
+            action.triggered.connect(lambda _=False, g=game_id: self.profile_game_selected.emit(g))
             group.addAction(action)
             menu.addAction(action)
 

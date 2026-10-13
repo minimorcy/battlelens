@@ -1,0 +1,59 @@
+# battle-overlay Specification
+
+## Purpose
+Interfaz de BattleLens durante el juego: atajos globales, ficha superpuesta del Pokémon rival, icono en la bandeja e instancia única.
+## Requirements
+### Requirement: Atajos de teclado globales
+El sistema SHALL registrar atajos de teclado globales que funcionen aunque el emulador tenga el foco: reconocer (por defecto `Ctrl+Alt+P`), calibrar (por defecto `Ctrl+Alt+C`) y ocultar el overlay (por defecto `Ctrl+Alt+H`). Los atajos MUST ser configurables en `config.toml` y MUST NOT usar teclas F sin modificador, porque los emuladores las usan para los estados guardados.
+
+#### Scenario: Reconocimiento con el emulador en primer plano
+- **WHEN** el emulador tiene el foco y el usuario pulsa `Ctrl+Alt+P`
+- **THEN** se ejecuta el reconocimiento y el emulador no recibe ninguna acción adicional
+
+#### Scenario: Atajo ocupado
+- **WHEN** otra aplicación ya tiene registrado el mismo atajo
+- **THEN** el sistema muestra un aviso en la bandeja indicando qué atajo no se pudo registrar y sigue funcionando con el resto
+
+### Requirement: Overlay con la ficha del Pokémon
+WHEN un reconocimiento tiene éxito, el sistema SHALL mostrar una ventana superpuesta con: nombre en el idioma de la interfaz, número de Pokédex, tipos, debilidades agrupadas (×4, ×2), resistencias (×½, ×¼), inmunidades (×0), estadísticas base con barras y total, y habilidades marcando la oculta.
+
+#### Scenario: Ficha mostrada
+- **WHEN** se reconoce Charizard
+- **THEN** el overlay muestra todos los campos anteriores con los valores del dataset
+
+#### Scenario: Resultado no reconocido
+- **WHEN** el reconocimiento devuelve "no reconocido"
+- **THEN** el overlay muestra un aviso breve con el texto leído por el OCR y la sugerencia de recalibrar
+
+### Requirement: Comportamiento de la ventana
+El overlay SHALL estar siempre por encima del resto de ventanas, sin marco, MUST NOT robar el foco del teclado al emulador y MUST NOT aparecer en la barra de tareas. Se SHALL posicionar por defecto junto al borde derecho de la ventana objetivo, o dentro de la pantalla si no cabe, y MUST recordar la posición si el usuario lo arrastra.
+
+#### Scenario: Foco preservado
+- **WHEN** el overlay aparece mientras el usuario juega
+- **THEN** las pulsaciones de teclado siguen llegando al emulador
+
+#### Scenario: Emulador a pantalla completa en el borde
+- **WHEN** la ventana objetivo ocupa toda la pantalla
+- **THEN** el overlay se coloca dentro de la pantalla, en la esquina superior derecha
+
+### Requirement: Ocultación del overlay
+El sistema SHALL ocultar el overlay al pulsar el atajo de ocultar, al hacer clic en él o, si está configurado, tras un tiempo (por defecto desactivado). Un nuevo reconocimiento MUST reemplazar el contenido del overlay visible.
+
+#### Scenario: Nuevo rival
+- **WHEN** el overlay muestra a Pidgey y se reconoce a Rattata
+- **THEN** el overlay pasa a mostrar a Rattata sin abrir una segunda ventana
+
+### Requirement: Icono en la bandeja del sistema
+El sistema SHALL mostrar un icono en la bandeja del sistema con un menú para: seleccionar ventana objetivo, seleccionar perfil activo, calibrar, recalibrar o eliminar el perfil activo, abrir la carpeta de datos y salir.
+
+#### Scenario: Salida limpia
+- **WHEN** el usuario elige "Salir"
+- **THEN** se liberan los atajos globales, se guarda la configuración y el proceso termina
+
+### Requirement: Instancia única
+El sistema SHALL impedir que se ejecuten dos instancias a la vez.
+
+#### Scenario: Segundo arranque
+- **WHEN** se lanza la aplicación con otra instancia ya en ejecución
+- **THEN** la segunda instancia muestra un aviso y termina sin registrar atajos
+

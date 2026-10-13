@@ -18,7 +18,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from ..core.pokedex import STAT_ORDER, Pokedex, Species
+from ..core.pokedex import STAT_ORDER, Pokedex, Species, SpeciesView
 from . import theme
 
 WIDTH = 320
@@ -124,23 +124,40 @@ class Overlay(QWidget):
 
     # ---- contenido ---------------------------------------------------------
 
-    def show_species(self, species: Species, target_rect: tuple[int, int, int, int] | None) -> None:
+    def show_species(
+        self, species: Species, target_rect: tuple[int, int, int, int] | None, game: str | None = None
+    ) -> None:
+        self.show_view(self.pokedex.view(species.id, game, self.language), target_rect)
+
+    def show_view(self, view: SpeciesView, target_rect: tuple[int, int, int, int] | None) -> None:
         self._clear()
-        lang = self.language
-        add = self._content.addWidget
+        self._content.addWidget(self._card(view))
+        self._present(target_rect)
+
+    def _types_row(self, types) -> QWidget:
+        return _FlowRow([_pill(self.pokedex.type_name(t, self.language), t) for t in types])
+
+    def _card(self, view: SpeciesView) -> QWidget:
+        """Ficha de una especie (un widget, para poder mostrar varias en el futuro)."""
+        card = QWidget()
+        layout = QVBoxLayout(card)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(6)
+        add = layout.addWidget
 
         header = QHBoxLayout()
-        name = QLabel(species.name(lang))
+        name = QLabel(view.name)
+        name.setObjectName("species-name")
+        name.setWordWrap(True)
         name.setStyleSheet("font-size:20px; font-weight:700;")
-        number = QLabel(f"#{species.id:04d}")
+        number = QLabel(f"#{view.species_id:04d}")
         number.setStyleSheet(f"color:{theme.TEXT_MUTED}; font-size:13px;")
-        header.addWidget(name)
-        header.addStretch(1)
-        header.addWidget(number)
-        self._content.addLayout(header)
-        add(_FlowRow([_pill(self.pokedex.type_name(t, lang), t) for t in species.types]))
+        header.addWidget(name, 1)
+        header.addWidget(number, alignment=Qt.AlignmentFlag.AlignTop)
+        layout.addLayout(header)
+        add(self._types_row(view.types))
 
-        groups = self.pokedex.defensive_matchups(species.types)
+        groups = view.matchups
         sections = (
             ("Debilidades", (4.0, 2.0)),
             ("Resistencias", (0.5, 0.25)),
@@ -158,14 +175,14 @@ class Overlay(QWidget):
                 mult.setFixedWidth(26)
                 mult.setStyleSheet(f"color:{theme.ACCENT}; font-weight:700;")
                 row.addWidget(mult, alignment=Qt.AlignmentFlag.AlignTop)
-                row.addWidget(_FlowRow([_pill(self.pokedex.type_name(t, lang), t) for t in groups[m]]), 1)
-                self._content.addLayout(row)
+                row.addWidget(self._types_row(groups[m]), 1)
+                layout.addLayout(row)
 
         add(_section_title("Estadísticas base"))
         stats = QGridLayout()
         stats.setVerticalSpacing(2)
         for i, key in enumerate(STAT_ORDER):
-            value = species.stats[key]
+            value = view.stats[key]
             label = QLabel(theme.STAT_LABELS[key])
             label.setStyleSheet(f"color:{theme.TEXT_MUTED};")
             val = QLabel(str(value))
@@ -185,23 +202,33 @@ class Overlay(QWidget):
             stats.addWidget(bar, i, 2)
         total_label = QLabel("Total")
         total_label.setStyleSheet(f"color:{theme.TEXT_MUTED}; font-weight:700;")
-        total = QLabel(str(species.stat_total))
+        total = QLabel(str(view.stat_total))
         total.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         total.setStyleSheet("font-weight:700;")
         stats.addWidget(total_label, len(STAT_ORDER), 0)
         stats.addWidget(total, len(STAT_ORDER), 1)
         stats.setColumnMinimumWidth(1, 30)
         stats.setColumnStretch(2, 1)
-        self._content.addLayout(stats)
+        layout.addLayout(stats)
 
-        add(_section_title("Habilidades"))
-        for ability in species.abilities:
-            text = ability.name(lang) + ("  <i style='color:%s'>(oculta)</i>" % theme.TEXT_MUTED if ability.hidden else "")
-            label = QLabel(text)
-            label.setTextFormat(Qt.TextFormat.RichText)
-            add(label)
+        if view.abilities:
+            add(_section_title("Habilidades"))
+            for ability in view.abilities:
+                hidden = f"  <i style='color:{theme.TEXT_MUTED}'>(oculta)</i>" if ability.hidden else ""
+                label = QLabel(ability.name(self.language) + hidden)
+                label.setTextFormat(Qt.TextFormat.RichText)
+                add(label)
 
-        self._present(target_rect)
+        if view.other_forms:
+            add(_section_title("Otras formas"))
+            for other in view.other_forms:
+                row = QHBoxLayout()
+                label = QLabel(other.name)
+                label.setStyleSheet(f"color:{theme.TEXT_MUTED};")
+                row.addWidget(label)
+                row.addWidget(self._types_row(other.types), 1)
+                layout.addLayout(row)
+        return card
 
     def show_unrecognized(self, raw_text: str, target_rect: tuple[int, int, int, int] | None) -> None:
         self._clear()

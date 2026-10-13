@@ -5,8 +5,18 @@ from __future__ import annotations
 import numpy as np
 from PyQt6.QtCore import QPoint, QRect, QRectF, Qt
 from PyQt6.QtGui import QColor, QGuiApplication, QImage, QKeyEvent, QMouseEvent, QPainter, QPen, QPixmap
-from PyQt6.QtWidgets import QDialog, QInputDialog, QLabel, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import (
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
+    QLabel,
+    QLineEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
+from ..core.pokedex import Game
 from ..core.profiles import Region, RegionTooSmallError
 
 
@@ -119,7 +129,39 @@ class CalibrationDialog(QDialog):
         self.accept()
 
 
-def ask_profile_name(default: str) -> str | None:
-    name, ok = QInputDialog.getText(None, "Nuevo perfil", "Nombre del perfil (p. ej. el juego):", text=default)
-    name = name.strip()
-    return name if ok and name else None
+class ProfileDialog(QDialog):
+    """Nombre y juego de un perfil nuevo, propuestos a partir del título de la ventana."""
+
+    def __init__(self, default_name: str, games: list[Game], default_game: str | None, lang: str = "es") -> None:
+        super().__init__(None, Qt.WindowType.WindowStaysOnTopHint)
+        self.setWindowTitle("Nuevo perfil")
+        self.name_edit = QLineEdit(default_name)
+        self.game_combo = QComboBox()
+        self.game_combo.addItem("Sin especificar (formas originales, tabla actual)", None)
+        for game in sorted(games, key=lambda g: g.generation):
+            self.game_combo.addItem(f"Gen {game.generation} · {game.name(lang)}", game.id)
+        index = self.game_combo.findData(default_game)
+        self.game_combo.setCurrentIndex(max(index, 0))
+
+        form = QFormLayout()
+        form.addRow("Nombre del perfil:", self.name_edit)
+        form.addRow("Juego:", self.game_combo)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(self._accept)
+        buttons.rejected.connect(self.reject)
+        layout = QVBoxLayout(self)
+        layout.addLayout(form)
+        layout.addWidget(buttons)
+
+    def _accept(self) -> None:
+        if self.name_edit.text().strip():
+            self.accept()
+
+    @property
+    def result_value(self) -> tuple[str, str | None]:
+        return self.name_edit.text().strip(), self.game_combo.currentData()
+
+
+def ask_profile(default_name: str, games: list[Game], default_game: str | None, lang: str = "es"):
+    dialog = ProfileDialog(default_name, games, default_game, lang)
+    return dialog.result_value if dialog.exec() else None

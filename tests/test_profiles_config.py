@@ -132,3 +132,31 @@ def test_estado_ida_y_vuelta(tmp_path):
     assert AppState.load(path).overlay_pos == [10, 20]
     path.write_text("basura", encoding="utf-8")
     assert AppState.load(path) == AppState()
+
+
+def test_perfil_antiguo_sin_juego(tmp_path):
+    legacy = {
+        "name": "Viejo", "region": {"x": 0.1, "y": 0.1, "width": 0.2, "height": 0.05},
+        "ocr_languages": ["es"], "id": "old00001", "created_at": "2026-10-13T00:00:00+00:00",
+    }
+    (tmp_path / "old00001.json").write_text(json.dumps(legacy), encoding="utf-8")
+    store = ProfileStore(tmp_path)
+    store.load()
+    assert store.profiles["old00001"].game is None
+
+
+def test_juego_ida_y_vuelta_y_busqueda(tmp_path):
+    store = ProfileStore(tmp_path)
+    esm = _profile("Esmeralda").with_game("emerald")
+    esp1 = _profile("Espada A").with_game("sword-shield")
+    esp2 = _profile("Espada B").with_game("sword-shield")
+    for p in (esm, esp1, esp2):
+        store.save(p)
+    reloaded = ProfileStore(tmp_path)
+    reloaded.load()
+    assert reloaded.profiles[esm.id].game == "emerald"
+    reloaded.set_active(esm.id)
+    assert reloaded.find_by_game("sword-shield") == esp1  # el primero por nombre
+    reloaded.set_active(esp2.id)
+    assert reloaded.find_by_game("sword-shield") == esp2  # se mantiene el activo si ya es de ese juego
+    assert reloaded.find_by_game("platinum") is None

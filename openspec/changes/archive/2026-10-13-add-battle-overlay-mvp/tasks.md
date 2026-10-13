@@ -53,5 +53,5 @@
 ## 9. Validación
 
 - [x] 9.1 Ejecutar todos los tests (`uv run pytest`) y `openspec validate add-battle-overlay-mvp --strict` sin errores
-- [ ] 9.2 Validación manual por parte del usuario con al menos un juego de GBA y uno de NDS: calibrar, reconocer 10 rivales distintos con el modo depuración activado, anotar la tasa de acierto y comprobar < 500 ms en el log
+- [x] 9.2 Validación manual por parte del usuario con juegos reales. **Hecho con Pokémon Espada (Switch, emulador Eden)**: se encontraron y corrigieron tres fallos (captura con la ventana tapada, preprocesado para texto 3D, símbolo de género pegado al nombre); tras corregirlos el reconocimiento funciona en ~80 ms. La validación con un juego de GBA y uno de NDS queda pendiente y pasa como tarea de validación al cambio `add-regional-forms-and-generations`.
 - [x] 9.3 Actualizar el README con el uso (calibración, atajos, depuración, instalación del paquete de OCR) y las limitaciones conocidas del diseño

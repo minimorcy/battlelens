@@ -31,7 +31,10 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
 ### Uso
 
 1. Busca el icono de BattleLens en la bandeja del sistema (junto al reloj) y elige **Ventana del emulador**.
-2. **Calibra el juego** (una sola vez por juego): en un combate, pulsa `Ctrl+Alt+C`, dibuja un rectángulo que cubra el **nombre del rival** (cuanto más ajustado, mejor) y pulsa `Enter`.
+2. **Calibra el juego** (una sola vez por juego): en un combate, pulsa `Ctrl+Alt+C`, dibuja un rectángulo que cubra el **nombre del rival** (cuanto más ajustado, mejor) y pulsa `Enter`. BattleLens propone el nombre del perfil y el juego a partir del título de la ventana.
+   - Con el juego indicado, la ficha usa sus **formas regionales** (Alola, Galar, Hisui, Paldea) y los tipos y la tabla de eficacias de **su generación**.
+   - Al cambiar de juego, el perfil correspondiente **se activa solo**.
+   - Para cambiar el juego de un perfil: bandeja → **Juego del perfil activo**.
 3. **En cada combate:** pulsa `Ctrl+Alt+P`. La ficha aparece junto al emulador.
    - Haz clic en ella o pulsa `Ctrl+Alt+H` para ocultarla. Arrástrala para moverla.
 
@@ -55,8 +58,8 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
 
 ### Limitaciones conocidas
 
-- **Tabla de tipos moderna (Gen 6+).** En juegos antiguos difiere: no existe el tipo Hada, Clefairy era de tipo Normal, etc.
-- **Formas regionales:** se muestra la forma original.
+- **Estadísticas base actuales.** Los tipos y la tabla de eficacias se ajustan a la generación del juego, pero las estadísticas no (por ejemplo, el «Especial» único de la Gen 1).
+- **Formas no regionales** (megaevoluciones, Gigamax, formas de Rotom…): se muestra la forma original.
 - **Combates dobles:** todavía no se admiten.
 
 ### Desinstalar

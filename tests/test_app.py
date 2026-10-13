@@ -140,3 +140,45 @@ def test_resultado_instalacion_ocr(qapp, controller, monkeypatch, outcome, avail
     controller._on_ocr_installed(InstallResult(InstallOutcome(outcome), "es-ES", 0))
     assert expected in messages[-1]
     assert controller.tray.install_ocr_action.isVisible() == (not (outcome == "success" and available))
+
+
+def test_activacion_automatica_por_juego(qapp, controller, fake_emulator):
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.platform.windows import WindowInfo
+
+    messages = []
+    controller.tray.notify = lambda msg, warning=False: messages.append(msg)
+    esmeralda = Profile("Esmeralda", Region(0.1, 0.1, 0.2, 0.05), game="emerald")
+    espada = Profile("Espada", Region(0.1, 0.1, 0.2, 0.05), game="sword-shield")
+    controller.profiles.save(espada)
+    controller.profiles.save(esmeralda)  # queda activo
+    fake_emulator.setWindowTitle("Eden Nightly | Pokémon Espada (64-bit) | 1.3.2")
+    qapp.processEvents()
+
+    controller.select_window(WindowInfo(int(fake_emulator.winId()), "x", "eden.exe", 0))
+    assert controller.profiles.active_id == espada.id
+    assert "Espada" in messages[-1]
+
+
+def test_juego_sin_perfil_mantiene_el_activo(qapp, controller, fake_emulator):
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.platform.windows import WindowInfo
+
+    esmeralda = Profile("Esmeralda", Region(0.1, 0.1, 0.2, 0.05), game="emerald")
+    controller.profiles.save(esmeralda)
+    fake_emulator.setWindowTitle("Citra | Pokémon X")
+    qapp.processEvents()
+    controller.select_window(WindowInfo(int(fake_emulator.winId()), "x", "citra.exe", 0))
+    assert controller.profiles.active_id == esmeralda.id
+
+
+def test_cambiar_juego_del_perfil(qapp, controller):
+    from battlelens.core.profiles import Profile, Region
+
+    controller.tray.notify = lambda msg, warning=False: None
+    p = Profile("Viejo", Region(0.1, 0.1, 0.2, 0.05))
+    controller.profiles.save(p)
+    controller.set_profile_game("sword-shield")
+    assert controller.profiles.active.game == "sword-shield"
+    controller.profiles.load(preferred_active=p.id)  # persistido en disco
+    assert controller.profiles.active.game == "sword-shield"

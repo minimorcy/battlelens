@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from . import APP_NAME
 from .core.config import AppState, Config, ConfigError, load_config
+from .core.games import GameDetector
 from .core.matcher import NameMatcher
 from .core.pokedex import DatasetMissingError, Pokedex
 from .core.profiles import Profile, ProfileStore
@@ -33,7 +34,7 @@ from .platform.ocr_setup import (
 )
 from .platform.single_instance import SingleInstance
 from .ui.about import AboutDialog
-from .ui.calibrator import CalibrationDialog, ask_profile_name
+from .ui.calibrator import CalibrationDialog, ask_profile
 from .ui.icons import app_icon
 from .ui.overlay import Overlay
 from .ui.tray import Tray
@@ -82,7 +83,10 @@ class Controller(QObject):
             debug_dir=self.data_dir / "debug" if config.debug else None,
         )
         self._busy = False
+        self._recognition_game: str | None = None
         self._pool = QThreadPool.globalInstance()
+        self.pokedex = pokedex
+        self.detector = GameDetector(pokedex.games)
 
         self.overlay = Overlay(pokedex, config.language, config.auto_hide_seconds)
         if self.state.overlay_pos:
@@ -95,10 +99,12 @@ class Controller(QObject):
             lambda: self.target,
             lambda: (self.profiles.sorted_profiles(), self.profiles.active_id),
             {name: hk.text for name, hk in bindings.items()},
+            lambda: [(g.id, f"Gen {g.generation} · {g.name(config.language)}") for g in pokedex.games],
         )
         self.tray.recognize_requested.connect(self.recognize)
         self.tray.window_selected.connect(self.select_window)
         self.tray.profile_selected.connect(self.select_profile)
+        self.tray.profile_game_selected.connect(self.set_profile_game)
         self.tray.calibrate_requested.connect(self.calibrate_new)
         self.tray.recalibrate_requested.connect(self.recalibrate)
         self.tray.delete_profile_requested.connect(self.delete_profile)
@@ -209,11 +215,13 @@ class Controller(QObject):
         if self.target is None:
             self.tray.notify("Selecciona primero la ventana del emulador.", warning=True)
             return
+        self._auto_select_profile()
         profile = self.profiles.active
         if profile is None:
             self.tray.notify("No hay perfiles: calibra primero la región del nombre.", warning=True)
             return
         self._busy = True
+        self._recognition_game = profile.game
         task = _Task(self.pipeline.run, self.target.hwnd, profile)
         task.signals.finished.connect(self._on_result)
         task.signals.failed.connect(self._on_failure)
@@ -223,7 +231,7 @@ class Controller(QObject):
         self._busy = False
         rect = self._target_rect()
         if result.recognized:
-            self.overlay.show_species(result.species, rect)
+            self.overlay.show_species(result.species, rect, game=self._recognition_game)
         else:
             self.overlay.show_unrecognized(result.match.raw_text, rect)
 
@@ -247,6 +255,35 @@ class Controller(QObject):
 
     def select_window(self, info: windows.WindowInfo) -> None:
         self._set_target(info)
+        self._auto_select_profile()
+
+    def _current_title(self) -> str | None:
+        if self.target is None or not windows.is_window(self.target.hwnd):
+            return None
+        return windows.window_title(self.target.hwnd) or self.target.title
+
+    def _auto_select_profile(self) -> None:
+        """Activa el perfil del juego detectado en el título de la ventana, si existe (game-profiles)."""
+        game_id = self.detector.detect(self._current_title())
+        if game_id is None:
+            return
+        profile = self.profiles.find_by_game(game_id)
+        if profile is None or profile.id == self.profiles.active_id:
+            return
+        self.profiles.set_active(profile.id)
+        self._save_state()
+        self.tray.refresh_tooltip()
+        game = self.pokedex.get_game(game_id)
+        self.tray.notify(f"Perfil «{profile.name}» activado ({game.name(self.config.language)}).")
+
+    def set_profile_game(self, game_id: str | None) -> None:
+        profile = self.profiles.active
+        if profile is None:
+            return
+        self.profiles.save(profile.with_game(game_id), activate=True)
+        game = self.pokedex.get_game(game_id)
+        label = game.name(self.config.language) if game else "sin especificar"
+        self.tray.notify(f"Juego de «{profile.name}»: {label}.")
 
     def _set_target(self, info: windows.WindowInfo | None) -> None:
         self.target = info
@@ -279,11 +316,17 @@ class Controller(QObject):
         dialog = CalibrationDialog(image, "Calibrar nuevo perfil")
         if not dialog.exec() or dialog.region is None:
             return
-        default_name = self.target.title if self.target else "Mi juego"
-        name = ask_profile_name(default_name)
-        if name is None:
+        detection = self.detector.detect_version(self._current_title())
+        lang = self.config.language
+        if detection is not None:
+            default_name = f"Pokémon {detection.version_name(lang)}"
+        else:
+            default_name = self.target.title if self.target else "Mi juego"
+        answer = ask_profile(default_name, self.pokedex.games, detection.game_id if detection else None, lang)
+        if answer is None:
             return
-        profile = Profile(name, dialog.region)
+        name, game_id = answer
+        profile = Profile(name, dialog.region, game=game_id)
         self.profiles.save(profile, activate=True)
         self._save_state()
         self.tray.refresh_tooltip()

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -75,6 +75,7 @@ class Profile:
     ocr_languages: tuple[str, ...] = DEFAULT_OCR_LANGUAGES
     id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat(timespec="seconds"))
+    game: str | None = None  # id del grupo de versiones (p. ej. "sword-shield"); None = sin especificar
 
     def __post_init__(self) -> None:
         if not isinstance(self.name, str) or not self.name.strip():
@@ -83,7 +84,10 @@ class Profile:
             raise ProfileError("El perfil necesita al menos un idioma de OCR")
 
     def with_region(self, region: Region) -> Profile:
-        return Profile(self.name, region, self.ocr_languages, self.id, self.created_at)
+        return replace(self, region=region)
+
+    def with_game(self, game: str | None) -> Profile:
+        return replace(self, game=game)
 
     def to_dict(self) -> dict:
         data = asdict(self)
@@ -100,6 +104,7 @@ class Profile:
                 ocr_languages=tuple(data.get("ocr_languages") or DEFAULT_OCR_LANGUAGES),
                 id=data["id"],
                 created_at=data["created_at"],
+                game=data.get("game"),
             )
         except (KeyError, TypeError) as exc:
             raise ProfileError(f"Perfil con formato inválido: {exc}") from exc
@@ -128,6 +133,13 @@ class ProfileStore:
     @property
     def active(self) -> Profile | None:
         return self.profiles.get(self.active_id) if self.active_id else None
+
+    def find_by_game(self, game: str) -> Profile | None:
+        """Perfil de un juego: el activo si ya lo es; si no, el primero por nombre."""
+        active = self.active
+        if active is not None and active.game == game:
+            return active
+        return next((p for p in self.sorted_profiles() if p.game == game), None)
 
     def sorted_profiles(self) -> list[Profile]:
         return sorted(self.profiles.values(), key=lambda p: p.name.lower())

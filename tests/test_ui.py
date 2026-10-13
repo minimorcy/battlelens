@@ -162,3 +162,46 @@ def test_calibrador_esc_cancela(qapp):
     dialog.show()
     QTest.keyClick(dialog, Qt.Key.Key_Escape)
     assert dialog.result() == 0 and dialog.region is None
+
+
+def test_ficha_forma_regional(qapp, overlay, dex):
+    overlay.show_species(dex.get_species(263), None, game="sword-shield")
+    qapp.processEvents()
+    texts = " | ".join(_labels(overlay))
+    assert "Zigzagoon de Galar" in texts and "Siniestro" in texts and "×4" in texts
+    assert "OTRAS FORMAS" in texts
+
+
+def test_ficha_gen1_sin_habilidades(qapp, overlay, dex):
+    overlay.show_species(dex.get_species(6), None, game="red-blue")
+    qapp.processEvents()
+    texts = " | ".join(_labels(overlay))
+    assert "HABILIDADES" not in texts and "Hada" not in texts
+
+
+def test_dialogo_perfil_propone_juego(qapp, dex):
+    from battlelens.ui.calibrator import ProfileDialog
+
+    dialog = ProfileDialog("Pokémon Espada", dex.games, "sword-shield")
+    assert dialog.result_value == ("Pokémon Espada", "sword-shield")
+    assert "Espada / Escudo" in dialog.game_combo.currentText()
+    dialog.game_combo.setCurrentIndex(0)
+    assert dialog.result_value[1] is None
+
+
+def test_menu_juego_del_perfil(qapp):
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.ui.tray import Tray
+
+    profile = Profile("Espada", Region(0.1, 0.1, 0.2, 0.05), game="sword-shield")
+    tray = Tray(lambda: [], lambda: None, lambda: ([profile], profile.id), {},
+                lambda: [("emerald", "Gen 3 · Esmeralda"), ("sword-shield", "Gen 8 · Espada / Escudo")])
+    chosen = []
+    tray.profile_game_selected.connect(chosen.append)
+    tray._populate_games()
+    actions = tray._game_menu.actions()
+    assert [a.text() for a in actions] == ["Sin especificar", "Gen 3 · Esmeralda", "Gen 8 · Espada / Escudo"]
+    assert actions[2].isChecked()
+    actions[1].trigger()
+    assert chosen == ["emerald"]
+    tray.hide()
