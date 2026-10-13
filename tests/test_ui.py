@@ -282,6 +282,7 @@ def test_ajustes_muestran_valores_actuales(qapp):
     assert d.language.currentData() == "fr" and d.threshold.value() == 75
     assert d.interval.value() == 800 and not d.updates.isChecked()
     assert d.hotkey_edits["hotkey_recognize"].text() == "Ctrl+Alt+P"
+    assert d.hotkey_edits["hotkey_cycle_form"].text() == "Ctrl+Alt+F"
 
 
 def test_ajustes_rechazan_atajo_sin_modificador(qapp):

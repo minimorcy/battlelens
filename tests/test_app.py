@@ -30,6 +30,7 @@ def controller(qapp, tmp_path, monkeypatch):
         hotkey_hide="Ctrl+Alt+Shift+F22",
         updates_check=False,
         hotkey_toggle_mode="Ctrl+Alt+Shift+F18",
+        hotkey_cycle_form="Ctrl+Alt+Shift+F17",
         detection_enabled=False,
     )
     c = Controller(qapp, config, Pokedex.load())
@@ -208,6 +209,7 @@ def auto_controller(qapp, tmp_path, monkeypatch):
         hotkey_hide="Ctrl+Alt+Shift+F22",
         updates_check=False,
         hotkey_toggle_mode="Ctrl+Alt+Shift+F18",
+        hotkey_cycle_form="Ctrl+Alt+Shift+F17",
         detection_enabled=True,
         detection_interval_ms=200,
         detection_hide_after_seconds=1.0,
@@ -380,6 +382,55 @@ def test_cambio_de_modo_redibuja_la_ficha_visible(qapp, controller, tmp_path):
     controller.set_mode("normal")
     qapp.processEvents()
     assert not names("move") and load_config(tmp_path / "config.toml").overlay_mode == "normal"
+
+
+def _card_names(controller, obj):
+    from PyQt6.QtWidgets import QLabel
+
+    return [w.text() for w in controller.overlay.findChildren(QLabel) if w.objectName() == obj]
+
+
+def test_cambiar_de_forma_rotom(qapp, controller):
+    controller._show_battle((479, None, None), "platinum", None)
+    qapp.processEvents()
+    assert _card_names(controller, "species-name") == ["Rotom"]
+    assert _card_names(controller, "form-hint") == ["Ctrl+Alt+Shift+F17: cambiar de forma"]
+    controller.cycle_form()
+    controller.cycle_form()  # como Ctrl+Alt+F dos veces
+    qapp.processEvents()
+    assert _card_names(controller, "species-name") == ["Rotom Lavado"]
+
+
+def test_forma_se_mantiene_en_el_combate_y_se_olvida_al_salir(qapp, controller):
+    controller._show_battle((6, None, None), "x-y", None)
+    controller.cycle_form()
+    controller._show_battle((6, None, None), "x-y", None)  # la detección vuelve a reconocerlo
+    qapp.processEvents()
+    assert _card_names(controller, "species-name") == ["Mega-Charizard X"]
+    controller._show_battle((16, None, None), "x-y", None)  # entra otro Pokémon
+    controller._show_battle((6, None, None), "x-y", None)
+    qapp.processEvents()
+    assert _card_names(controller, "species-name") == ["Charizard"]
+
+
+def test_cambiar_de_forma_sin_formas_no_hace_nada(qapp, controller):
+    controller._show_battle((16, 479, None), "platinum", None)  # Pidgey y Rotom: alterna el 2.º
+    controller.cycle_form()
+    qapp.processEvents()
+    assert _card_names(controller, "species-name") == ["Pidgey", "Rotom Calor"]
+    controller._show_battle((16, None, None), "platinum", None)
+    controller.cycle_form()
+    qapp.processEvents()
+    assert _card_names(controller, "species-name") == ["Pidgey"]
+
+
+def test_movimientos_de_una_mega(qapp, controller):
+    controller.set_mode("competitive")
+    controller._show_battle((6, None, None), "x-y", None, (50, None, None))
+    controller.cycle_form()
+    qapp.processEvents()
+    assert _card_names(controller, "species-name") == ["Mega-Charizard X"]
+    assert len(_card_names(controller, "move")) == 4
 
 
 def test_modo_desde_ajustes(qapp, controller):

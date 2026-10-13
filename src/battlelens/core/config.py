@@ -25,6 +25,8 @@ calibrate = {hotkey_calibrate}
 hide = {hotkey_hide}
 # Cambia entre la ficha Normal y la Competitiva.
 toggle_mode = {hotkey_toggle_mode}
+# Alterna la forma del rival (Megaevoluciones, Rotom, Deoxys...).
+cycle_form = {hotkey_cycle_form}
 
 [recognition]
 # Puntuación mínima (0-100) para dar por reconocido un nombre.
@@ -83,6 +85,7 @@ class Config:
     updates_check: bool = True
     hotkey_toggle_mode: str = "Ctrl+Alt+M"
     overlay_mode: str = "normal"
+    hotkey_cycle_form: str = "Ctrl+Alt+F"
 
     @classmethod
     def from_toml(cls, text: str) -> Config:
@@ -110,6 +113,7 @@ class Config:
             updates_check=upd.get("check", default.updates_check),
             hotkey_toggle_mode=hk.get("toggle_mode", default.hotkey_toggle_mode),
             overlay_mode=ov.get("mode", default.overlay_mode),
+            hotkey_cycle_form=hk.get("cycle_form", default.hotkey_cycle_form),
         )
         cfg._validate()
         return cfg
@@ -124,6 +128,8 @@ class Config:
             raise ConfigError(f"overlay.mode debe ser uno de: {', '.join(MODES)}")
         if not isinstance(self.hotkey_toggle_mode, str):
             raise ConfigError("hotkeys.toggle_mode debe ser un texto")
+        if not isinstance(self.hotkey_cycle_form, str):
+            raise ConfigError("hotkeys.cycle_form debe ser un texto")
         if self.language not in LANGUAGES:
             raise ConfigError(f"overlay.language debe ser uno de: {', '.join(LANGUAGES)}")
         if not isinstance(self.updates_check, bool):

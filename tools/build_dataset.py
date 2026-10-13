@@ -69,6 +69,14 @@ EXCLUDED_GAMES = {
     "the-isle-of-armor", "the-crown-tundra", "the-teal-mask", "the-indigo-disk", "red-green-japan", "blue-japan",
 }
 REGIONAL_PREFIXES = ("alola", "galar", "hisui", "paldea")
+# Formas alternativas que no se ven en un combate normal (add-alternate-forms D1)
+EXCLUDED_FORM_WORDS = ("totem", "starter", "gmax")
+DLC_BASE_GAME = {
+    "the-isle-of-armor": "sword-shield",
+    "the-crown-tundra": "sword-shield",
+    "the-teal-mask": "scarlet-violet",
+    "the-indigo-disk": "scarlet-violet",
+}
 NON_REGIONAL_FORMS = {"alola-cap", "totem-alola"}
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -251,26 +259,51 @@ def build(tables: dict[str, list[dict[str, str]]]) -> dict:
             base = species_names.get(sid, {}).get(lang)
             if lang in names or not base:
                 continue
-            names[lang] = f"{base} {label[len('Forma '):]}" if label.startswith("Forma ") else f"{base} ({label})"
+            if base.lower() in label.lower():  # «Rotom Calor», «Mega-Charizard X»
+                names[lang] = label
+            elif label.startswith("Forma "):
+                names[lang] = f"{base} {label[len('Forma '):]}"
+            else:
+                names[lang] = f"{base} ({label})"
         return names
+    vg_identifier = {int(r["id"]): r["identifier"] for r in tables["version_groups"]}
+
+    def battle_profile(data: dict) -> tuple:
+        return (data["types"], data["stats"], sorted(a["identifier"] for a in data["abilities"]))
+
+    # Formas regionales (design.md D2) y alternativas (add-alternate-forms D1)
     forms_by_species: dict[int, list[tuple[int, dict]]] = {}
+    seen_profiles: dict[int, list[tuple]] = {}
     for r in tables["pokemon_forms"]:
         form = r["form_identifier"]
-        if not form or form in NON_REGIONAL_FORMS or not form.startswith(REGIONAL_PREFIXES):
-            continue
         pid = int(r["pokemon_id"])
         sid = species_of_pokemon.get(pid)
-        if sid is None or pid not in poke_stats:
+        if not form or form in NON_REGIONAL_FORMS or sid is None or pid not in poke_stats:
             continue
+        data = pokemon_data(pid)
+        if form.startswith(REGIONAL_PREFIXES):
+            kind = "regional"
+        else:
+            if pid == default_pokemon.get(sid) or any(word in form for word in EXCLUDED_FORM_WORDS):
+                continue
+            profile = battle_profile(data)
+            if profile == battle_profile(pokemon_data(default_pokemon[sid])) or profile in seen_profiles.get(sid, []):
+                continue  # cosmética, Gigamax o repetida
+            seen_profiles.setdefault(sid, []).append(profile)
+            kind = "mega" if r.get("is_mega") == "1" or form.endswith("primal") else "alternate"
+        introduced = vg_identifier.get(int(r["introduced_in_version_group_id"] or 0)) if r.get(
+            "introduced_in_version_group_id") else None
         forms_by_species.setdefault(sid, []).append(
             (
                 int(r["form_order"] or 0),
                 {
                     "identifier": r["identifier"],
                     "form": form,
+                    "kind": kind,
+                    "introduced": DLC_BASE_GAME.get(introduced, introduced),
                     "names": form_display_names(int(r["id"]), sid),
                     "form_names": form_labels.get(int(r["id"]), {}),
-                    **pokemon_data(pid),
+                    **data,
                 },
             )
         )
@@ -296,6 +329,7 @@ def build(tables: dict[str, list[dict[str, str]]]) -> dict:
             {
                 "id": r["identifier"],
                 "generation": int(r["generation_id"]),
+                "order": int(r["order"]),
                 "regional_form": REGIONAL_FORM_BY_GAME.get(r["identifier"]),
                 "names": names,
                 "versions": versions,
@@ -479,8 +513,12 @@ def main(argv: list[str] | None = None) -> int:
 
     write_atomic(data, args.output)
     write_atomic(learnsets, args.output.with_name("learnsets.json"))
-    n_forms = sum(len(sp["forms"]) for sp in data["species"])
-    print(f"{len(data['species'])} especies, {n_forms} formas regionales, {len(data['games'])} juegos -> {args.output}")
+    kinds: dict[str, int] = {}
+    for sp in data["species"]:
+        for f in sp["forms"]:
+            kinds[f["kind"]] = kinds.get(f["kind"], 0) + 1
+    forms = ", ".join(f"{n} {kind}" for kind, n in sorted(kinds.items()))
+    print(f"{len(data['species'])} especies, formas: {forms}, {len(data['games'])} juegos -> {args.output}")
     return 0
 
 

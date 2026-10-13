@@ -14,6 +14,11 @@ STAT_ORDER = ("hp", "attack", "defense", "special_attack", "special_defense", "s
 # Orden en la ficha; «special» solo existe en la Gen 1 (add-generation-stats D3)
 STAT_DISPLAY_ORDER = ("hp", "attack", "defense", "special", "special_attack", "special_defense", "speed")
 SPECIAL_SPLIT_GENERATION = 2
+# Juegos con Megaevolución y regresión primigenia (add-alternate-forms D2)
+MEGA_GAMES = frozenset({
+    "x-y", "omega-ruby-alpha-sapphire", "sun-moon", "ultra-sun-ultra-moon", "lets-go-pikachu-lets-go-eevee",
+    "legends-za", "mega-dimension", "champions",
+})
 MULTIPLIER_GROUPS = (4.0, 2.0, 0.5, 0.25, 0.0)
 CURRENT_GENERATION = 9
 ABILITIES_FROM_GENERATION = 3
@@ -142,6 +147,8 @@ class Form:
     ev_yield: dict[str, int] = field(default_factory=dict, compare=False)
     past_abilities: tuple[PastAbility, ...] = field(default=(), compare=False)
     past_stats: tuple[PastStats, ...] = field(default=(), compare=False)
+    kind: str = "regional"  # "regional", "mega" o "alternate" (add-alternate-forms D1)
+    introduced: str | None = None  # juego (grupo de versiones) en que apareció
 
     def name(self, lang: str) -> str:
         return _localized(self.names, lang, self.identifier)
@@ -206,6 +213,7 @@ class Game:
     regional_form: str | None
     names: dict[str, str]
     version_names: tuple[dict[str, str], ...]
+    order: int = 0  # orden del grupo de versiones en PokéAPI
 
     def name(self, lang: str) -> str:
         return _localized(self.names, lang, self.id)
@@ -240,6 +248,8 @@ class SpeciesView:
     ev_yield: dict[str, int] = field(default_factory=dict)
     # Efectos defensivos de sus habilidades, seguros y posibles (add-ability-aware-matchups D3)
     ability_effects: tuple[AbilityEffect, ...] = field(default_factory=tuple)
+    form_id: str | None = None  # identificador de la forma mostrada (el de la especie si es la base)
+    base_pokemon: str | None = None  # Pokémon de la especie, para los movimientos de las megas
 
     def effects_against(self, attacking: str) -> tuple[AbilityEffect, ...]:
         return tuple(e for e in self.ability_effects if e.type == attacking)
@@ -289,6 +299,7 @@ class Pokedex:
                 g.get("regional_form"),
                 g.get("names", {}),
                 tuple(v.get("names", {}) for v in g.get("versions", [])),
+                g.get("order", 0),
             )
             for g in data.get("games", [])
         ]
@@ -318,6 +329,8 @@ class Pokedex:
                         ev_yield=f.get("ev_yield", {}),
                         past_abilities=_past_abilities(f.get("past_abilities", []), descriptions),
                         past_stats=_past_stats(f.get("past_stats", [])),
+                        kind=f.get("kind", "regional"),
+                        introduced=f.get("introduced"),
                     )
                     for f in s.get("forms", [])
                 ),
@@ -474,15 +487,53 @@ class Pokedex:
 
     # ---- vista según el juego ----------------------------------------------
 
-    def view(self, species_id: int, game_id: str | None = None, lang: str = "es") -> SpeciesView:
-        """Forma, tipos, habilidades y eficacias de una especie en un juego (design.md D1-D3)."""
+    def form_available(self, form: Form, game: Game | None) -> bool:
+        """Forma disponible en un juego (add-alternate-forms D2); las regionales siempre lo están."""
+        if form.kind == "regional" or game is None:
+            return True
+        if form.kind == "mega" and game.id not in MEGA_GAMES:
+            return False
+        introduced = self.get_game(form.introduced)
+        return introduced is None or introduced.order <= game.order
+
+    def _auto_form(self, species: Species, game: Game | None) -> Form | None:
+        if game and game.regional_form:
+            return next(
+                (f for f in species.forms if f.kind == "regional" and f.form.startswith(game.regional_form)), None
+            )
+        return None
+
+    def form_cycle(self, species_id: int, game_id: str | None = None) -> tuple[str, ...]:
+        """Forma mostrada sin elegir seguida de las demás disponibles en el juego (add-alternate-forms D3)."""
+        species = self.get_species(species_id)
+        game = self.get_game(game_id)
+        auto = self._auto_form(species, game)
+        cycle = [auto.identifier if auto else species.identifier]
+        for identifier in [species.identifier] + [
+            f.identifier for f in species.forms if self.form_available(f, game)
+        ]:
+            if identifier not in cycle:
+                cycle.append(identifier)
+        return tuple(cycle)
+
+    def view(
+        self, species_id: int, game_id: str | None = None, lang: str = "es", form: str | None = None
+    ) -> SpeciesView:
+        """Forma, tipos, habilidades y eficacias de una especie en un juego (design.md D1-D3).
+
+        `form` elige una forma por su identificador (el de la especie es la forma base); si no está
+        disponible en el juego, se usa la forma automática (regional o base).
+        """
         species = self.get_species(species_id)
         game = self.get_game(game_id)
         generation = game.generation if game else CURRENT_GENERATION
 
-        form = None
-        if game and game.regional_form:
-            form = next((f for f in species.forms if f.form.startswith(game.regional_form)), None)
+        chosen = None
+        if form is not None and form in self.form_cycle(species_id, game_id):
+            chosen = species if form == species.identifier else next(f for f in species.forms if f.identifier == form)
+        if chosen is None:
+            chosen = self._auto_form(species, game)
+        form = chosen if isinstance(chosen, Form) else None
 
         source = form if form is not None else species
         if form is not None:
@@ -500,7 +551,11 @@ class Pokedex:
         others: list[OtherForm] = []
         if form is not None:
             others.append(OtherForm(species.name(lang), species.types_in(generation)))
-        others += [OtherForm(f.name(lang), f.types) for f in species.forms if f is not form]
+        others += [
+            OtherForm(f.name(lang), f.types)
+            for f in species.forms
+            if f is not form and self.form_available(f, game)
+        ]
 
         return SpeciesView(
             species_id=species.id,
@@ -520,4 +575,6 @@ class Pokedex:
             weight_kg=source.weight_kg,
             ev_yield=source.ev_yield,
             ability_effects=self.ability_effects(types, abilities, generation),
+            form_id=form.identifier if form else species.identifier,
+            base_pokemon=species.pokemon,
         )

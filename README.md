@@ -40,6 +40,7 @@ BattleLens uses the text recognition that ships with Windows. Almost every PC al
 3. **In every battle the card appears by itself** next to the emulator as soon as the opponent's name is visible (**automatic detection**), and hides a few seconds after the battle ends.
    - If you turn it off from the tray (**Automatic detection** / *Detección automática*), press `Ctrl+Alt+P` to recognise manually.
    - Click the card or press `Ctrl+Alt+H` to hide it. Drag it to move it.
+   - **Mega Evolutions and other forms** (Rotom, Deoxys, Giratina…) show the same name on screen, so press `Ctrl+Alt+F` to cycle through the forms available in that game; the card is recalculated and keeps that form while the Pokémon stays in battle.
 4. **Choose the card mode** (tray → **Card mode** / *Modo de la ficha*, `Ctrl+Alt+M` or *Ajustes*):
    - **Normal** (default): a compact card for adventuring and catching, with types, weaknesses, highlighted **catch difficulty**, evolution and stat total.
    - **Competitive**: everything above plus the **level**, resistances, **actual stats at its level** (min–max), **abilities** with their description and effect ("Levitate → Ground ×0"), **likely moves** (the last 4 it learns up to its level in that game, flagging the ones that hit you ×2), **who's faster** and **training** data (EVs, weight for Low Kick, stat profile). To read the level, calibrate the opponent's region **including the level**.
@@ -63,6 +64,7 @@ Everything can be changed from tray → **Settings…** (*Ajustes…*) (changes 
 | `detection.hide_after_seconds` | `4` | Seconds without seeing the opponent before hiding the card (0 = never) |
 | `overlay.mode` | `normal` | `normal` (compact) or `competitive` (full) card |
 | `hotkeys.toggle_mode` | `Ctrl+Alt+M` | Switch mode |
+| `hotkeys.cycle_form` | `Ctrl+Alt+F` | Cycle the opponent's form (Mega Evolutions, Rotom…) |
 | `overlay.language` | `es` | Card language: `es`, `en`, `fr`, `de`, `it` |
 | `overlay.auto_hide_seconds` | `0` | Hide the card after N seconds (0 = never) |
 | `updates.check` | `true` | Check once a day for a new version on GitHub (the app's only network connection) |
@@ -79,7 +81,7 @@ BattleLens checks once a day whether there's a new version. If there is, it lets
 
 ### Known limitations
 
-- **Non-regional forms** (Mega Evolutions, Gigantamax, Rotom forms…): the original form is shown.
+- **Non-regional forms** (Mega Evolutions, Rotom forms…) can't be told apart by name: choose them with `Ctrl+Alt+F`. Gigantamax isn't listed because it doesn't change types or stats.
 - **Level reading in 3D games:** in Pokémon Sword/Shield the OCR doesn't always read the level (large font), so in Competitive mode the likely moves and stats at its level may be missing. Normal mode doesn't need it.
 - **Likely moves** are what a wild Pokémon or an ordinary trainer's Pokémon would know; gym leaders, rivals and competitive teams may carry others.
 - **Stats at its level** use each game's formula (Gen 1-2, Let's Go, Legends: Arceus and Gen 3+); Legends Z-A and Champions use the Gen 3+ one for now.

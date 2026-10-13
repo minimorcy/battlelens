@@ -110,6 +110,37 @@ def test_build_con_estadisticas_anteriores():
     ]
 
 
+def test_build_con_formas_alternativas():
+    tables = _mini_tables()
+    # Pokémon inventados de Zigzagoon: una mega (Siniestro), una forma DLC con otra estadística,
+    # una cosmética (igual que la base) y una repetida de la mega
+    tables["pokemon"] += _rows("id,identifier,species_id,is_default", "20001,zigzagoon-mega,263,0",
+                               "20002,zigzagoon-dlc,263,0", "20003,zigzagoon-cap,263,0", "20004,zigzagoon-copy,263,0")
+    tables["pokemon_types"] += _rows("pokemon_id,type_id,slot", "20001,17,1", "20002,1,1", "20003,1,1", "20004,17,1")
+    tables["pokemon_stats"] += _rows(
+        "pokemon_id,stat_id,base_stat,effort",
+        *[f"{pid},{sid},{60 if (pid == 20002 and sid == 1) else 50},0" for pid in (20001, 20002, 20003, 20004)
+          for sid in range(1, 7)],
+    )
+    tables["pokemon_abilities"] += _rows("pokemon_id,ability_id,is_hidden,slot",
+                                         *[f"{pid},53,0,1" for pid in (20001, 20002, 20003, 20004)])
+    tables["pokemon_forms"] += _rows(
+        "id,identifier,form_identifier,pokemon_id,introduced_in_version_group_id,is_default,is_battle_only,is_mega,form_order,order",
+        "30001,zigzagoon-mega,mega,20001,20,1,1,1,3,3",
+        "30002,zigzagoon-dlc,dlc,20002,21,1,0,0,4,4",
+        "30003,zigzagoon-cap,cap,20003,20,1,0,0,5,5",
+        "30004,zigzagoon-copy,copy,20004,20,1,0,0,6,6",
+    )
+    data = build_dataset.build(tables)
+    forms = {f["identifier"]: (f["kind"], f["introduced"]) for f in data["species"][0]["forms"]}
+    assert forms == {
+        "zigzagoon-galar": ("regional", "sword-shield"),
+        "zigzagoon-mega": ("mega", "sword-shield"),
+        "zigzagoon-dlc": ("alternate", "sword-shield"),  # la DLC cuenta como su juego base
+    }
+    assert data["games"][0]["order"] == 22
+
+
 def test_build_con_evoluciones_y_descripciones():
     tables = _mini_tables()
     tables["pokemon_species"] = _rows(

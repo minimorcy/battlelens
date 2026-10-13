@@ -40,6 +40,7 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
 3. **En cada combate, la ficha aparece sola** junto al emulador en cuanto se ve el nombre del rival (**detección automática**) y se oculta unos segundos después de terminar el combate.
    - Si la desactivas desde la bandeja (**Detección automática**), pulsa `Ctrl+Alt+P` para reconocer a mano.
    - Haz clic en la ficha o pulsa `Ctrl+Alt+H` para ocultarla. Arrástrala para moverla.
+   - Las **megaevoluciones y otras formas** (Rotom, Deoxys, Giratina…) muestran el mismo nombre en pantalla, así que pulsa `Ctrl+Alt+F` para alternar entre las formas disponibles en ese juego. La ficha se recalcula y mantiene esa forma mientras el Pokémon siga en combate.
 4. **Elige el modo de la ficha** (bandeja → **Modo de la ficha**, `Ctrl+Alt+M` o Ajustes):
    - **Normal** (por defecto): ficha compacta para la aventura y la captura, con tipos, debilidades, **dificultad de captura** destacada, evolución y total de estadísticas.
    - **Competitivo**: todo lo anterior más el **nivel**, resistencias, **estadísticas reales a su nivel** (mínimo-máximo), **habilidades** con su descripción y su efecto («Levitación → Tierra ×0»), **movimientos probables** (los 4 últimos que aprende hasta su nivel en ese juego, marcando los que te hacen ×2), **quién es más rápido** y datos de **entrenamiento** (EVs, peso para Patada Baja, perfil). Para leer el nivel, calibra la región del rival **incluyendo el nivel**.
@@ -63,6 +64,7 @@ Todo se puede cambiar desde bandeja → **Ajustes…** (los cambios se aplican a
 | `detection.hide_after_seconds` | `4` | Segundos sin ver al rival hasta ocultar la ficha (0 = nunca) |
 | `overlay.mode` | `normal` | Ficha `normal` (compacta) o `competitive` (completa) |
 | `hotkeys.toggle_mode` | `Ctrl+Alt+M` | Cambiar de modo |
+| `hotkeys.cycle_form` | `Ctrl+Alt+F` | Alternar la forma del rival (megaevoluciones, Rotom…) |
 | `overlay.language` | `es` | Idioma de la ficha: `es`, `en`, `fr`, `de`, `it` |
 | `overlay.auto_hide_seconds` | `0` | Ocultar la ficha tras N segundos (0 = nunca) |
 | `updates.check` | `true` | Avisar una vez al día si hay versión nueva en GitHub (única conexión de la app) |
@@ -79,7 +81,7 @@ BattleLens comprueba una vez al día si hay una versión nueva. Si la hay, te av
 
 ### Limitaciones conocidas
 
-- **Formas no regionales** (megaevoluciones, Gigamax, formas de Rotom…): se muestra la forma original.
+- Las **formas no regionales** (megaevoluciones, formas de Rotom…) no se distinguen por el nombre: elígelas con `Ctrl+Alt+F`. Gigamax no aparece porque no cambia tipos ni estadísticas.
 - **Lectura del nivel en juegos 3D:** en Pokémon Espada/Escudo el OCR no siempre lee el nivel (fuente grande), así que en modo Competitivo pueden faltar los movimientos probables y las estadísticas a su nivel. El modo Normal no lo necesita.
 - **Movimientos probables:** son los que llevaría un Pokémon salvaje o de un entrenador corriente; los líderes, los rivales y los equipos competitivos pueden llevar otros.
 - **Estadísticas a su nivel** con la fórmula de cada juego (Gen 1-2, Let's Go, Leyendas: Arceus y Gen 3 en adelante); Leyendas Z-A y Champions usan por ahora la de la Gen 3 en adelante.

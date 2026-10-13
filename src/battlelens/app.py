@@ -116,6 +116,7 @@ class Controller(QObject):
 
         self.overlay = Overlay(pokedex, config.language, config.auto_hide_seconds, mode=config.overlay_mode)
         self._last_battle = None  # (clave, juego, niveles) de la última ficha, para redibujarla
+        self._form_choice: dict[int, str] = {}  # especie -> forma elegida con el atajo (add-alternate-forms D4)
         if self.state.overlay_pos:
             self.overlay.saved_pos = QPoint(*self.state.overlay_pos)
         self.overlay.moved.connect(self._on_overlay_moved)
@@ -182,6 +183,7 @@ class Controller(QObject):
             ("calibrate", config.hotkey_calibrate),
             ("hide", config.hotkey_hide),
             ("toggle_mode", config.hotkey_toggle_mode),
+            ("cycle_form", config.hotkey_cycle_form),
         ):
             try:
                 bindings[name] = parse_hotkey(text)
@@ -193,7 +195,8 @@ class Controller(QObject):
     def _startup_notices(self, failed: list[str], bindings: dict[str, Hotkey]) -> None:
         notices = []
         if failed:
-            labels = {"recognize": "reconocer", "calibrate": "calibrar", "hide": "ocultar", "toggle_mode": "cambiar de modo"}
+            labels = {"recognize": "reconocer", "calibrate": "calibrar", "hide": "ocultar", "toggle_mode": "cambiar de modo",
+                      "cycle_form": "cambiar de forma"}
             detail = ", ".join(
                 f"{labels[n]} ({bindings[n].text})" if n in bindings else f"{labels[n]} (inválido)" for n in failed
             )
@@ -269,8 +272,9 @@ class Controller(QObject):
         old = self.config
         save_config(self.data_dir / "config.toml", new)
         self.config = new
-        if (new.hotkey_recognize, new.hotkey_calibrate, new.hotkey_hide, new.hotkey_toggle_mode) != (
-            old.hotkey_recognize, old.hotkey_calibrate, old.hotkey_hide, old.hotkey_toggle_mode
+        if (new.hotkey_recognize, new.hotkey_calibrate, new.hotkey_hide, new.hotkey_toggle_mode,
+                new.hotkey_cycle_form) != (
+            old.hotkey_recognize, old.hotkey_calibrate, old.hotkey_hide, old.hotkey_toggle_mode, old.hotkey_cycle_form
         ):
             self.hotkeys.stop()
             bindings, invalid = self._parse_hotkeys(new)
@@ -328,6 +332,7 @@ class Controller(QObject):
             "calibrate": self.calibrate_new,
             "hide": self.hide_overlay,
             "toggle_mode": self.toggle_mode,
+            "cycle_form": self.cycle_form,
         }[name]()
 
     # ---- modos de ficha (spec display-modes) ---------------------------------------
@@ -350,6 +355,22 @@ class Controller(QObject):
         if self._last_battle is not None and self.overlay.isVisible():
             key, game, levels = self._last_battle
             self._show_battle(key, game, self._target_rect(), levels)
+
+    def cycle_form(self) -> None:
+        """Siguiente forma del primer rival que tenga otras en el juego (spec battle-overlay)."""
+        if self._last_battle is None or not self.overlay.isVisible():
+            return
+        (rival, rival2, _), game, _ = self._last_battle
+        for sid in (rival, rival2):
+            if sid is None:
+                continue
+            cycle = self.pokedex.form_cycle(sid, game)
+            if len(cycle) > 1:
+                current = self._form_choice.get(sid, cycle[0])
+                index = cycle.index(current) if current in cycle else 0
+                self._form_choice[sid] = cycle[(index + 1) % len(cycle)]
+                self._redraw_last_battle()
+                return
 
     def hide_overlay(self) -> None:
         self.overlay.hide()
@@ -420,7 +441,10 @@ class Controller(QObject):
         rival, rival2, own = key
         lang = self.config.language
         pairs = [(sid, lvl) for sid, lvl in zip((rival, rival2), levels[:2]) if sid is not None]
-        rivals = [self.pokedex.view(sid, game, lang) for sid, _ in pairs]
+        # La forma elegida se olvida cuando la especie deja de estar entre los rivales (add-alternate-forms D4)
+        self._form_choice = {sid: f for sid, f in self._form_choice.items() if sid in (rival, rival2)}
+        self.overlay.form_hotkey = self.config.hotkey_cycle_form
+        rivals = [self.pokedex.view(sid, game, lang, self._form_choice.get(sid)) for sid, _ in pairs]
         own_view = self.pokedex.view(own, game, lang) if own is not None else None
         self.overlay.show_battle(rivals, own_view, rect, [lvl for _, lvl in pairs], levels[2])
 

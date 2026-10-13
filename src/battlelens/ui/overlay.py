@@ -123,6 +123,7 @@ class Overlay(QWidget):
         self.pokedex = pokedex
         self.language = language
         self.mode = mode
+        self.form_hotkey = ""  # atajo «Cambiar de forma», para la pista de «Otras formas»
         self.saved_pos: QPoint | None = None
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -406,6 +407,8 @@ class Overlay(QWidget):
             row.addWidget(label)
             row.addWidget(self._types_row(other.types), 1)
             layout.addLayout(row)
+        if self.form_hotkey:
+            layout.addWidget(self._muted(f"{self.form_hotkey}: cambiar de forma", size=10, name="form-hint"))
 
     # ---- secciones del modo Competitivo -----------------------------------------
 
@@ -481,8 +484,11 @@ class Overlay(QWidget):
             return
         try:
             game = self.pokedex.get_game(view.game_id)
-            moves = Learnsets.get().probable_moves(view.pokemon or "", level, view.game_id,
-                                                   game.generation if game else None)
+            learnsets = Learnsets.get()
+            generation = game.generation if game else None
+            moves = learnsets.probable_moves(view.pokemon or "", level, view.game_id, generation)
+            if not moves and view.base_pokemon and view.base_pokemon != view.pokemon:  # megas: los de la base
+                moves = learnsets.probable_moves(view.base_pokemon, level, view.game_id, generation)
         except LearnsetsMissingError as exc:
             layout.addWidget(self._muted(str(exc), name="moves-hint"))
             return

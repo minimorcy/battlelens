@@ -28,6 +28,7 @@ HOTKEY_FIELDS = (
     ("hotkey_calibrate", "Calibrar"),
     ("hotkey_hide", "Ocultar ficha"),
     ("hotkey_toggle_mode", "Cambiar de modo"),
+    ("hotkey_cycle_form", "Cambiar de forma"),
 )
 MODE_LABELS = {"normal": "Normal (aventura y captura)", "competitive": "Competitivo (combate)"}
 
@@ -150,6 +151,7 @@ class SettingsDialog(QDialog):
             hotkey_calibrate=self.hotkey_edits["hotkey_calibrate"].text().strip(),
             hotkey_hide=self.hotkey_edits["hotkey_hide"].text().strip(),
             hotkey_toggle_mode=self.hotkey_edits["hotkey_toggle_mode"].text().strip(),
+            hotkey_cycle_form=self.hotkey_edits["hotkey_cycle_form"].text().strip(),
             overlay_mode=self.mode.currentData(),
             threshold=float(self.threshold.value()),
             debug=self.debug.isChecked(),
