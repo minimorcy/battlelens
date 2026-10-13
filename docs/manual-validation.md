@@ -25,3 +25,12 @@ Con `recognition.debug = true` en `%APPDATA%\BattleLens\config.toml`: calibra, r
 - [ ] Primera Release publicada con el instalador, el ZIP y `SHA256SUMS.txt`.
 - [ ] Con una versión instalada anterior a la última Release, aparece el aviso de versión nueva y «Descargar…» abre la página correcta.
 - [ ] Las plantillas de issues aparecen al pulsar «New issue» en GitHub.
+
+## Web (Coolify)
+
+Siguiendo [deploy-website.md](deploy-website.md):
+
+- [ ] Registro DNS de `battlelens.minim-labs.app` y recurso creado en Coolify (Dockerfile, base `/site`, puerto 80).
+- [ ] `https://battlelens.minim-labs.app` carga con HTTPS y `/health` responde `ok`.
+- [ ] La consola del navegador no muestra errores de CSP y el botón EN/ES funciona.
+- [ ] Un push que cambia `site/` vuelve a desplegar la web solo; uno que no la toca, no.

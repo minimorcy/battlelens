@@ -378,3 +378,35 @@ def test_ajustes_incluyen_modo_y_atajo(qapp):
     d.mode.setCurrentIndex(d.mode.findData("normal"))
     config, errors = d.collect()
     assert errors == {} and config.overlay_mode == "normal"
+
+
+
+_HIDPI_CHECK = """
+import sys
+from PyQt6.QtWidgets import QApplication, QLabel
+app = QApplication([])
+from battlelens.core.pokedex import Pokedex
+from battlelens.ui.overlay import Overlay
+dex = Pokedex.load()
+o = Overlay(dex, "es")
+o.show_battle([dex.view(263, "sword-shield"), dex.view(759, "sword-shield")], dex.view(813), None)
+app.processEvents()
+evolution = next(w for w in o.findChildren(QLabel) if w.objectName() == "evolution")
+card = evolution.parentWidget()
+needed = card.layout().totalHeightForWidth(card.width())
+ok = card.height() >= needed and evolution.height() >= evolution.heightForWidth(evolution.width())
+print(card.height(), needed)
+sys.exit(0 if ok else 1)
+"""
+
+
+@pytest.mark.parametrize("scale", ["1", "2"])
+def test_doble_no_recorta_textos_largos(scale):
+    """Regresión: en dobles y con escalado alto (p. ej. 200 %), la evolución larga de Zigzagoon
+    de Galar se cortaba porque la ventana no tenía en cuenta los textos partidos en líneas."""
+    import os
+    import subprocess
+
+    env = {**os.environ, "QT_SCALE_FACTOR": scale}
+    proc = subprocess.run([sys.executable, "-c", _HIDPI_CHECK], env=env, capture_output=True, text=True, timeout=60)
+    assert proc.returncode == 0, proc.stdout + proc.stderr

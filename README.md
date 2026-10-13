@@ -1,119 +1,124 @@
 # BattleLens
 
-**Ficha instantánea del Pokémon rival para juegos de Pokémon en cualquier emulador de PC.**
+**English** · [Español](README.es.md) · [Website](https://battlelens.minim-labs.app)
 
-Durante un combate, BattleLens muestra junto al emulador los tipos del rival, sus debilidades, resistencias e inmunidades, sus estadísticas base, sus habilidades (con su descripción al pasar el ratón), su ratio de captura y su cadena evolutiva, y cómo le va a tu Pokémon contra él.
+**Instant info card for your opponent in Pokémon games, on any PC emulator.**
 
-No lee la memoria del emulador: lee **el nombre del rival en pantalla** con el OCR de Windows. Por eso funciona con cualquier emulador (mGBA, DeSmuME, melonDS, Citra…) y con cualquier generación, después de calibrar una vez por juego.
+During a battle, BattleLens shows next to the emulator your opponent's types, weaknesses, resistances and immunities, base stats, abilities (with their description on hover), catch rate and evolution chain, plus how your own Pokémon fares against it.
 
-> BattleLens es un proyecto de fans no oficial. No está afiliado ni respaldado por Nintendo, The Pokémon Company, Creatures Inc. ni GAME FREAK inc. Pokémon y los nombres de los Pokémon son marcas registradas de sus respectivos titulares.
+It doesn't read the emulator's memory: it reads **the opponent's name on screen** with Windows' built-in OCR. That's why it works with any emulator (mGBA, DeSmuME, melonDS, Citra…) and any generation, after a one-time calibration per game.
+
+> BattleLens is an unofficial fan project. It is not affiliated with, endorsed, sponsored or approved by Nintendo, The Pokémon Company, Creatures Inc. or GAME FREAK inc. Pokémon and Pokémon character names are trademarks of their respective owners.
 
 ---
 
-## Para jugadores
+## For players
 
-### Instalación
+### Installation
 
-1. Ve a [**Releases**](https://github.com/minimorcy/battlelens/releases/latest) y descarga `BattleLens-Setup-x.y.z.exe`.
-   - ¿Prefieres no instalar nada? Descarga `BattleLens-x.y.z-portable.zip`, descomprímelo y ejecuta `BattleLens.exe`.
-2. Ejecuta el instalador. **No pide permisos de administrador.**
-3. **Aviso de SmartScreen.** Si Windows muestra «Windows protegió su PC», pulsa **Más información → Ejecutar de todas formas**. Aparece porque el ejecutable no está firmado con un certificado de pago. Si quieres comprobar la descarga, compárala con `SHA256SUMS.txt`:
+1. Go to [**Releases**](https://github.com/minimorcy/battlelens/releases/latest) and download `BattleLens-Setup-x.y.z.exe`.
+   - Rather not install anything? Download `BattleLens-x.y.z-portable.zip`, unzip it and run `BattleLens.exe`.
+2. Run the installer. **No administrator rights needed.**
+3. **SmartScreen warning.** If Windows shows "Windows protected your PC", click **More info → Run anyway**. It appears because the executable isn't signed with a paid certificate. To verify the download, compare it with `SHA256SUMS.txt`:
    ```powershell
    Get-FileHash .\BattleLens-Setup-x.y.z.exe -Algorithm SHA256
    ```
 
-Requisitos: Windows 10 (versión 2004 o posterior) u 11, de 64 bits.
+Requirements: 64-bit Windows 10 (version 2004 or later) or 11.
 
-### OCR de Windows
+### Windows OCR
 
-BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equipos lo tienen ya en su idioma. Si falta, la app avisa al arrancar y ofrece **«Instalar OCR de Windows…»** en su menú; Windows te pedirá permiso para instalarlo.
+BattleLens uses the text recognition that ships with Windows. Almost every PC already has it for its language. If it's missing, the app tells you on startup and offers **"Install Windows OCR…"** (*Instalar OCR de Windows…*) in its menu; Windows will ask for permission to install it.
 
-### Uso
+### Usage
 
-1. Busca el icono de BattleLens en la bandeja del sistema (junto al reloj) y elige **Ventana del emulador**.
-2. **Calibra el juego** (una sola vez por juego): en un combate, pulsa `Ctrl+Alt+C`, dibuja un rectángulo que cubra el **nombre del rival** (cuanto más ajustado, mejor) y pulsa `Enter`. BattleLens propone el nombre del perfil y el juego a partir del título de la ventana.
-   - Con el juego indicado, la ficha usa sus **formas regionales** (Alola, Galar, Hisui, Paldea) y los tipos y la tabla de eficacias de **su generación**.
-   - Al cambiar de juego, el perfil correspondiente **se activa solo**.
-   - Para cambiar el juego de un perfil: bandeja → **Juego del perfil activo**.
-3. **En cada combate, la ficha aparece sola** junto al emulador en cuanto se ve el nombre del rival (**detección automática**) y se oculta unos segundos después de terminar el combate.
-   - Si la desactivas desde la bandeja (**Detección automática**), pulsa `Ctrl+Alt+P` para reconocer a mano.
-   - Haz clic en la ficha o pulsa `Ctrl+Alt+H` para ocultarla. Arrástrala para moverla.
-4. **Elige el modo de la ficha** (bandeja → **Modo de la ficha**, `Ctrl+Alt+M` o Ajustes):
-   - **Normal** (por defecto): ficha compacta para la aventura y la captura, con tipos, debilidades, **dificultad de captura** destacada, evolución y total de estadísticas.
-   - **Competitivo**: todo lo anterior más el **nivel**, resistencias, **estadísticas reales a su nivel** (mínimo-máximo), **habilidades** con su descripción y su efecto («Levitación → Tierra ×0»), **movimientos probables** (los 4 últimos que aprende hasta su nivel en ese juego, marcando los que te hacen ×2), **quién es más rápido** y datos de **entrenamiento** (EVs, peso para Patada Baja, perfil). Para leer el nivel, calibra la región del rival **incluyendo el nivel**.
-5. **Opcional: tu Pokémon y combates dobles.** En bandeja → **Regiones del perfil** puedes calibrar también el nombre de **tu Pokémon** y el del **2.º rival**:
-   - Con tu Pokémon, cada ficha muestra **«Contra tu X»**: lo que le hacen tus tipos, lo que te hacen los suyos y un veredicto (**Ventaja / Neutral / Desventaja**). Si tu Pokémon tiene apodo, no se puede reconocer.
-   - Con el 2.º rival, en los combates dobles aparecen dos fichas una al lado de la otra.
+1. Find the BattleLens icon in the system tray (next to the clock) and choose **Emulator window** (*Ventana del emulador*).
+2. **Calibrate the game** (once per game): during a battle, press `Ctrl+Alt+C`, draw a rectangle around the **opponent's name** (the tighter, the better) and press `Enter`. BattleLens suggests the profile name and the game from the window title.
+   - With the game set, the card uses its **regional forms** (Alola, Galar, Hisui, Paldea) and the types and type chart of **its generation**.
+   - When you switch games, the matching profile **is activated automatically**.
+   - To change a profile's game: tray → **Active profile's game** (*Juego del perfil activo*).
+3. **In every battle the card appears by itself** next to the emulator as soon as the opponent's name is visible (**automatic detection**), and hides a few seconds after the battle ends.
+   - If you turn it off from the tray (**Automatic detection** / *Detección automática*), press `Ctrl+Alt+P` to recognise manually.
+   - Click the card or press `Ctrl+Alt+H` to hide it. Drag it to move it.
+4. **Choose the card mode** (tray → **Card mode** / *Modo de la ficha*, `Ctrl+Alt+M` or *Ajustes*):
+   - **Normal** (default): a compact card for adventuring and catching, with types, weaknesses, highlighted **catch difficulty**, evolution and stat total.
+   - **Competitive**: everything above plus the **level**, resistances, **actual stats at its level** (min–max), **abilities** with their description and effect ("Levitate → Ground ×0"), **likely moves** (the last 4 it learns up to its level in that game, flagging the ones that hit you ×2), **who's faster** and **training** data (EVs, weight for Low Kick, stat profile). To read the level, calibrate the opponent's region **including the level**.
+5. **Optional: your Pokémon and double battles.** In tray → **Profile regions** (*Regiones del perfil*) you can also calibrate the name of **your Pokémon** and of the **2nd opponent**:
+   - With your Pokémon, each card shows **"Against your X"** (*Contra tu X*): what your types do to it, what its types do to you, and a verdict (**Advantage / Neutral / Disadvantage** — *Ventaja / Neutral / Desventaja*). Nicknamed Pokémon can't be recognised.
+   - With the 2nd opponent, double battles show two cards side by side.
 
-### Configuración
+The app's interface is currently in Spanish (menu names are given in *italics* above); the card content (Pokémon, types, abilities, moves) is available in English, Spanish, French, German and Italian (`overlay.language`).
 
-Todo se puede cambiar desde bandeja → **Ajustes…** (los cambios se aplican al momento). Los mismos valores están en `%APPDATA%\BattleLens\config.toml`:
+### Configuration
 
-| Clave | Por defecto | Descripción |
+Everything can be changed from tray → **Settings…** (*Ajustes…*) (changes apply immediately). The same values live in `%APPDATA%\BattleLens\config.toml`:
+
+| Key | Default | Description |
 |---|---|---|
-| `hotkeys.recognize` / `calibrate` / `hide` | `Ctrl+Alt+P` / `C` / `H` | Atajos globales. Necesitan un modificador, porque las teclas F las usan los emuladores para los estados guardados |
-| `recognition.threshold` | `80` | Puntuación mínima (0-100) para dar un nombre por reconocido |
-| `recognition.debug` | `false` | Guarda en `debug/` cada recorte y lo que leyó el OCR |
-| `detection.enabled` | `true` | Detección automática del combate (también desde la bandeja) |
-| `detection.interval_ms` | `500` | Cada cuánto se vigila la región del nombre |
-| `detection.hide_after_seconds` | `4` | Segundos sin ver al rival hasta ocultar la ficha (0 = nunca) |
-| `overlay.mode` | `normal` | Ficha `normal` (compacta) o `competitive` (completa) |
-| `hotkeys.toggle_mode` | `Ctrl+Alt+M` | Cambiar de modo |
-| `overlay.language` | `es` | Idioma de la ficha: `es`, `en`, `fr`, `de`, `it` |
-| `overlay.auto_hide_seconds` | `0` | Ocultar la ficha tras N segundos (0 = nunca) |
-| `updates.check` | `true` | Avisar una vez al día si hay versión nueva en GitHub (única conexión de la app) |
+| `hotkeys.recognize` / `calibrate` / `hide` | `Ctrl+Alt+P` / `C` / `H` | Global hotkeys. They need a modifier, because emulators use the F keys for save states |
+| `recognition.threshold` | `80` | Minimum score (0-100) to accept a recognised name |
+| `recognition.debug` | `false` | Saves every crop and what the OCR read into `debug/` |
+| `detection.enabled` | `true` | Automatic battle detection (also from the tray) |
+| `detection.interval_ms` | `500` | How often the name region is checked |
+| `detection.hide_after_seconds` | `4` | Seconds without seeing the opponent before hiding the card (0 = never) |
+| `overlay.mode` | `normal` | `normal` (compact) or `competitive` (full) card |
+| `hotkeys.toggle_mode` | `Ctrl+Alt+M` | Switch mode |
+| `overlay.language` | `es` | Card language: `es`, `en`, `fr`, `de`, `it` |
+| `overlay.auto_hide_seconds` | `0` | Hide the card after N seconds (0 = never) |
+| `updates.check` | `true` | Check once a day for a new version on GitHub (the app's only network connection) |
 
-### Si no reconoce bien
+### If recognition fails
 
-1. Pon `recognition.debug = true`, reinicia BattleLens y reconoce varios rivales.
-2. En `%APPDATA%\BattleLens\debug\`, el archivo `*-recorte.png` debe contener solo el nombre. Si no, usa **Recalibrar perfil activo**.
-3. Si el recorte es correcto y aun así falla, abre un [issue de tipo «Fallo»](https://github.com/minimorcy/battlelens/issues/new/choose): el formulario te pide la versión, el emulador y el juego, y te indica qué archivos adjuntar.
+1. Set `recognition.debug = true`, restart BattleLens and recognise a few opponents.
+2. In `%APPDATA%\BattleLens\debug\`, the `*-recorte.png` file should contain only the name. If not, use **Recalibrate opponent** (*Regiones del perfil → Recalibrar rival*).
+3. If the crop looks right and it still fails, open a ["Bug" issue](https://github.com/minimorcy/battlelens/issues/new/choose): the form asks for the version, emulator and game, and tells you which files to attach.
 
-### Actualizaciones
+### Updates
 
-BattleLens comprueba una vez al día si hay una versión nueva. Si la hay, te avisa y en la bandeja aparece **Descargar BattleLens X.Y.Z…**, que abre la página de descarga. Para instalarla, ejecuta el instalador nuevo: tus perfiles y ajustes se conservan. La comprobación se puede desactivar en **Ajustes**.
+BattleLens checks once a day whether there's a new version. If there is, it lets you know and the tray shows **Download BattleLens X.Y.Z…** (*Descargar BattleLens X.Y.Z…*), which opens the download page. To install it, run the new installer: your profiles and settings are kept. The check can be turned off in **Settings**.
 
-### Limitaciones conocidas
+### Known limitations
 
-- **Estadísticas base actuales.** Los tipos y la tabla de eficacias se ajustan a la generación del juego, pero las estadísticas no (por ejemplo, el «Especial» único de la Gen 1).
-- **Formas no regionales** (megaevoluciones, Gigamax, formas de Rotom…): se muestra la forma original.
-- **Movimientos probables:** son los que llevaría un Pokémon salvaje o de un entrenador corriente; los líderes, los rivales y los equipos competitivos pueden llevar otros.
-- **Estadísticas a su nivel** con la fórmula de la Gen 3 en adelante (en la Gen 1-2 y en Let's Go/Leyendas la fórmula es otra).
-- **La comparativa es por tipos** (ataques con STAB): no tiene en cuenta movimientos concretos, habilidades como Levitación ni objetos.
+- **Current base stats.** Types and the type chart follow the game's generation, but stats don't (e.g. the single "Special" stat of Gen 1).
+- **Non-regional forms** (Mega Evolutions, Gigantamax, Rotom forms…): the original form is shown.
+- **Likely moves** are what a wild Pokémon or an ordinary trainer's Pokémon would know; gym leaders, rivals and competitive teams may carry others.
+- **Stats at its level** use the Gen 3+ formula (Gen 1-2 and Let's Go/Legends use different ones).
+- **The matchup is type-based** (STAB attacks): it doesn't account for specific moves, abilities such as Levitate, or held items.
 
-### Desinstalar
+### Uninstall
 
-Desde *Configuración → Aplicaciones → Aplicaciones instaladas → BattleLens*. Al desinstalar, se te pregunta si quieres borrar también tus perfiles.
+From *Settings → Apps → Installed apps → BattleLens*. When uninstalling, you're asked whether to delete your profiles too.
 
 ---
 
-## Para desarrolladores
+## For developers
 
-Requisitos: Windows 10/11 y [uv](https://docs.astral.sh/uv/), que descarga Python 3.12 automáticamente.
+Requirements: Windows 10/11 and [uv](https://docs.astral.sh/uv/), which downloads Python 3.12 automatically.
 
 ```bash
 uv sync
-uv run battlelens                         # ejecutar desde el código
-uv run pytest                             # tests (los de OCR se omiten si no hay paquete de OCR)
-uv run python tools/build_dataset.py      # regenerar data/pokedex.json desde PokéAPI
-uv run python packaging/make_icon.py      # regenerar el icono
-uv run python packaging/build.py --self-test   # .exe + instalador (requiere Inno Setup 6) + ZIP
+uv run battlelens                         # run from source
+uv run pytest                             # tests (OCR tests are skipped without an OCR language pack)
+uv run python tools/build_dataset.py      # regenerate data/pokedex.json and learnsets.json from PokéAPI
+uv run python packaging/make_icon.py      # regenerate the icon
+uv run python tools/make_site_screenshots.py   # regenerate the website screenshots
+uv run python packaging/build.py --self-test   # .exe + installer (needs Inno Setup 6) + ZIP
 ```
 
-Estructura: `core/` (lógica pura), `vision/` (preprocesado), `platform/` (Win32, captura, OCR, atajos), `ui/`, `pipeline.py`, `app.py`. Empaquetado en `packaging/`; CI y publicación en `.github/workflows/`.
+Layout: `core/` (pure logic), `vision/` (preprocessing), `platform/` (Win32, capture, OCR, hotkeys), `ui/`, `pipeline.py`, `app.py`. Packaging in `packaging/`; CI and releases in `.github/workflows/`; website in `site/` (see [docs/deploy-website.md](docs/deploy-website.md)).
 
-### Publicar una versión
+### Publishing a release
 
-1. Actualiza `version` en `pyproject.toml` y añade su sección en `CHANGELOG.md` con fecha.
-2. Haz commit, crea la etiqueta y súbela:
+1. Bump `version` in `pyproject.toml` and add its dated section to `CHANGELOG.md`.
+2. Commit, create the tag and push it:
    ```bash
    git tag v0.2.0 && git push origin main v0.2.0
    ```
-3. GitHub Actions ejecuta los tests, compila, hace la autocomprobación del `.exe` y publica la Release con el instalador, el ZIP y `SHA256SUMS.txt`.
+3. GitHub Actions runs the tests, builds, self-tests the `.exe` and publishes the Release with the installer, the ZIP and `SHA256SUMS.txt`.
 
-El proyecto sigue un desarrollo guiado por especificaciones con [OpenSpec](https://github.com/Fission-AI/OpenSpec): cada cambio tiene su propuesta, especificaciones, diseño y tareas en `openspec/`.
+The project follows spec-driven development with [OpenSpec](https://github.com/Fission-AI/OpenSpec): every change has its proposal, specs, design and tasks in `openspec/` (written in Spanish).
 
-## Licencia y créditos
+## License and credits
 
-- Código: [MIT](LICENSE).
-- Datos de Pokémon: [PokéAPI](https://github.com/PokeAPI/pokeapi) (BSD-3-Clause).
+- Code: [MIT](LICENSE).
+- Pokémon data: [PokéAPI](https://github.com/PokeAPI/pokeapi) (BSD-3-Clause).

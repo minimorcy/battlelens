@@ -1,0 +1,146 @@
+/* BattleLens — misma paleta que la ficha de la app (tema oscuro). */
+:root {
+  --bg: #15181f;
+  --surface: #1f2430;
+  --surface-2: #262c3a;
+  --border: #343b4d;
+  --text: #e8e8ee;
+  --muted: #a3a9bc;
+  --accent: #ffcb05;
+  --accent-ink: #1b1b1b;
+  --good: #3ddc97;
+  --radius: 14px;
+  --max: 1080px;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--accent); }
+a:hover { text-decoration-thickness: 2px; }
+kbd {
+  font: 600 0.85em/1 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+/* ---- barra superior ---- */
+.topbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 12px max(16px, calc((100% - var(--max)) / 2));
+  background: rgba(21, 24, 31, 0.88);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-weight: 800; font-size: 1.1rem; }
+.topnav { display: flex; align-items: center; gap: 18px; }
+.topnav a { color: var(--muted); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+.topnav a:hover { color: var(--text); }
+.lang {
+  font: inherit; font-weight: 700; font-size: 0.85rem;
+  color: var(--text); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: 4px 12px; cursor: pointer;
+}
+.lang:hover { border-color: var(--accent); }
+
+/* ---- portada ---- */
+main { padding: 0 16px; }
+.hero, .section { max-width: var(--max); margin: 0 auto; }
+.hero {
+  display: grid; grid-template-columns: 1.25fr 1fr; gap: 48px; align-items: center;
+  padding: 72px 0 48px;
+}
+.eyebrow { color: var(--accent); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.85rem; margin: 0 0 12px; }
+h1 { font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.1; margin: 0 0 20px; letter-spacing: -0.02em; }
+.lead { color: var(--muted); font-size: 1.15rem; margin: 0 0 28px; max-width: 34em; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; }
+.button {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 12px 22px; border-radius: 12px; font-weight: 700; text-decoration: none;
+  border: 1px solid transparent; transition: transform 0.1s ease, background 0.15s ease;
+}
+.button:active { transform: translateY(1px); }
+.button.primary { background: var(--accent); color: var(--accent-ink); }
+.button.primary:hover { background: #ffd83d; }
+.button.ghost { color: var(--text); border-color: var(--border); background: var(--surface); }
+.button.ghost:hover { border-color: var(--accent); }
+.fine { color: var(--muted); font-size: 0.88rem; margin: 16px 0 0; }
+.hero-shot { margin: 0; justify-self: center; }
+.hero-shot img, .mode img, .wide-shot img {
+  border-radius: var(--radius);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--border);
+}
+.hero-shot img { width: 300px; transform: rotate(-1.5deg); }
+
+/* ---- secciones ---- */
+.section { padding: 56px 0; border-top: 1px solid var(--border); }
+h2 { font-size: clamp(1.5rem, 3.2vw, 2.1rem); margin: 0 0 12px; letter-spacing: -0.01em; }
+h3 { font-size: 1.1rem; margin: 0 0 8px; }
+.section-lead { color: var(--muted); margin: 0 0 28px; max-width: 46em; }
+
+.steps { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.steps li { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+.steps p { color: var(--muted); margin: 0; }
+.step-n {
+  display: inline-grid; place-items: center; width: 32px; height: 32px; margin-bottom: 12px;
+  border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 800;
+}
+
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.mode { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+.mode ul { color: var(--muted); padding-left: 1.2em; margin: 0 0 22px; }
+.mode li { margin: 4px 0; }
+.mode img { margin: 0 auto; width: 300px; }
+.mode img.tall { width: 320px; }
+
+.wide-shot { margin: 0; }
+.wide-shot img { width: 586px; margin: 0 auto; }
+
+.features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 28px; }
+.feature { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.feature p { color: var(--muted); margin: 0; font-size: 0.95rem; }
+
+.install ol { color: var(--muted); padding-left: 1.3em; margin: 20px 0 28px; max-width: 48em; }
+.install li { margin: 8px 0; }
+.install b, .install i { color: var(--text); }
+
+/* ---- pie ---- */
+.footer {
+  max-width: var(--max); margin: 0 auto; padding: 32px 16px 48px;
+  border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88rem;
+}
+.footer p { margin: 0 0 10px; }
+.disclaimer { max-width: 60em; }
+.made { color: #6d7487; }
+
+/* ---- adaptable ---- */
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; padding-top: 48px; gap: 36px; }
+  .hero-shot img { transform: none; }
+  .steps, .modes { grid-template-columns: 1fr; }
+  .features { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .topnav a:not([href^="https"]) { display: none; }
+  .features { grid-template-columns: 1fr; }
+  .cta .button { flex: 1 1 100%; }
+  .mode { padding: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .button { transition: none; }
+}

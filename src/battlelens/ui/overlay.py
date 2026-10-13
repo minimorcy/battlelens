@@ -33,6 +33,7 @@ from . import theme
 WIDTH = 320  # ancho histórico; cada modo define el suyo en card_width()
 MODE_WIDTHS = {"normal": 300, "competitive": 360}
 CARD_SPACING = 14
+PANEL_PADDING = 14  # margen interior izquierdo/derecho del panel
 CATEGORY_LABELS = {"physical": "Físico", "special": "Especial", "status": "Estado"}
 CAPTURE_COLORS = {"Fácil": "#3ddc97", "Media": "#ffcb05", "Difícil": "#ff8c42", "Muy difícil": "#e5484d"}
 ABILITY_EFFECT_COLOR = "#3a4a6b"
@@ -136,7 +137,7 @@ class Overlay(QWidget):
         outer.setContentsMargins(0, 0, 0, 0)
         outer.addWidget(self._panel)
         self._content = QVBoxLayout(self._panel)
-        self._content.setContentsMargins(14, 12, 14, 12)
+        self._content.setContentsMargins(PANEL_PADDING, 12, PANEL_PADDING, 12)
         self._content.setSpacing(6)
 
         self._hide_timer = QTimer(self)
@@ -173,15 +174,22 @@ class Overlay(QWidget):
     ) -> None:
         """Una tarjeta por rival (dos en combates dobles), según el modo (spec display-modes)."""
         self._clear()
-        width = card_width(self.mode)
-        self.setFixedWidth(width * len(rivals) + CARD_SPACING * (len(rivals) - 1))
+        # Ancho fijo por tarjeta (descontando los márgenes del panel): así el texto se parte
+        # en líneas con el ancho real y no se recorta en los combates dobles.
+        inner = card_width(self.mode) - 2 * PANEL_PADDING
+        self.setFixedWidth(inner * len(rivals) + CARD_SPACING * (len(rivals) - 1) + 2 * PANEL_PADDING)
         levels = list(rival_levels or []) + [None] * len(rivals)
         row = QHBoxLayout()
         row.setSpacing(CARD_SPACING)
         for rival, level in zip(rivals, levels):
             versus = matchup(own, rival, self.pokedex.type_chart(rival.generation)) if own else None
             card = self._card(rival, versus, level=level, own=own, own_level=own_level)
-            row.addWidget(card, 1, Qt.AlignmentFlag.AlignTop)
+            card.setFixedWidth(inner)
+            # Qt no aplica heightForWidth al calcular el tamaño de una ventana de nivel superior:
+            # se fija la altura mínima que necesita la tarjeta con ese ancho (textos partidos en líneas).
+            card.layout().activate()
+            card.setMinimumHeight(card.layout().totalHeightForWidth(inner))
+            row.addWidget(card, 0, Qt.AlignmentFlag.AlignTop)
         self._content.addLayout(row)
         self._present(target_rect)
 
