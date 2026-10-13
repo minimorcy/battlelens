@@ -32,6 +32,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ### Corregido
 - En combates dobles con escalado de pantalla alto (150-200 %), los textos largos de la ficha se recortaban.
+- Al cambiar de modo, de forma o al leerse tus movimientos con la ficha abierta, esta se quedaba en un rectángulo diminuto.
 - La ficha competitiva no cabía en pantallas de 720-768 px de alto: ahora se ajusta a la pantalla y se desplaza con la rueda.
 
 ## [0.1.0] - 2026-10-13

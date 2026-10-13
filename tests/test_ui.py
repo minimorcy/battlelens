@@ -516,3 +516,24 @@ def test_sin_movimientos_no_hay_apartado(qapp, overlay, dex):
     overlay.show_battle([dex.view(16)], dex.view(813), None)
     qapp.processEvents()
     assert not _named(overlay, "own-move")
+
+
+def test_redibujar_con_la_ficha_visible_mantiene_el_alto(qapp, dex):
+    # Al pasar de Competitivo a Normal con la ficha abierta se quedaba en un rectángulo de 28 px
+    from battlelens.ui.overlay import Overlay
+
+    args = ([dex.view(66, "sword-shield")], dex.view(813, "sword-shield"), None, [16], 15)
+    fresh = Overlay(dex, "es")
+    fresh.show_battle(*args)
+    qapp.processEvents()
+    o = Overlay(dex, "es", mode="competitive")
+    o.show_battle(*args)
+    qapp.processEvents()
+    assert o.isVisible()
+    o.mode = "normal"
+    o.show_battle(*args)
+    assert o.size() == fresh.size() and o.height() > 200
+    o.show_battle(*args)  # mismo modo, otra vez visible (cambio de forma, movimientos leídos)
+    assert o.size() == fresh.size()
+    o.close()
+    fresh.close()

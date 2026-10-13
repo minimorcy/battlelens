@@ -609,6 +609,10 @@ class Overlay(QWidget):
         chrome_w, chrome_h = self._chrome()
         inner_width = self._base_width - chrome_w
         self._inner.setFixedWidth(inner_width)
+        # Con la ficha ya visible (cambio de modo, de forma o movimientos leídos), Qt no muestra los
+        # widgets nuevos hasta el siguiente ciclo de eventos y el layout no los mide: se muestran ya.
+        for child in self._inner.findChildren(QWidget, options=Qt.FindChildOption.FindDirectChildrenOnly):
+            child.show()
         self._content.activate()
         hint = self._content.totalSizeHint().height()
         if self._content.hasHeightForWidth():  # textos partidos en líneas (ver show_battle)
