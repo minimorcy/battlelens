@@ -27,6 +27,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Preprocesado sin OpenCV (descarga mucho más pequeña).
 - Icono propio.
 - Mejor reconocimiento en juegos 3D (Switch/3DS) y con regiones holgadas.
+- El nivel se lee con más fiabilidad: si el nombre se reconoce sin nivel, se reintenta con más variantes y con la mitad derecha ampliada, y se toleran dígitos leídos como letras («Nv. 1G»).
 
 ### Corregido
 - En combates dobles con escalado de pantalla alto (150-200 %), los textos largos de la ficha se recortaban.

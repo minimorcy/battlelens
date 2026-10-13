@@ -16,6 +16,7 @@ Con `recognition.debug = true` en `%APPDATA%\BattleLens\config.toml`: calibra, r
 - [ ] **Modo competitivo** — con la región del rival incluyendo el nivel: se lee el nivel, los movimientos probables coinciden con los que usa el rival salvaje y `Ctrl+Alt+M` cambia de modo con la ficha abierta.
 - [ ] **Estadísticas por juego** — en Rojo/Azul la ficha competitiva muestra «Especial»; en Let's Go y Leyendas: Arceus, las estadísticas reales de un Pokémon propio (pantalla del equipo) caen dentro del rango de la ficha.
 - [ ] **Formas alternativas** — en X/Y, contra un Pokémon que megaevoluciona, `Ctrl+Alt+F` muestra su mega y la ficha la mantiene hasta que sale; en Platino, Rotom alterna entre sus cinco formas.
+- [ ] **Nivel en Espada a pantalla completa** — con la región del rival incluyendo el nivel, reconocer unos 10 rivales en modo Competitivo y anotar en cuántos aparece el nivel: __/10.
 - [ ] **Activación automática** — con perfiles de dos juegos, cambiar de juego en el emulador y comprobar que se activa el perfil correcto.
 
 ## Instalador y publicación

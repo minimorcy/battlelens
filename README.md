@@ -82,7 +82,7 @@ BattleLens checks once a day whether there's a new version. If there is, it lets
 ### Known limitations
 
 - **Non-regional forms** (Mega Evolutions, Rotom forms…) can't be told apart by name: choose them with `Ctrl+Alt+F`. Gigantamax isn't listed because it doesn't change types or stats.
-- **Level reading in 3D games:** in Pokémon Sword/Shield the OCR doesn't always read the level (large font), so in Competitive mode the likely moves and stats at its level may be missing. Normal mode doesn't need it.
+- **Level reading:** the level is only read if the calibrated region includes it. BattleLens retries with extra variants and a zoomed-in read of the right half, and tolerates digits misread as letters ("Nv. 1G"), but if it still can't read it, Competitive mode shows the card without likely moves or stats at its level. Normal mode doesn't need it.
 - **Likely moves** are what a wild Pokémon or an ordinary trainer's Pokémon would know; gym leaders, rivals and competitive teams may carry others.
 - **Stats at its level** use each game's formula (Gen 1-2, Let's Go, Legends: Arceus and Gen 3+); Legends Z-A and Champions use the Gen 3+ one for now.
 - **The matchup is type-based** (STAB attacks) and accounts for abilities that change effectiveness: when every ability the Pokémon can have in that game does the same thing (Flygon's Levitate), it's applied; when only some do (Bronzong), the card warns you ("if it has Levitate"). Held items and abilities that ignore others (Mold Breaker) aren't considered.

@@ -70,15 +70,33 @@ def name_candidates(text: str) -> list[tuple[str, float]]:
 
 _LEVEL_VALUE = re.compile(r"(?:\b(?:lv|nv|niv|n|l)\s*\.?|:l)\s*(\d{1,3})\b", re.IGNORECASE)
 _TRAILING_VALUE = re.compile(r"\s(\d{1,3})\s*$")
+# Letras que el OCR confunde con dígitos en fuentes estilizadas (improve-level-reading D1)
+_DIGIT_CONFUSIONS = str.maketrans("OoQDIl|iZzSsGbB", "000011112255668")
+_LEVEL_CONFUSED = re.compile(
+    r"(?:\b(?P<prefix>lv|nv|niv|n|l)\s*\.?|:l)\s*(?P<value>[0-9OoQDIl|iZzSsGbB]{1,3})(?![A-Za-z0-9])", re.IGNORECASE
+)
+_STRONG_PREFIXES = {"lv", "nv", "niv"}
+
+
+def _confused_levels(text: str):
+    for match in _LEVEL_CONFUSED.finditer(text):
+        raw, prefix = match.group("value"), (match.group("prefix") or "").lower()
+        if prefix in _STRONG_PREFIXES or any(c.isdigit() for c in raw):
+            yield raw.translate(_DIGIT_CONFUSIONS)
 
 
 def extract_level(readings) -> int | None:
-    """Nivel (1-100) leído en alguna lectura de OCR; primero con prefijo («Nv. 10»), luego al final («… 10»)."""
+    """Nivel (1-100) leído en alguna lectura de OCR: con prefijo («Nv. 10»), con prefijo y dígitos
+    confundidos («Nv. 1G») y, por último, un número suelto al final («… 10»)."""
     readings = [r for r in readings if r]
-    for pattern in (_LEVEL_VALUE, _TRAILING_VALUE):
+    finders = (
+        lambda text: (m.group(1) for m in _LEVEL_VALUE.finditer(text)),
+        _confused_levels,
+        lambda text: (m.group(1) for m in _TRAILING_VALUE.finditer(text)),
+    )
+    for find in finders:
         for text in readings:
-            for match in pattern.finditer(text):
-                value = int(match.group(1))
-                if 1 <= value <= 100:
-                    return value
+            for value in find(text):
+                if value.isdigit() and 1 <= int(value) <= 100:
+                    return int(value)
     return None

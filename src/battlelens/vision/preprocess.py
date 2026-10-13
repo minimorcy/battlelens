@@ -86,6 +86,18 @@ def preprocess_variants(crop: np.ndarray) -> list[np.ndarray]:
     return variants
 
 
+LEVEL_HEIGHTS = (48, 64)
+LEVEL_PORTION = 0.5  # el nivel va en la mitad derecha del recuadro en todos los juegos
+
+
+def level_variants(crop: np.ndarray) -> list[np.ndarray]:
+    """Mitad derecha del recorte en grises y ampliada, para leer el nivel (improve-level-reading D3)."""
+    right = crop[:, int(crop.shape[1] * (1 - LEVEL_PORTION)):]
+    if right.size == 0:
+        return []
+    return [gray_variant(right, h) for h in LEVEL_HEIGHTS]
+
+
 FINGERPRINT_SIZE = (32, 12)
 
 

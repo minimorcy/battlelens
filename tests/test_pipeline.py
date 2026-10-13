@@ -53,7 +53,7 @@ def test_reconocimiento_correcto(dex, profile):
 
 
 def test_se_queda_con_la_mejor_variante(dex, profile):
-    readings = iter(["~~", "P1DGEY", "PIDGEY", "RATTATA"])
+    readings = iter(["~~", "P1DGEY Nv. 5", "PIDGEY Nv. 5", "RATTATA"])
     calls = []
 
     def ocr(image, langs):
@@ -63,7 +63,7 @@ def test_se_queda_con_la_mejor_variante(dex, profile):
     p = RecognitionPipeline(dex, NameMatcher(dex), lambda h: np.full((640, 960, 3), 255, np.uint8), ocr)
     result = p.run(1, profile)
     assert result.species.id == 16 and result.match.score == 100
-    assert len(calls) == 3  # parada temprana al llegar a 100
+    assert len(calls) == 3  # parada temprana al llegar a 100 con el nivel leído
 
 
 def test_no_reconocido(dex, profile):
@@ -103,7 +103,7 @@ def test_tres_regiones_desde_una_captura(dex):
     from battlelens.core.profiles import Region
 
     captures = []
-    texts = ["PIDGEY", "RATTATA"]  # después, el propio con apodo ("MiPerrito"): no reconocido
+    texts = ["PIDGEY Nv. 5", "RATTATA Nv. 3"]  # después, el propio con apodo ("MiPerrito"): no reconocido
 
     def capture(hwnd):
         captures.append(hwnd)
@@ -141,3 +141,42 @@ def test_niveles_por_region(dex):
     result = RecognitionPipeline(dex, NameMatcher(dex), lambda h: np.full((640, 960, 3), 255, np.uint8), ocr).run(1, profile)
     assert result.key == (759, None, 813)
     assert result.levels == (10, None, 14)
+
+
+# ---- búsqueda adicional del nivel (improve-level-reading) ---------------------------------
+
+def _read(texts, crop=None):
+    from battlelens.pipeline import read_crop
+
+    calls = []
+
+    def ocr(image, langs):
+        calls.append(image.shape)
+        return FakeOcr(texts.pop(0) if texts else "")
+
+    crop = crop if crop is not None else np.full((30, 200, 3), 255, np.uint8)
+    dex = Pokedex.load()
+    return read_crop(crop, ocr, NameMatcher(dex), ("es",)), calls
+
+
+def test_nivel_en_otra_variante():
+    reading, calls = _read(["Machop", "Machop Nv. 16", "Machop Nv. 99"])
+    assert reading.match.species_id == 66 and reading.level == 16
+    assert len(calls) == 2  # para en cuanto aparece el nivel
+
+
+def test_nivel_solo_en_la_mitad_derecha():
+    reading, calls = _read(["Machop", "", "", "", "Nv. 16", ""])
+    assert reading.match.species_id == 66 and reading.level == 16
+    assert calls[-2][0] == 48 + 20  # mitad derecha ampliada a 48 px (más el margen)
+
+
+def test_region_sin_nivel_lecturas_acotadas():
+    reading, calls = _read(["PIDGEY"])
+    assert reading.match.species_id == 16 and reading.level is None
+    assert len(calls) == 1 + 3 + 2
+
+
+def test_sin_reconocer_no_busca_el_nivel():
+    reading, calls = _read([])
+    assert not reading.match.recognized and len(calls) == 18  # todas las variantes, sin extras
