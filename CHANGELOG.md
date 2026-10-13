@@ -14,6 +14,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Captura del emulador aunque esté tapado por otras ventanas.
 - Detección automática del combate: la ficha aparece y se oculta sola, sin pulsar ninguna tecla.
 - Combates dobles (dos fichas) y comparativa «Contra tu X» con veredicto de ventaja/desventaja.
+- Ratio de captura con su dificultad, cadena evolutiva y descripción de las habilidades.
 
 ### Cambiado
 - El proyecto pasa a llamarse **BattleLens**.

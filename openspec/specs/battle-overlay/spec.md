@@ -15,7 +15,7 @@ El sistema SHALL registrar atajos de teclado globales que funcionen aunque el em
 - **THEN** el sistema muestra un aviso en la bandeja indicando qué atajo no se pudo registrar y sigue funcionando con el resto
 
 ### Requirement: Overlay con la ficha del Pokémon
-WHEN un reconocimiento identifica al menos a un rival, el sistema SHALL mostrar una ventana superpuesta con una tarjeta por cada rival identificado (dos tarjetas una al lado de la otra en combates dobles). Cada tarjeta muestra la vista de la especie para el juego del perfil activo: nombre (incluida la forma, p. ej. «Zigzagoon de Galar») en el idioma de la interfaz, número de Pokédex, tipos, debilidades agrupadas (×4, ×2), resistencias (×½, ×¼), inmunidades (×0) según la tabla de la generación del juego, estadísticas base con barras y total, habilidades marcando la oculta (cuando existan en esa generación) y, si la especie tiene otras formas regionales, una línea «Otras formas» con su nombre y tipos. Si además se identifica tu Pokémon, cada tarjeta MUST incluir el apartado «Contra tu <nombre>» con tus ataques, sus ataques y el veredicto.
+WHEN un reconocimiento identifica al menos a un rival, el sistema SHALL mostrar una ventana superpuesta con una tarjeta por cada rival identificado (dos tarjetas una al lado de la otra en combates dobles). Cada tarjeta muestra la vista de la especie para el juego del perfil activo: nombre (incluida la forma, p. ej. «Zigzagoon de Galar») en el idioma de la interfaz, número de Pokédex, tipos, debilidades agrupadas (×4, ×2), resistencias (×½, ×¼), inmunidades (×0) según la tabla de la generación del juego, estadísticas base con barras y total, habilidades marcando la oculta (cuando existan en esa generación), con su descripción al pasar el ratón, el ratio de captura con su dificultad, la cadena evolutiva (si la especie evoluciona) y, si la especie tiene otras formas regionales, una línea «Otras formas» con su nombre y tipos. Si además se identifica tu Pokémon, cada tarjeta MUST incluir el apartado «Contra tu <nombre>» con tus ataques, sus ataques y el veredicto.
 
 #### Scenario: Ficha mostrada
 - **WHEN** se reconoce Charizard
@@ -36,6 +36,10 @@ WHEN un reconocimiento identifica al menos a un rival, el sistema SHALL mostrar 
 #### Scenario: Resultado no reconocido
 - **WHEN** el reconocimiento manual no identifica a ningún rival
 - **THEN** el overlay muestra un aviso breve con el texto leído por el OCR y la sugerencia de recalibrar
+
+#### Scenario: Datos adicionales
+- **WHEN** se reconoce Stufful sin juego asignado
+- **THEN** la tarjeta muestra «Captura: 140 · Media», la evolución «Stufful → Bewear (Nv. 27)» y, al pasar el ratón por «Peluche», su descripción
 
 ### Requirement: Comportamiento de la ventana
 El overlay SHALL estar siempre por encima del resto de ventanas, sin marco, MUST NOT robar el foco del teclado al emulador y MUST NOT aparecer en la barra de tareas. Se SHALL posicionar por defecto junto al borde derecho de la ventana objetivo, o dentro de la pantalla si no cabe, y MUST recordar la posición si el usuario lo arrastra.

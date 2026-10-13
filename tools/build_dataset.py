@@ -37,6 +37,11 @@ CSV_FILES = [
     "versions",
     "version_names",
     "version_groups",
+    "pokemon_evolution",
+    "evolution_triggers",
+    "items",
+    "item_names",
+    "ability_flavor_text",
 ]
 LANGUAGES = ["en", "es", "fr", "de", "it"]
 STAT_KEYS = {1: "hp", 2: "attack", 3: "defense", 4: "special_attack", 5: "special_defense", 6: "speed"}
@@ -249,6 +254,53 @@ def build(tables: dict[str, list[dict[str, str]]]) -> dict:
             }
         )
 
+    # Descripción más reciente de cada habilidad por idioma (add-richer-species-info D1)
+    latest_text: dict[tuple[int, str], tuple[int, str]] = {}
+    for r in tables["ability_flavor_text"]:
+        lang = lang_by_id.get(int(r["language_id"]))
+        if not lang:
+            continue
+        key, vg = (int(r["ability_id"]), lang), int(r["version_group_id"])
+        if key not in latest_text or vg > latest_text[key][0]:
+            # Algunos textos traen "\n" escrito literalmente y guiones blandos (U+00AD)
+            text = r["flavor_text"].replace("\\n", " ").replace("­", "")
+            latest_text[key] = (vg, " ".join(text.split()))
+    ability_descriptions: dict[str, dict[str, str]] = {}
+    for (aid, lang), (_, text) in sorted(latest_text.items()):
+        ability_descriptions.setdefault(ability_ident.get(aid, str(aid)), {})[lang] = text
+
+    # Evoluciones: una condición por especie (D2) y nombres de los objetos implicados
+    trigger_ident = {int(r["id"]): r["identifier"] for r in tables["evolution_triggers"]}
+    item_ident = {int(r["id"]): r["identifier"] for r in tables["items"]}
+    evolution_rows: dict[int, dict[str, str]] = {}
+    for r in tables["pokemon_evolution"]:
+        sid = int(r["evolved_species_id"])
+        if sid not in evolution_rows or (r["is_default"] == "1" and evolution_rows[sid]["is_default"] != "1"):
+            evolution_rows[sid] = r
+
+    def opt_int(value: str) -> int | None:
+        return int(value) if value else None
+
+    used_items: set[int] = set()
+    evolutions: dict[int, dict] = {}
+    for sid, r in evolution_rows.items():
+        item, held = opt_int(r["trigger_item_id"]), opt_int(r["held_item_id"])
+        used_items.update(i for i in (item, held) if i is not None)
+        evolutions[sid] = {
+            "trigger": trigger_ident.get(int(r["evolution_trigger_id"]), "unclassified"),
+            "min_level": opt_int(r["minimum_level"]),
+            "item": item_ident.get(item) if item else None,
+            "held_item": item_ident.get(held) if held else None,
+            "min_happiness": opt_int(r["minimum_happiness"]),
+            "time_of_day": r["time_of_day"] or None,
+        }
+    item_names: dict[str, dict[str, str]] = {}
+    for r in tables["item_names"]:
+        iid = int(r["item_id"])
+        lang = lang_by_id.get(int(r["local_language_id"]))
+        if iid in used_items and lang and r["name"]:
+            item_names.setdefault(item_ident[iid], {})[lang] = r["name"]
+
     species = []
     for r in sorted(tables["pokemon_species"], key=lambda r: int(r["id"])):
         sid = int(r["id"])
@@ -267,6 +319,9 @@ def build(tables: dict[str, list[dict[str, str]]]) -> dict:
                     for gen, slots in sorted(past_types.get(pid, {}).items())
                 ],
                 "forms": [f for _, f in sorted(forms_by_species.get(sid, []), key=lambda x: x[0])],
+                "capture_rate": opt_int(r.get("capture_rate", "")),
+                "evolves_from": opt_int(r.get("evolves_from_species_id", "")),
+                "evolution": evolutions.get(sid),
             }
         )
 
@@ -280,6 +335,8 @@ def build(tables: dict[str, list[dict[str, str]]]) -> dict:
         "type_efficacy": efficacy,
         "type_efficacy_past": efficacy_past,
         "games": games,
+        "items": item_names,
+        "ability_descriptions": ability_descriptions,
         "species": species,
     }
 

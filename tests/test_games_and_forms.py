@@ -125,3 +125,43 @@ def test_tauros_en_escarlata_lista_las_otras_razas(dex):
 def test_sin_juego_forma_original_y_generacion_actual(dex):
     v = dex.view(6)
     assert v.name == "Charizard" and v.generation == 9 and v.stat_total == 534
+
+
+# ---- evolución y captura (add-richer-species-info) -----------------------------------
+
+def test_cadena_lineal(dex):
+    assert dex.evolution_stages(5) == (
+        (("Charmander", None),), (("Charmeleon", "Nv. 16"),), (("Charizard", "Nv. 36"),)
+    )
+
+
+def test_cadena_con_ramas(dex):
+    second = dict(dex.evolution_stages(133)[1])
+    assert second["Vaporeon"] == "Piedra Agua" and second["Jolteon"] == "Piedra Trueno"
+    assert second["Flareon"] == "Piedra Fuego" and second["Espeon"] == "Amistad de día"
+
+
+def test_cadena_filtrada_por_generacion(dex):
+    assert dex.evolution_stages(25, 1) == ((("Pikachu", None),), (("Raichu", "Piedra Trueno"),))
+    assert dex.evolution_stages(25)[0] == (("Pichu", None),)
+    assert [n for n, _ in dex.evolution_stages(133, 1)[1]] == ["Vaporeon", "Jolteon", "Flareon"]
+
+
+def test_sin_evolucion(dex):
+    assert dex.evolution_stages(128) == ((("Tauros", None),),)
+
+
+def test_condiciones_en_ingles(dex):
+    assert dex.evolution_stages(5, lang="en")[1] == (("Charmeleon", "Lv. 16"),)
+
+
+@pytest.mark.parametrize(("rate", "label"), [(255, "Fácil"), (190, "Fácil"), (140, "Media"), (45, "Difícil"), (3, "Muy difícil")])
+def test_dificultad_de_captura(rate, label):
+    from battlelens.core.pokedex import capture_difficulty
+
+    assert capture_difficulty(rate) == label
+
+
+def test_descripcion_de_habilidad(dex):
+    fluffy = next(a for a in dex.view(759).abilities if a.identifier == "fluffy")
+    assert "Fuego" in fluffy.description("es") and "Fire" in fluffy.description("en")

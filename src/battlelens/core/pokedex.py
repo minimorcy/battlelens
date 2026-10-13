@@ -31,9 +31,45 @@ class Ability:
     identifier: str
     names: dict[str, str]
     hidden: bool
+    descriptions: dict[str, str] = field(default_factory=dict, compare=False)
 
     def name(self, lang: str) -> str:
         return _localized(self.names, lang, self.identifier)
+
+    def description(self, lang: str) -> str:
+        return _localized(self.descriptions, lang, "")
+
+
+# Etiquetas de las condiciones de evolución (add-richer-species-info D4); otros idiomas usan "en"
+_EVOLUTION_LABELS = {
+    "es": {"level": "Nv. {n}", "trade": "Intercambio", "trade_item": "Intercambio con {item}",
+           "friendship": "Amistad", "day": "de día", "night": "de noche", "special": "Especial"},
+    "en": {"level": "Lv. {n}", "trade": "Trade", "trade_item": "Trade holding {item}",
+           "friendship": "Friendship", "day": "by day", "night": "at night", "special": "Special"},
+}
+
+
+def capture_difficulty(rate: int | None) -> str | None:
+    """Clasificación del ratio de captura (spec pokemon-data, «Dificultad de captura»)."""
+    if rate is None:
+        return None
+    if rate >= 190:
+        return "Fácil"
+    if rate >= 75:
+        return "Media"
+    if rate >= 25:
+        return "Difícil"
+    return "Muy difícil"
+
+
+@dataclass(frozen=True)
+class Evolution:
+    trigger: str
+    min_level: int | None = None
+    item: str | None = None
+    held_item: str | None = None
+    min_happiness: int | None = None
+    time_of_day: str | None = None
 
 
 @dataclass(frozen=True)
@@ -66,6 +102,9 @@ class Species:
     abilities: tuple[Ability, ...]
     past_types: tuple[PastTypes, ...] = ()
     forms: tuple[Form, ...] = ()
+    capture_rate: int | None = None
+    evolves_from: int | None = None
+    evolution: Evolution | None = None
 
     def name(self, lang: str) -> str:
         return _localized(self.names, lang, self.identifier)
@@ -111,14 +150,21 @@ class SpeciesView:
     generation: int
     matchups: dict[float, list[str]]
     other_forms: tuple[OtherForm, ...] = field(default_factory=tuple)
+    capture_rate: int | None = None
+    capture_difficulty: str | None = None
+    # Etapas de la cadena evolutiva: cada etapa, una tupla de (nombre, condición o None)
+    evolution: tuple[tuple[tuple[str, str | None], ...], ...] = field(default_factory=tuple)
 
     @property
     def stat_total(self) -> int:
         return sum(self.stats.values())
 
 
-def _abilities(raw: list[dict]) -> tuple[Ability, ...]:
-    return tuple(Ability(a["identifier"], a["names"], a["hidden"]) for a in raw)
+def _abilities(raw: list[dict], descriptions: dict[str, dict[str, str]] | None = None) -> tuple[Ability, ...]:
+    descriptions = descriptions or {}
+    return tuple(
+        Ability(a["identifier"], a["names"], a["hidden"], descriptions.get(a["identifier"], {})) for a in raw
+    )
 
 
 class Pokedex:
@@ -139,8 +185,12 @@ class Pokedex:
             for g in data.get("games", [])
         ]
         self._games_by_id = {g.id: g for g in self.games}
+        self.item_names: dict[str, dict[str, str]] = data.get("items", {})
+        descriptions = data.get("ability_descriptions", {})
         self._species: dict[int, Species] = {}
+        self._children: dict[int, list[int]] = {}
         for s in data["species"]:
+            evo = s.get("evolution")
             self._species[s["id"]] = Species(
                 id=s["id"],
                 identifier=s["identifier"],
@@ -148,13 +198,21 @@ class Pokedex:
                 names=s["names"],
                 types=tuple(s["types"]),
                 stats=s["stats"],
-                abilities=_abilities(s["abilities"]),
+                abilities=_abilities(s["abilities"], descriptions),
                 past_types=tuple(PastTypes(p["until_generation"], tuple(p["types"])) for p in s.get("past_types", [])),
                 forms=tuple(
-                    Form(f["identifier"], f["form"], f["names"], tuple(f["types"]), f["stats"], _abilities(f["abilities"]))
+                    Form(
+                        f["identifier"], f["form"], f["names"], tuple(f["types"]), f["stats"],
+                        _abilities(f["abilities"], descriptions),
+                    )
                     for f in s.get("forms", [])
                 ),
+                capture_rate=s.get("capture_rate"),
+                evolves_from=s.get("evolves_from"),
+                evolution=Evolution(**evo) if evo else None,
             )
+            if s.get("evolves_from"):
+                self._children.setdefault(s["evolves_from"], []).append(s["id"])
         self._charts: dict[int, dict[str, dict[str, float]]] = {}
 
     @classmethod
@@ -224,6 +282,58 @@ class Pokedex:
                 groups[factor].append(attacking)
         return groups
 
+    # ---- evolución ----------------------------------------------------------
+
+    def evolution_condition(self, evolution: Evolution | None, lang: str) -> str | None:
+        if evolution is None:
+            return None
+        labels = _EVOLUTION_LABELS.get(lang, _EVOLUTION_LABELS["en"])
+
+        def item(identifier: str) -> str:
+            return _localized(self.item_names.get(identifier, {}), lang, identifier)
+
+        if evolution.trigger == "use-item" and evolution.item:
+            return item(evolution.item)
+        if evolution.trigger == "trade":
+            return labels["trade_item"].format(item=item(evolution.held_item)) if evolution.held_item else labels["trade"]
+        if evolution.trigger == "level-up":
+            if evolution.min_level:
+                text = labels["level"].format(n=evolution.min_level)
+            elif evolution.min_happiness:
+                text = labels["friendship"]
+            else:
+                return labels["special"]
+            if evolution.time_of_day in ("day", "night"):
+                text += f" {labels[evolution.time_of_day]}"
+            return text
+        return labels["special"]
+
+    def evolution_stages(
+        self, species_id: int, generation: int = CURRENT_GENERATION, lang: str = "es"
+    ) -> tuple[tuple[tuple[str, str | None], ...], ...]:
+        """Cadena completa desde la especie base, en etapas, sin especies posteriores al juego (D3)."""
+        root = self.get_species(species_id)
+        while root.evolves_from and root.evolves_from in self._species:
+            parent = self._species[root.evolves_from]
+            if parent.generation > generation:
+                break
+            root = parent
+        stages: list[tuple[tuple[str, str | None], ...]] = []
+        level = [root]
+        first = True
+        while level:
+            stages.append(tuple(
+                (sp.name(lang), None if first else self.evolution_condition(sp.evolution, lang)) for sp in level
+            ))
+            first = False
+            level = [
+                self._species[c]
+                for sp in level
+                for c in self._children.get(sp.id, [])
+                if self._species[c].generation <= generation
+            ]
+        return tuple(stages)
+
     # ---- vista según el juego ----------------------------------------------
 
     def view(self, species_id: int, game_id: str | None = None, lang: str = "es") -> SpeciesView:
@@ -261,4 +371,7 @@ class Pokedex:
             generation=generation,
             matchups=self.defensive_matchups(types, generation),
             other_forms=tuple(others),
+            capture_rate=species.capture_rate,
+            capture_difficulty=capture_difficulty(species.capture_rate),
+            evolution=self.evolution_stages(species.id, generation, lang),
         )

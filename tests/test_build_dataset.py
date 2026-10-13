@@ -58,6 +58,11 @@ def _mini_tables():
         "versions": _rows("id,version_group_id,identifier", "33,20,sword", "34,20,shield", "35,21,the-isle-of-armor-sword"),
         "version_names": _rows("version_id,local_language_id,name", "33,7,Espada", "34,7,Escudo", "33,9,Sword"),
         "version_groups": _rows("id,identifier,generation_id,order", "20,sword-shield,8,22", "21,the-isle-of-armor,8,23"),
+        "pokemon_evolution": [],
+        "evolution_triggers": [],
+        "items": [],
+        "item_names": [],
+        "ability_flavor_text": [],
     }
 
 
@@ -76,3 +81,29 @@ def test_build_con_formas_juegos_y_datos_anteriores():
     (form,) = zig["forms"]
     assert form["form"] == "galar" and form["types"] == ["dark", "normal"]
     assert form["names"] == {"es": "Zigzagoon de Galar", "en": "Galarian Zigzagoon"}
+
+
+def test_build_con_evoluciones_y_descripciones():
+    tables = _mini_tables()
+    tables["pokemon_species"] = _rows(
+        "id,identifier,generation_id,evolves_from_species_id,capture_rate", "263,zigzagoon,3,,255"
+    )
+    tables["pokemon_evolution"] = _rows(
+        "id,evolved_species_id,evolution_trigger_id,version_group_id,is_default,trigger_item_id,minimum_level,"
+        "gender_id,location_id,held_item_id,time_of_day,known_move_id,known_move_type_id,minimum_happiness",
+        "1,263,3,5,1,82,,,,,,,,",
+    )
+    tables["evolution_triggers"] = _rows("id,identifier", "3,use-item")
+    tables["items"] = _rows("id,identifier", "82,fire-stone")
+    tables["item_names"] = _rows("item_id,local_language_id,name", "82,7,Piedra Fuego")
+    tables["ability_flavor_text"] = _rows(
+        "ability_id,version_group_id,language_id,flavor_text",
+        '53,5,7,"Texto viejo"',
+        '53,20,7,"Puede recoger\nobjetos\ntras el combate."',
+    )
+    data = build_dataset.build(tables)
+    zig = data["species"][0]
+    assert zig["capture_rate"] == 255
+    assert zig["evolution"]["trigger"] == "use-item" and zig["evolution"]["item"] == "fire-stone"
+    assert data["items"] == {"fire-stone": {"es": "Piedra Fuego"}}
+    assert data["ability_descriptions"]["pickup"]["es"] == "Puede recoger objetos tras el combate."

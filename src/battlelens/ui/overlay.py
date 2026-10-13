@@ -200,6 +200,11 @@ class Overlay(QWidget):
         header.addWidget(number, alignment=Qt.AlignmentFlag.AlignTop)
         layout.addLayout(header)
         add(self._types_row(view.types))
+        if view.capture_rate is not None:
+            capture = QLabel(f"Captura: {view.capture_rate} · {view.capture_difficulty}")
+            capture.setObjectName("capture")
+            capture.setStyleSheet(f"color:{theme.TEXT_MUTED}; font-size:11px;")
+            add(capture)
         if versus is not None:  # lo más consultado en cada turno: justo debajo de los tipos
             self._matchup_section(versus, layout)
 
@@ -263,7 +268,22 @@ class Overlay(QWidget):
                 hidden = f"  <i style='color:{theme.TEXT_MUTED}'>(oculta)</i>" if ability.hidden else ""
                 label = QLabel(ability.name(self.language) + hidden)
                 label.setTextFormat(Qt.TextFormat.RichText)
+                description = ability.description(self.language)
+                if description:
+                    label.setToolTip(description)
+                    label.setCursor(Qt.CursorShape.WhatsThisCursor)
                 add(label)
+
+        if len(view.evolution) > 1:
+            add(_section_title("Evolución"))
+            stages = []
+            for stage in view.evolution:
+                parts = [f"{name} ({cond})" if cond else name for name, cond in stage]
+                stages.append(" / ".join(parts))
+            evolution = QLabel(" → ".join(stages))
+            evolution.setObjectName("evolution")
+            evolution.setWordWrap(True)
+            add(evolution)
 
         if view.other_forms:
             add(_section_title("Otras formas"))

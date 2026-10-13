@@ -2,7 +2,7 @@
 
 **Ficha instantánea del Pokémon rival para juegos de Pokémon en cualquier emulador de PC.**
 
-Pulsa una tecla durante un combate y BattleLens muestra junto al emulador los tipos del rival, sus debilidades, resistencias e inmunidades, sus estadísticas base y sus habilidades.
+Durante un combate, BattleLens muestra junto al emulador los tipos del rival, sus debilidades, resistencias e inmunidades, sus estadísticas base, sus habilidades (con su descripción al pasar el ratón), su ratio de captura y su cadena evolutiva, y cómo le va a tu Pokémon contra él.
 
 No lee la memoria del emulador: lee **el nombre del rival en pantalla** con el OCR de Windows. Por eso funciona con cualquier emulador (mGBA, DeSmuME, melonDS, Citra…) y con cualquier generación, después de calibrar una vez por juego.
 

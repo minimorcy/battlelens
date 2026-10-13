@@ -250,3 +250,21 @@ def test_submenu_de_regiones(qapp):
     assert removed == ["rival2"]
     tray.hide()
     tray2.hide()
+
+
+def test_datos_adicionales_stufful(qapp, overlay, dex):
+    from PyQt6.QtWidgets import QLabel
+
+    overlay.show_species(dex.get_species(759), None)
+    qapp.processEvents()
+    by_name = {w.objectName(): w.text() for w in overlay.findChildren(QLabel) if w.objectName()}
+    assert by_name["capture"] == "Captura: 140 · Media"
+    assert by_name["evolution"] == "Stufful → Bewear (Nv. 27)"
+    fluffy = next(w for w in overlay.findChildren(QLabel) if w.text().startswith("Peluche"))
+    assert "Fuego" in fluffy.toolTip()
+
+
+def test_sin_evolucion_no_hay_apartado(qapp, overlay, dex):
+    overlay.show_species(dex.get_species(128), None)
+    qapp.processEvents()
+    assert "EVOLUCIÓN" not in " | ".join(_labels(overlay))
