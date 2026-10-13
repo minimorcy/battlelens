@@ -29,6 +29,7 @@ def controller(qapp, tmp_path, monkeypatch):
         hotkey_calibrate="Ctrl+Alt+Shift+F21",
         hotkey_hide="Ctrl+Alt+Shift+F22",
         updates_check=False,
+        hotkey_toggle_mode="Ctrl+Alt+Shift+F18",
         detection_enabled=False,
     )
     c = Controller(qapp, config, Pokedex.load())
@@ -206,6 +207,7 @@ def auto_controller(qapp, tmp_path, monkeypatch):
         hotkey_calibrate="Ctrl+Alt+Shift+F21",
         hotkey_hide="Ctrl+Alt+Shift+F22",
         updates_check=False,
+        hotkey_toggle_mode="Ctrl+Alt+Shift+F18",
         detection_enabled=True,
         detection_interval_ms=200,
         detection_hide_after_seconds=1.0,
@@ -351,3 +353,38 @@ def _wait_pool(qapp):
 
     QThreadPool.globalInstance().waitForDone(2000)
     qapp.processEvents()
+
+
+
+# ---- modos de ficha (add-display-modes) -----------------------------------------------
+
+def test_cambio_de_modo_redibuja_la_ficha_visible(qapp, controller, tmp_path):
+    from PyQt6.QtWidgets import QLabel
+
+    from battlelens.core.config import load_config
+
+    controller.tray.notify = lambda msg, warning=False: None
+    controller._show_battle((759, None, None), "sword-shield", None, (10, None, None))
+    qapp.processEvents()
+
+    def names(obj):
+        return [w.text() for w in controller.overlay.findChildren(QLabel) if w.objectName() == obj]
+
+    assert controller.overlay.mode == "normal" and not names("move")
+    controller.toggle_mode()  # como Ctrl+Alt+M
+    qapp.processEvents()
+    assert controller.overlay.mode == "competitive"
+    assert names("species-name") == ["Stufful"] and names("level") == ["Nv. 10"] and len(names("move")) == 4
+    assert controller.tray.mode_actions["competitive"].isChecked()
+    assert load_config(tmp_path / "config.toml").overlay_mode == "competitive"
+    controller.set_mode("normal")
+    qapp.processEvents()
+    assert not names("move") and load_config(tmp_path / "config.toml").overlay_mode == "normal"
+
+
+def test_modo_desde_ajustes(qapp, controller):
+    from dataclasses import replace
+
+    controller.tray.notify = lambda msg, warning=False: None
+    controller.apply_config(replace(controller.config, overlay_mode="competitive"))
+    assert controller.overlay.mode == "competitive" and controller.tray.mode_actions["competitive"].isChecked()

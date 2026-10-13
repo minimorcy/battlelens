@@ -38,7 +38,10 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
 3. **En cada combate, la ficha aparece sola** junto al emulador en cuanto se ve el nombre del rival (**detección automática**) y se oculta unos segundos después de terminar el combate.
    - Si la desactivas desde la bandeja (**Detección automática**), pulsa `Ctrl+Alt+P` para reconocer a mano.
    - Haz clic en la ficha o pulsa `Ctrl+Alt+H` para ocultarla. Arrástrala para moverla.
-4. **Opcional: tu Pokémon y combates dobles.** En bandeja → **Regiones del perfil** puedes calibrar también el nombre de **tu Pokémon** y el del **2.º rival**:
+4. **Elige el modo de la ficha** (bandeja → **Modo de la ficha**, `Ctrl+Alt+M` o Ajustes):
+   - **Normal** (por defecto): ficha compacta para la aventura y la captura, con tipos, debilidades, **dificultad de captura** destacada, evolución y total de estadísticas.
+   - **Competitivo**: todo lo anterior más el **nivel**, resistencias, **estadísticas reales a su nivel** (mínimo-máximo), **habilidades** con su descripción y su efecto («Levitación → Tierra ×0»), **movimientos probables** (los 4 últimos que aprende hasta su nivel en ese juego, marcando los que te hacen ×2), **quién es más rápido** y datos de **entrenamiento** (EVs, peso para Patada Baja, perfil). Para leer el nivel, calibra la región del rival **incluyendo el nivel**.
+5. **Opcional: tu Pokémon y combates dobles.** En bandeja → **Regiones del perfil** puedes calibrar también el nombre de **tu Pokémon** y el del **2.º rival**:
    - Con tu Pokémon, cada ficha muestra **«Contra tu X»**: lo que le hacen tus tipos, lo que te hacen los suyos y un veredicto (**Ventaja / Neutral / Desventaja**). Si tu Pokémon tiene apodo, no se puede reconocer.
    - Con el 2.º rival, en los combates dobles aparecen dos fichas una al lado de la otra.
 
@@ -54,6 +57,8 @@ Todo se puede cambiar desde bandeja → **Ajustes…** (los cambios se aplican a
 | `detection.enabled` | `true` | Detección automática del combate (también desde la bandeja) |
 | `detection.interval_ms` | `500` | Cada cuánto se vigila la región del nombre |
 | `detection.hide_after_seconds` | `4` | Segundos sin ver al rival hasta ocultar la ficha (0 = nunca) |
+| `overlay.mode` | `normal` | Ficha `normal` (compacta) o `competitive` (completa) |
+| `hotkeys.toggle_mode` | `Ctrl+Alt+M` | Cambiar de modo |
 | `overlay.language` | `es` | Idioma de la ficha: `es`, `en`, `fr`, `de`, `it` |
 | `overlay.auto_hide_seconds` | `0` | Ocultar la ficha tras N segundos (0 = nunca) |
 | `updates.check` | `true` | Avisar una vez al día si hay versión nueva en GitHub (única conexión de la app) |
@@ -72,6 +77,8 @@ BattleLens comprueba una vez al día si hay una versión nueva. Si la hay, te av
 
 - **Estadísticas base actuales.** Los tipos y la tabla de eficacias se ajustan a la generación del juego, pero las estadísticas no (por ejemplo, el «Especial» único de la Gen 1).
 - **Formas no regionales** (megaevoluciones, Gigamax, formas de Rotom…): se muestra la forma original.
+- **Movimientos probables:** son los que llevaría un Pokémon salvaje o de un entrenador corriente; los líderes, los rivales y los equipos competitivos pueden llevar otros.
+- **Estadísticas a su nivel** con la fórmula de la Gen 3 en adelante (en la Gen 1-2 y en Let's Go/Leyendas la fórmula es otra).
 - **La comparativa es por tipos** (ataques con STAB): no tiene en cuenta movimientos concretos, habilidades como Levitación ni objetos.
 
 ### Desinstalar

@@ -18,12 +18,28 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from ..core.competitive import (
+    ability_effects,
+    compare_speed,
+    stat_profile,
+    stat_ranges,
+    weight_move_power,
+)
+from ..core.learnsets import Learnsets, LearnsetsMissingError
 from ..core.pokedex import STAT_ORDER, Pokedex, Species, SpeciesView
 from ..core.matchup import Matchup, Verdict, matchup
 from . import theme
 
-WIDTH = 320
+WIDTH = 320  # ancho histórico; cada modo define el suyo en card_width()
+MODE_WIDTHS = {"normal": 300, "competitive": 360}
 CARD_SPACING = 14
+CATEGORY_LABELS = {"physical": "Físico", "special": "Especial", "status": "Estado"}
+CAPTURE_COLORS = {"Fácil": "#3ddc97", "Media": "#ffcb05", "Difícil": "#ff8c42", "Muy difícil": "#e5484d"}
+ABILITY_EFFECT_COLOR = "#3a4a6b"
+
+
+def card_width(mode: str) -> int:
+    return MODE_WIDTHS.get(mode, MODE_WIDTHS["normal"])
 VERDICT_COLORS = {
     Verdict.ADVANTAGE: "#2e9d5b",
     Verdict.NEUTRAL: "#5b6274",
@@ -91,7 +107,9 @@ class Overlay(QWidget):
     moved = pyqtSignal(int, int)
     dismissed = pyqtSignal()  # el usuario la ha cerrado con un clic
 
-    def __init__(self, pokedex: Pokedex, language: str = "es", auto_hide_seconds: float = 0) -> None:
+    def __init__(
+        self, pokedex: Pokedex, language: str = "es", auto_hide_seconds: float = 0, mode: str = "normal"
+    ) -> None:
         super().__init__(
             None,
             Qt.WindowType.FramelessWindowHint
@@ -101,10 +119,11 @@ class Overlay(QWidget):
         )
         self.pokedex = pokedex
         self.language = language
+        self.mode = mode
         self.saved_pos: QPoint | None = None
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setFixedWidth(WIDTH)
+        self.setFixedWidth(card_width(mode))
         self.setCursor(Qt.CursorShape.OpenHandCursor)
 
         self._panel = QFrame(self)
@@ -133,9 +152,13 @@ class Overlay(QWidget):
     # ---- contenido ---------------------------------------------------------
 
     def show_species(
-        self, species: Species, target_rect: tuple[int, int, int, int] | None, game: str | None = None
+        self,
+        species: Species,
+        target_rect: tuple[int, int, int, int] | None,
+        game: str | None = None,
+        level: int | None = None,
     ) -> None:
-        self.show_view(self.pokedex.view(species.id, game, self.language), target_rect)
+        self.show_battle([self.pokedex.view(species.id, game, self.language)], None, target_rect, [level])
 
     def show_view(self, view: SpeciesView, target_rect: tuple[int, int, int, int] | None) -> None:
         self.show_battle([view], None, target_rect)
@@ -145,19 +168,115 @@ class Overlay(QWidget):
         rivals: list[SpeciesView],
         own: SpeciesView | None,
         target_rect: tuple[int, int, int, int] | None,
+        rival_levels: list[int | None] | None = None,
+        own_level: int | None = None,
     ) -> None:
-        """Una tarjeta por rival (dos en combates dobles), con la comparativa si se conoce tu Pokémon."""
+        """Una tarjeta por rival (dos en combates dobles), según el modo (spec display-modes)."""
         self._clear()
-        self.setFixedWidth(WIDTH * len(rivals) + CARD_SPACING * (len(rivals) - 1))
+        width = card_width(self.mode)
+        self.setFixedWidth(width * len(rivals) + CARD_SPACING * (len(rivals) - 1))
+        levels = list(rival_levels or []) + [None] * len(rivals)
         row = QHBoxLayout()
         row.setSpacing(CARD_SPACING)
-        for rival in rivals:
+        for rival, level in zip(rivals, levels):
             versus = matchup(own, rival, self.pokedex.type_chart(rival.generation)) if own else None
-            row.addWidget(self._card(rival, versus), 1, Qt.AlignmentFlag.AlignTop)
+            card = self._card(rival, versus, level=level, own=own, own_level=own_level)
+            row.addWidget(card, 1, Qt.AlignmentFlag.AlignTop)
         self._content.addLayout(row)
         self._present(target_rect)
 
-    def _matchup_section(self, m: Matchup, layout: QVBoxLayout) -> None:
+    @property
+    def competitive(self) -> bool:
+        return self.mode == "competitive"
+
+    def _type_label(self, type_id: str) -> str:
+        return self.pokedex.type_name(type_id, self.language)
+
+    def _types_row(self, types) -> QWidget:
+        return _FlowRow([_pill(self._type_label(t), t) for t in types])
+
+    def _muted(self, text: str, size: int = 11, name: str | None = None, wrap: bool = True) -> QLabel:
+        label = QLabel(text)
+        label.setStyleSheet(f"color:{theme.TEXT_MUTED}; font-size:{size}px;")
+        label.setWordWrap(wrap)
+        if name:
+            label.setObjectName(name)
+        return label
+
+    def _card(
+        self,
+        view: SpeciesView,
+        versus: Matchup | None = None,
+        level: int | None = None,
+        own: SpeciesView | None = None,
+        own_level: int | None = None,
+    ) -> QWidget:
+        card = QWidget()
+        layout = QVBoxLayout(card)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(5)
+        ranges = stat_ranges(view.stats, level, view.pokemon) if (self.competitive and level) else None
+
+        self._header(view, level, layout)
+        layout.addWidget(self._types_row(view.types))
+        self._capture(view, layout)
+        if versus is not None:  # lo más consultado en cada turno: justo debajo de los tipos
+            self._matchup_section(versus, layout, view, ranges, own, own_level)
+        self._effectiveness(view, layout)
+        if self.competitive:
+            self._stats_detailed(view, ranges, layout)
+            self._abilities_detailed(view, layout)
+            self._moves(view, level, own, layout)
+            self._training(view, layout)
+        else:
+            total = QLabel(f"Total estadísticas base: <b>{view.stat_total}</b>")
+            total.setObjectName("stat-total")
+            total.setTextFormat(Qt.TextFormat.RichText)
+            layout.addWidget(total)
+        self._evolution(view, layout)
+        self._other_forms(view, layout)
+        return card
+
+    # ---- secciones comunes ---------------------------------------------------
+
+    def _header(self, view: SpeciesView, level: int | None, layout: QVBoxLayout) -> None:
+        header = QHBoxLayout()
+        name = QLabel(view.name)
+        name.setObjectName("species-name")
+        name.setWordWrap(True)
+        name.setStyleSheet(f"font-size:{20 if self.competitive else 18}px; font-weight:700;")
+        header.addWidget(name, 1)
+        if self.competitive:
+            lvl = QLabel(f"Nv. {level}" if level else "Nv. ?")
+            lvl.setObjectName("level")
+            lvl.setStyleSheet(f"color:{theme.ACCENT}; font-size:13px; font-weight:700;")
+            header.addWidget(lvl, alignment=Qt.AlignmentFlag.AlignTop)
+        number = QLabel(f"#{view.species_id:04d}")
+        number.setStyleSheet(f"color:{theme.TEXT_MUTED}; font-size:13px;")
+        header.addWidget(number, alignment=Qt.AlignmentFlag.AlignTop)
+        layout.addLayout(header)
+
+    def _capture(self, view: SpeciesView, layout: QVBoxLayout) -> None:
+        if view.capture_rate is None:
+            return
+        capture = QLabel(f"Captura: {view.capture_rate} · {view.capture_difficulty}")
+        capture.setObjectName("capture")
+        if self.competitive:
+            capture.setStyleSheet(f"color:{theme.TEXT_MUTED}; font-size:11px;")
+        else:  # en modo Normal, la captura es protagonista
+            color = CAPTURE_COLORS.get(view.capture_difficulty, theme.TEXT)
+            capture.setStyleSheet(f"color:{color}; font-size:13px; font-weight:700;")
+        layout.addWidget(capture)
+
+    def _matchup_section(
+        self,
+        m: Matchup,
+        layout: QVBoxLayout,
+        rival: SpeciesView,
+        rival_ranges: dict[str, tuple[int, int]] | None,
+        own: SpeciesView | None,
+        own_level: int | None,
+    ) -> None:
         header = QHBoxLayout()
         header.addWidget(_section_title(f"Contra tu {m.own_name}"))
         verdict = _pill(m.verdict.value, bg=VERDICT_COLORS[m.verdict])
@@ -171,53 +290,26 @@ class Overlay(QWidget):
             who.setFixedWidth(26)
             who.setStyleSheet(f"color:{theme.ACCENT}; font-weight:700;")
             row.addWidget(who, alignment=Qt.AlignmentFlag.AlignTop)
-            pills = [
-                _pill(f"{self.pokedex.type_name(t, self.language)} {theme.MULTIPLIER_LABELS.get(x, '×1')}", t)
-                for t, x in pairs
-            ]
+            pills = [_pill(f"{self._type_label(t)} {theme.MULTIPLIER_LABELS.get(x, '×1')}", t) for t, x in pairs]
             row.addWidget(_FlowRow(pills, per_row=2), 1)
             layout.addLayout(row)
+        if self.competitive and rival_ranges and own is not None and own_level:
+            own_speed = stat_ranges(own.stats, own_level, own.pokemon)["speed"]
+            speed = compare_speed(own_speed, rival_ranges["speed"])
+            text = (f"Velocidad: {speed.value} (tú {own_speed[0]}-{own_speed[1]}, "
+                    f"él {rival_ranges['speed'][0]}-{rival_ranges['speed'][1]})")
+            layout.addWidget(self._muted(text, name="speed"))
 
-    def _types_row(self, types) -> QWidget:
-        return _FlowRow([_pill(self.pokedex.type_name(t, self.language), t) for t in types])
-
-    def _card(self, view: SpeciesView, versus: Matchup | None = None) -> QWidget:
-        """Ficha de una especie (un widget, para poder mostrar varias en el futuro)."""
-        card = QWidget()
-        layout = QVBoxLayout(card)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(6)
-        add = layout.addWidget
-
-        header = QHBoxLayout()
-        name = QLabel(view.name)
-        name.setObjectName("species-name")
-        name.setWordWrap(True)
-        name.setStyleSheet("font-size:20px; font-weight:700;")
-        number = QLabel(f"#{view.species_id:04d}")
-        number.setStyleSheet(f"color:{theme.TEXT_MUTED}; font-size:13px;")
-        header.addWidget(name, 1)
-        header.addWidget(number, alignment=Qt.AlignmentFlag.AlignTop)
-        layout.addLayout(header)
-        add(self._types_row(view.types))
-        if view.capture_rate is not None:
-            capture = QLabel(f"Captura: {view.capture_rate} · {view.capture_difficulty}")
-            capture.setObjectName("capture")
-            capture.setStyleSheet(f"color:{theme.TEXT_MUTED}; font-size:11px;")
-            add(capture)
-        if versus is not None:  # lo más consultado en cada turno: justo debajo de los tipos
-            self._matchup_section(versus, layout)
-
+    def _effectiveness(self, view: SpeciesView, layout: QVBoxLayout) -> None:
         groups = view.matchups
-        sections = (
-            ("Debilidades", (4.0, 2.0)),
-            ("Resistencias", (0.5, 0.25)),
-            ("Inmunidades", (0.0,)),
-        )
+        sections = [("Debilidades", (4.0, 2.0))]
+        if self.competitive:
+            sections.append(("Resistencias", (0.5, 0.25)))
+        sections.append(("Inmunidades", (0.0,)))
         for title, multipliers in sections:
             if not any(groups[m] for m in multipliers):
                 continue
-            add(_section_title(title))
+            layout.addWidget(_section_title(title))
             for m in multipliers:
                 if not groups[m]:
                     continue
@@ -229,7 +321,33 @@ class Overlay(QWidget):
                 row.addWidget(self._types_row(groups[m]), 1)
                 layout.addLayout(row)
 
-        add(_section_title("Estadísticas base"))
+    def _evolution(self, view: SpeciesView, layout: QVBoxLayout) -> None:
+        if len(view.evolution) <= 1:
+            return
+        layout.addWidget(_section_title("Evolución"))
+        stages = [" / ".join(f"{n} ({c})" if c else n for n, c in stage) for stage in view.evolution]
+        evolution = QLabel(" → ".join(stages))
+        evolution.setObjectName("evolution")
+        evolution.setWordWrap(True)
+        layout.addWidget(evolution)
+
+    def _other_forms(self, view: SpeciesView, layout: QVBoxLayout) -> None:
+        if not view.other_forms:
+            return
+        layout.addWidget(_section_title("Otras formas"))
+        for other in view.other_forms:
+            row = QHBoxLayout()
+            label = QLabel(other.name)
+            label.setStyleSheet(f"color:{theme.TEXT_MUTED};")
+            row.addWidget(label)
+            row.addWidget(self._types_row(other.types), 1)
+            layout.addLayout(row)
+
+    # ---- secciones del modo Competitivo -----------------------------------------
+
+    def _stats_detailed(self, view: SpeciesView, ranges, layout: QVBoxLayout) -> None:
+        title = "Estadísticas base" + (" · rango a su nivel" if ranges else "")
+        layout.addWidget(_section_title(title))
         stats = QGridLayout()
         stats.setVerticalSpacing(2)
         for i, key in enumerate(STAT_ORDER):
@@ -251,9 +369,15 @@ class Overlay(QWidget):
             stats.addWidget(label, i, 0)
             stats.addWidget(val, i, 1)
             stats.addWidget(bar, i, 2)
+            if ranges:
+                low, high = ranges[key]
+                rng = self._muted(f"{low}-{high}", wrap=False, name=f"range-{key}")
+                rng.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                stats.addWidget(rng, i, 3)
         total_label = QLabel("Total")
         total_label.setStyleSheet(f"color:{theme.TEXT_MUTED}; font-weight:700;")
         total = QLabel(str(view.stat_total))
+        total.setObjectName("stat-total")
         total.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         total.setStyleSheet("font-weight:700;")
         stats.addWidget(total_label, len(STAT_ORDER), 0)
@@ -262,39 +386,79 @@ class Overlay(QWidget):
         stats.setColumnStretch(2, 1)
         layout.addLayout(stats)
 
-        if view.abilities:
-            add(_section_title("Habilidades"))
-            for ability in view.abilities:
-                hidden = f"  <i style='color:{theme.TEXT_MUTED}'>(oculta)</i>" if ability.hidden else ""
-                label = QLabel(ability.name(self.language) + hidden)
-                label.setTextFormat(Qt.TextFormat.RichText)
-                description = ability.description(self.language)
-                if description:
-                    label.setToolTip(description)
-                    label.setCursor(Qt.CursorShape.WhatsThisCursor)
-                add(label)
+    def _abilities_detailed(self, view: SpeciesView, layout: QVBoxLayout) -> None:
+        if not view.abilities:
+            return
+        layout.addWidget(_section_title("Habilidades"))
+        for ability in view.abilities:
+            hidden = f"  <i style='color:{theme.TEXT_MUTED}'>(oculta)</i>" if ability.hidden else ""
+            name = QLabel(f"<b>{ability.name(self.language)}</b>{hidden}")
+            name.setTextFormat(Qt.TextFormat.RichText)
+            description = ability.description(self.language)
+            if description:
+                name.setToolTip(description)
+            layout.addWidget(name)
+            effects = ability_effects(ability.identifier, self._type_label)
+            if effects:
+                chips = [_pill(e, bg=ABILITY_EFFECT_COLOR) for e in effects]
+                for chip in chips:
+                    chip.setObjectName("ability-effect")
+                layout.addWidget(_FlowRow(chips, per_row=2))
+            if description:
+                layout.addWidget(self._muted(description, size=10, name="ability-description"))
 
-        if len(view.evolution) > 1:
-            add(_section_title("Evolución"))
-            stages = []
-            for stage in view.evolution:
-                parts = [f"{name} ({cond})" if cond else name for name, cond in stage]
-                stages.append(" / ".join(parts))
-            evolution = QLabel(" → ".join(stages))
-            evolution.setObjectName("evolution")
-            evolution.setWordWrap(True)
-            add(evolution)
+    def _moves(self, view: SpeciesView, level: int | None, own: SpeciesView | None, layout: QVBoxLayout) -> None:
+        layout.addWidget(_section_title("Movimientos probables"))
+        if not level:
+            layout.addWidget(self._muted(
+                "Nivel no leído: recalibra la región del rival incluyendo el nivel para ver sus movimientos.",
+                name="moves-hint",
+            ))
+            return
+        try:
+            game = self.pokedex.get_game(view.game_id)
+            moves = Learnsets.get().probable_moves(view.pokemon or "", level, view.game_id,
+                                                   game.generation if game else None)
+        except LearnsetsMissingError as exc:
+            layout.addWidget(self._muted(str(exc), name="moves-hint"))
+            return
+        if not moves:
+            layout.addWidget(self._muted("Sin datos de movimientos para este Pokémon.", name="moves-hint"))
+            return
+        chart = self.pokedex.type_chart(view.generation)
+        grid = QGridLayout()
+        grid.setVerticalSpacing(3)
+        for i, move in enumerate(moves):
+            type_pill = _pill(self._type_label(move.type) if move.type else "?", move.type)
+            name = QLabel(move.name(self.language))
+            name.setObjectName("move")
+            detail = f"{CATEGORY_LABELS.get(move.category, '')} · {move.power or '—'}"
+            info = self._muted(detail, wrap=False)
+            grid.addWidget(type_pill, i, 0)
+            grid.addWidget(name, i, 1)
+            grid.addWidget(info, i, 2)
+            if own is not None and move.type and move.category != "status":
+                factor = 1.0
+                for t in own.types:
+                    factor *= chart.get(move.type, {}).get(t, 1.0)
+                if factor != 1.0:
+                    mult = QLabel(theme.MULTIPLIER_LABELS.get(factor, f"×{factor:g}"))
+                    mult.setObjectName("move-vs-you")
+                    color = "#e5484d" if factor > 1 else theme.TEXT_MUTED
+                    mult.setStyleSheet(f"color:{color}; font-weight:700;")
+                    grid.addWidget(mult, i, 3)
+        grid.setColumnStretch(1, 1)
+        layout.addLayout(grid)
 
-        if view.other_forms:
-            add(_section_title("Otras formas"))
-            for other in view.other_forms:
-                row = QHBoxLayout()
-                label = QLabel(other.name)
-                label.setStyleSheet(f"color:{theme.TEXT_MUTED};")
-                row.addWidget(label)
-                row.addWidget(self._types_row(other.types), 1)
-                layout.addLayout(row)
-        return card
+    def _training(self, view: SpeciesView, layout: QVBoxLayout) -> None:
+        layout.addWidget(_section_title("Entrenamiento"))
+        evs = ", ".join(f"{n} {theme.STAT_LABELS[s]}" for s, n in view.ev_yield.items()) or "—"
+        lines = [f"EVs que da: {evs}"]
+        if view.weight_kg is not None:
+            weight = f"{view.weight_kg:g}".replace(".", ",")
+            lines.append(f"Peso: {weight} kg (Patada Baja/Hierba Lazo: {weight_move_power(view.weight_kg)})")
+        lines.append("Perfil: " + ", ".join(stat_profile(view.stats)))
+        layout.addWidget(self._muted("<br>".join(lines), name="training"))
 
     def show_unrecognized(self, raw_text: str, target_rect: tuple[int, int, int, int] | None) -> None:
         self._clear()

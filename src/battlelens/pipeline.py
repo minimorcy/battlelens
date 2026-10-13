@@ -14,6 +14,7 @@ import numpy as np
 from PIL import Image
 
 from .core.matcher import MatchResult, NameMatcher
+from .core.normalize import extract_level
 from .core.pokedex import Pokedex, Species
 from .core.profiles import Profile
 from .vision.preprocess import crop_region, fingerprint, preprocess_variants
@@ -36,6 +37,7 @@ class RecognitionResult:
     fingerprint: np.ndarray | None = None  # huella combinada de las regiones (detección automática)
     rival2: MatchResult | None = None  # 2.º rival (combates dobles), si el perfil tiene esa región
     own: MatchResult | None = None  # tu Pokémon, si el perfil tiene esa región
+    levels: tuple[int | None, int | None, int | None] = (None, None, None)  # (rival, rival2, own)
 
     @property
     def recognized(self) -> bool:
@@ -60,6 +62,11 @@ class CropReading:
     match: MatchResult
     image: np.ndarray
     readings: tuple[str, ...]
+
+    @property
+    def level(self) -> int | None:
+        """Nivel leído en cualquiera de las lecturas, empezando por la de mejor coincidencia (level-reading)."""
+        return extract_level([self.match.raw_text, *self.readings])
 
 
 def read_crop(crop: np.ndarray, ocr_fn: OcrFn, matcher: NameMatcher, languages: tuple[str, ...]) -> CropReading:
@@ -98,6 +105,10 @@ def read_regions(
     return {role: read_crop(crop, ocr_fn, matcher, languages) for role, crop in crops.items()}
 
 
+def levels_of(readings: dict[str, CropReading]) -> tuple[int | None, int | None, int | None]:
+    return tuple(readings[r].level if r in readings else None for r in ("rival", "rival2", "own"))  # type: ignore[return-value]
+
+
 class RecognitionPipeline:
     def __init__(
         self,
@@ -134,6 +145,7 @@ class RecognitionPipeline:
         best, best_image, readings = reading.match, reading.image, list(reading.readings)
         rival2 = readings_by_role["rival2"].match if "rival2" in readings_by_role else None
         own = readings_by_role["own"].match if "own" in readings_by_role else None
+        levels = levels_of(readings_by_role)
         lap("ocr")
         timings["total"] = round(sum(timings.values()), 1)
 
@@ -148,7 +160,7 @@ class RecognitionPipeline:
         )
         if self.debug_dir is not None:
             self._dump(crop, best_image, profile, best, timings, readings)
-        return RecognitionResult(best, species, timings, combined_fingerprint(crops), rival2, own)
+        return RecognitionResult(best, species, timings, combined_fingerprint(crops), rival2, own, levels)
 
     def _dump(self, crop, processed, profile, match: MatchResult, timings, readings: list[str]) -> None:
         try:

@@ -23,6 +23,8 @@ CONFIG_TEMPLATE = """\
 recognize = {hotkey_recognize}
 calibrate = {hotkey_calibrate}
 hide = {hotkey_hide}
+# Cambia entre la ficha Normal y la Competitiva.
+toggle_mode = {hotkey_toggle_mode}
 
 [recognition]
 # Puntuación mínima (0-100) para dar por reconocido un nombre.
@@ -39,6 +41,8 @@ interval_ms = {detection_interval_ms}
 hide_after_seconds = {detection_hide_after_seconds}
 
 [overlay]
+# Ficha "normal" (compacta: aventura y captura) o "competitive" (todos los datos de combate).
+mode = {overlay_mode}
 # Idioma de la ficha: es, en, fr, de, it.
 language = {language}
 # Segundos hasta ocultar el overlay automáticamente (0 = no se oculta solo).
@@ -49,6 +53,7 @@ auto_hide_seconds = {auto_hide_seconds}
 check = {updates_check}
 """
 LANGUAGES = ("es", "en", "fr", "de", "it")
+MODES = ("normal", "competitive")
 
 
 def _toml_value(value) -> str:
@@ -76,6 +81,8 @@ class Config:
     detection_interval_ms: int = 500
     detection_hide_after_seconds: float = 4.0
     updates_check: bool = True
+    hotkey_toggle_mode: str = "Ctrl+Alt+M"
+    overlay_mode: str = "normal"
 
     @classmethod
     def from_toml(cls, text: str) -> Config:
@@ -101,6 +108,8 @@ class Config:
             detection_interval_ms=det.get("interval_ms", default.detection_interval_ms),
             detection_hide_after_seconds=det.get("hide_after_seconds", default.detection_hide_after_seconds),
             updates_check=upd.get("check", default.updates_check),
+            hotkey_toggle_mode=hk.get("toggle_mode", default.hotkey_toggle_mode),
+            overlay_mode=ov.get("mode", default.overlay_mode),
         )
         cfg._validate()
         return cfg
@@ -111,6 +120,10 @@ class Config:
                 raise ConfigError(f"{name} debe ser un texto")
         if not isinstance(self.threshold, (int, float)) or not 0 <= self.threshold <= 100:
             raise ConfigError("recognition.threshold debe estar entre 0 y 100")
+        if self.overlay_mode not in MODES:
+            raise ConfigError(f"overlay.mode debe ser uno de: {', '.join(MODES)}")
+        if not isinstance(self.hotkey_toggle_mode, str):
+            raise ConfigError("hotkeys.toggle_mode debe ser un texto")
         if self.language not in LANGUAGES:
             raise ConfigError(f"overlay.language debe ser uno de: {', '.join(LANGUAGES)}")
         if not isinstance(self.updates_check, bool):

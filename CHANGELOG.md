@@ -16,6 +16,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Combates dobles (dos fichas) y comparativa «Contra tu X» con veredicto de ventaja/desventaja.
 - Ratio de captura con su dificultad, cadena evolutiva y descripción de las habilidades.
 - Ventana de ajustes (sin editar archivos) y aviso de versión nueva.
+- Modos de ficha: **Normal** (compacta, aventura y captura) y **Competitivo** (nivel, estadísticas reales, movimientos probables, velocidad, habilidades y entrenamiento).
 
 ### Cambiado
 - El proyecto pasa a llamarse **BattleLens**.

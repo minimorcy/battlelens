@@ -4,7 +4,7 @@
 Interfaz de BattleLens durante el juego: atajos globales, ficha superpuesta del Pokémon rival, icono en la bandeja e instancia única.
 ## Requirements
 ### Requirement: Atajos de teclado globales
-El sistema SHALL registrar atajos de teclado globales que funcionen aunque el emulador tenga el foco: reconocer (por defecto `Ctrl+Alt+P`), calibrar (por defecto `Ctrl+Alt+C`) y ocultar el overlay (por defecto `Ctrl+Alt+H`). Los atajos MUST ser configurables en `config.toml` y MUST NOT usar teclas F sin modificador, porque los emuladores las usan para los estados guardados.
+El sistema SHALL registrar atajos de teclado globales que funcionen aunque el emulador tenga el foco: reconocer (por defecto `Ctrl+Alt+P`), calibrar (por defecto `Ctrl+Alt+C`) ocultar el overlay (por defecto `Ctrl+Alt+H`) y cambiar el modo de la ficha (por defecto `Ctrl+Alt+M`). Los atajos MUST ser configurables en `config.toml` y MUST NOT usar teclas F sin modificador, porque los emuladores las usan para los estados guardados.
 
 #### Scenario: Reconocimiento con el emulador en primer plano
 - **WHEN** el emulador tiene el foco y el usuario pulsa `Ctrl+Alt+P`
@@ -15,7 +15,7 @@ El sistema SHALL registrar atajos de teclado globales que funcionen aunque el em
 - **THEN** el sistema muestra un aviso en la bandeja indicando qué atajo no se pudo registrar y sigue funcionando con el resto
 
 ### Requirement: Overlay con la ficha del Pokémon
-WHEN un reconocimiento identifica al menos a un rival, el sistema SHALL mostrar una ventana superpuesta con una tarjeta por cada rival identificado (dos tarjetas una al lado de la otra en combates dobles). Cada tarjeta muestra la vista de la especie para el juego del perfil activo: nombre (incluida la forma, p. ej. «Zigzagoon de Galar») en el idioma de la interfaz, número de Pokédex, tipos, debilidades agrupadas (×4, ×2), resistencias (×½, ×¼), inmunidades (×0) según la tabla de la generación del juego, estadísticas base con barras y total, habilidades marcando la oculta (cuando existan en esa generación), con su descripción al pasar el ratón, el ratio de captura con su dificultad, la cadena evolutiva (si la especie evoluciona) y, si la especie tiene otras formas regionales, una línea «Otras formas» con su nombre y tipos. Si además se identifica tu Pokémon, cada tarjeta MUST incluir el apartado «Contra tu <nombre>» con tus ataques, sus ataques y el veredicto.
+WHEN un reconocimiento identifica al menos a un rival, el sistema SHALL mostrar una ventana superpuesta con una tarjeta por cada rival identificado (dos tarjetas una al lado de la otra en combates dobles). El contenido de cada tarjeta depende del modo de ficha (spec `display-modes`); la ficha completa muestra la vista de la especie para el juego del perfil activo: nombre (incluida la forma, p. ej. «Zigzagoon de Galar») en el idioma de la interfaz, número de Pokédex, tipos, debilidades agrupadas (×4, ×2), resistencias (×½, ×¼), inmunidades (×0) según la tabla de la generación del juego, estadísticas base con barras y total, habilidades marcando la oculta (cuando existan en esa generación), con su descripción al pasar el ratón, el ratio de captura con su dificultad, la cadena evolutiva (si la especie evoluciona) y, si la especie tiene otras formas regionales, una línea «Otras formas» con su nombre y tipos. Si además se identifica tu Pokémon, cada tarjeta MUST incluir el apartado «Contra tu <nombre>» con tus ataques, sus ataques y el veredicto.
 
 #### Scenario: Ficha mostrada
 - **WHEN** se reconoce Charizard
@@ -60,7 +60,7 @@ El sistema SHALL ocultar el overlay al pulsar el atajo de ocultar, al hacer clic
 - **THEN** el overlay pasa a mostrar a Rattata sin abrir una segunda ventana
 
 ### Requirement: Icono en la bandeja del sistema
-El sistema SHALL mostrar un icono en la bandeja del sistema con un menú para: reconocer ahora, activar o desactivar la detección automática, seleccionar ventana objetivo, seleccionar perfil activo, cambiar el juego del perfil activo, gestionar las regiones del perfil activo (recalibrar el rival; calibrar o quitar el 2.º rival; calibrar o quitar tu Pokémon), calibrar un perfil nuevo, eliminar el perfil activo, abrir los ajustes, abrir la carpeta de datos, descargar la versión nueva (solo si hay una disponible) y salir.
+El sistema SHALL mostrar un icono en la bandeja del sistema con un menú para: reconocer ahora, activar o desactivar la detección automática, elegir el modo de la ficha (Normal o Competitivo), seleccionar ventana objetivo, seleccionar perfil activo, cambiar el juego del perfil activo, gestionar las regiones del perfil activo (recalibrar el rival; calibrar o quitar el 2.º rival; calibrar o quitar tu Pokémon), calibrar un perfil nuevo, eliminar el perfil activo, abrir los ajustes, abrir la carpeta de datos, descargar la versión nueva (solo si hay una disponible) y salir.
 
 #### Scenario: Salida limpia
 - **WHEN** el usuario elige "Salir"

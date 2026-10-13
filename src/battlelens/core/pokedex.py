@@ -80,6 +80,10 @@ class Form:
     types: tuple[str, ...]
     stats: dict[str, int]
     abilities: tuple[Ability, ...]
+    pokemon: str | None = None  # identificador del Pokémon en PokéAPI (p. ej. "zigzagoon-galar")
+    weight_kg: float | None = None
+    height_m: float | None = None
+    ev_yield: dict[str, int] = field(default_factory=dict, compare=False)
 
     def name(self, lang: str) -> str:
         return _localized(self.names, lang, self.identifier)
@@ -105,6 +109,10 @@ class Species:
     capture_rate: int | None = None
     evolves_from: int | None = None
     evolution: Evolution | None = None
+    pokemon: str | None = None  # identificador del Pokémon en PokéAPI (p. ej. "zigzagoon-galar")
+    weight_kg: float | None = None
+    height_m: float | None = None
+    ev_yield: dict[str, int] = field(default_factory=dict, compare=False)
 
     def name(self, lang: str) -> str:
         return _localized(self.names, lang, self.identifier)
@@ -154,6 +162,10 @@ class SpeciesView:
     capture_difficulty: str | None = None
     # Etapas de la cadena evolutiva: cada etapa, una tupla de (nombre, condición o None)
     evolution: tuple[tuple[tuple[str, str | None], ...], ...] = field(default_factory=tuple)
+    game_id: str | None = None
+    pokemon: str | None = None
+    weight_kg: float | None = None
+    ev_yield: dict[str, int] = field(default_factory=dict)
 
     @property
     def stat_total(self) -> int:
@@ -204,12 +216,20 @@ class Pokedex:
                     Form(
                         f["identifier"], f["form"], f["names"], tuple(f["types"]), f["stats"],
                         _abilities(f["abilities"], descriptions),
+                        pokemon=f.get("pokemon") or f["identifier"],
+                        weight_kg=f.get("weight_kg"),
+                        height_m=f.get("height_m"),
+                        ev_yield=f.get("ev_yield", {}),
                     )
                     for f in s.get("forms", [])
                 ),
                 capture_rate=s.get("capture_rate"),
                 evolves_from=s.get("evolves_from"),
                 evolution=Evolution(**evo) if evo else None,
+                pokemon=s.get("pokemon"),
+                weight_kg=s.get("weight_kg"),
+                height_m=s.get("height_m"),
+                ev_yield=s.get("ev_yield", {}),
             )
             if s.get("evolves_from"):
                 self._children.setdefault(s["evolves_from"], []).append(s["id"])
@@ -346,6 +366,7 @@ class Pokedex:
         if game and game.regional_form:
             form = next((f for f in species.forms if f.form.startswith(game.regional_form)), None)
 
+        source = form if form is not None else species
         if form is not None:
             name, types, stats, abilities = form.name(lang), form.types, form.stats, form.abilities
         else:
@@ -374,4 +395,8 @@ class Pokedex:
             capture_rate=species.capture_rate,
             capture_difficulty=capture_difficulty(species.capture_rate),
             evolution=self.evolution_stages(species.id, generation, lang),
+            game_id=game.id if game else None,
+            pokemon=source.pokemon,
+            weight_kg=source.weight_kg,
+            ev_yield=source.ev_yield,
         )

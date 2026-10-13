@@ -127,3 +127,17 @@ def test_perfil_de_una_region_sin_cambios(dex, profile):
     result = p.run(1, profile)
     assert result.rival2 is None and result.own is None
     assert result.key == (16, None, None) and result.fingerprint.shape == (12, 32)
+
+
+def test_niveles_por_region(dex):
+    from battlelens.core.profiles import Region
+
+    texts = ["Stufful Nv. 10", "Scorbunny Nv. 14"]
+
+    def ocr(image, langs):
+        return FakeOcr(texts.pop(0) if texts else "")
+
+    profile = Profile("Espada", Region(0.6, 0.05, 0.2, 0.05), own_region=Region(0.05, 0.8, 0.2, 0.05))
+    result = RecognitionPipeline(dex, NameMatcher(dex), lambda h: np.full((640, 960, 3), 255, np.uint8), ocr).run(1, profile)
+    assert result.key == (759, None, 813)
+    assert result.levels == (10, None, 14)

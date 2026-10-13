@@ -13,6 +13,7 @@ Con `recognition.debug = true` en `%APPDATA%\BattleLens\config.toml`: calibra, r
 - [ ] **Forma regional** — un Pokémon de Galar en Espada (Zigzagoon, Ponyta…): la ficha muestra la forma de Galar.
 - [ ] **Detección automática** — en un juego real, la ficha aparece al entrar en combate, cambia con cada rival y se oculta al terminar; caminando por el mapa no aparece nada.
 - [ ] **Tu Pokémon y dobles** — calibrar la región de tu Pokémon y la del 2.º rival en un juego con combates dobles (Espada): aparecen dos fichas con «Contra tu X», que se actualiza al cambiar de Pokémon.
+- [ ] **Modo competitivo** — con la región del rival incluyendo el nivel: se lee el nivel, los movimientos probables coinciden con los que usa el rival salvaje y `Ctrl+Alt+M` cambia de modo con la ficha abierta.
 - [ ] **Activación automática** — con perfiles de dos juegos, cambiar de juego en el emulador y comprobar que se activa el perfil correcto.
 
 ## Instalador y publicación

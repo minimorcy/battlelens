@@ -17,6 +17,7 @@ from .icons import app_icon
 class Tray(QObject):
     recognize_requested = pyqtSignal()
     auto_detect_toggled = pyqtSignal(bool)
+    mode_selected = pyqtSignal(str)  # "normal" | "competitive"
     window_selected = pyqtSignal(object)  # WindowInfo
     profile_selected = pyqtSignal(str)
     profile_game_selected = pyqtSignal(object)  # id de juego o None
@@ -73,6 +74,10 @@ class Tray(QObject):
         self.update_action.setText(f"Descargar BattleLens {version}…")
         self.update_action.setVisible(True)
 
+    def set_mode(self, mode: str) -> None:
+        for name, action in self.mode_actions.items():
+            action.setChecked(name == mode)
+
     def set_auto_detect(self, enabled: bool) -> None:
         self.auto_detect_action.blockSignals(True)
         self.auto_detect_action.setChecked(enabled)
@@ -101,6 +106,15 @@ class Tray(QObject):
         self.auto_detect_action = m.addAction("Detección automática")
         self.auto_detect_action.setCheckable(True)
         self.auto_detect_action.toggled.connect(self.auto_detect_toggled)
+        self._mode_menu = m.addMenu("Modo de la ficha")
+        self._mode_group = QActionGroup(self._mode_menu)
+        self.mode_actions: dict[str, QAction] = {}
+        for mode, label in (("normal", "Normal (aventura y captura)"), ("competitive", "Competitivo (combate)")):
+            action = QAction(label + self._hint("toggle_mode"), self._mode_menu, checkable=True)
+            action.triggered.connect(lambda _=False, md=mode: self.mode_selected.emit(md))
+            self._mode_group.addAction(action)
+            self._mode_menu.addAction(action)
+            self.mode_actions[mode] = action
         m.addSeparator()
 
         self._windows_menu = m.addMenu("Ventana del emulador")

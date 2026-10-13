@@ -42,6 +42,10 @@ CSV_FILES = [
     "items",
     "item_names",
     "ability_flavor_text",
+    "pokemon_moves",
+    "moves",
+    "move_names",
+    "move_damage_classes",
 ]
 LANGUAGES = ["en", "es", "fr", "de", "it"]
 STAT_KEYS = {1: "hp", 2: "attack", 3: "defense", 4: "special_attack", 5: "special_defense", 6: "speed"}
@@ -66,6 +70,8 @@ NON_REGIONAL_FORMS = {"alola-cap", "totem-alola"}
 
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "src" / "battlelens" / "data" / "pokedex.json"
+LEARNSETS_OUTPUT = OUTPUT.with_name("learnsets.json")
+LEVEL_UP_METHOD = "1"
 CACHE_DIR = Path(__file__).resolve().parent / ".cache"
 
 
@@ -145,10 +151,14 @@ def build(tables: dict[str, list[dict[str, str]]]) -> dict:
         if tid in type_ident:
             poke_types.setdefault(int(r["pokemon_id"]), []).append((int(r["slot"]), type_ident[tid]))
     poke_stats: dict[int, dict[str, int]] = {}
+    poke_evs: dict[int, dict[str, int]] = {}
     for r in tables["pokemon_stats"]:
         sid = int(r["stat_id"])
         if sid in STAT_KEYS:
             poke_stats.setdefault(int(r["pokemon_id"]), {})[STAT_KEYS[sid]] = int(r["base_stat"])
+            if int(r.get("effort") or 0):
+                poke_evs.setdefault(int(r["pokemon_id"]), {})[STAT_KEYS[sid]] = int(r["effort"])
+    poke_rows = {int(r["id"]): r for r in tables["pokemon"]}
     poke_abilities: dict[int, list[tuple[int, dict]]] = {}
     for r in tables["pokemon_abilities"]:
         aid = int(r["ability_id"])
@@ -175,10 +185,15 @@ def build(tables: dict[str, list[dict[str, str]]]) -> dict:
         stats = poke_stats.get(pid, {})
         if len(stats) != len(STAT_KEYS):
             raise ValueError(f"Estadísticas incompletas para el Pokémon {pid}")
+        row = poke_rows.get(pid, {})
         return {
+            "pokemon": row.get("identifier"),
             "types": [t for _, t in sorted(poke_types.get(pid, []))],
             "stats": stats,
             "abilities": [a for _, a in sorted(poke_abilities.get(pid, []), key=lambda x: x[0])],
+            "weight_kg": int(row["weight"]) / 10 if row.get("weight") else None,
+            "height_m": int(row["height"]) / 10 if row.get("height") else None,
+            "ev_yield": poke_evs.get(pid, {}),
         }
 
     # Formas regionales (design.md D2)
@@ -341,6 +356,68 @@ def build(tables: dict[str, list[dict[str, str]]]) -> dict:
     }
 
 
+def build_learnsets(tables: dict[str, list[dict[str, str]]]) -> dict:
+    """Movimientos por subida de nivel de cada Pokémon y juego, con las listas idénticas deduplicadas
+    (add-display-modes D3)."""
+    lang_by_id = {
+        int(r["id"]): r["identifier"] for r in tables["languages"] if r["identifier"] in LANGUAGES
+    }
+    type_ident = {int(r["id"]): r["identifier"] for r in tables["types"] if int(r["id"]) <= MAX_STANDARD_TYPE_ID}
+    poke_ident = {int(r["id"]): r["identifier"] for r in tables["pokemon"]}
+    vg_ident = {int(r["id"]): r["identifier"] for r in tables["version_groups"]}
+    class_ident = {int(r["id"]): r["identifier"] for r in tables["move_damage_classes"]}
+
+    raw: dict[str, dict[str, set[tuple[int, int]]]] = {}
+    for r in tables["pokemon_moves"]:
+        if r["pokemon_move_method_id"] != LEVEL_UP_METHOD:
+            continue
+        pid, vg = int(r["pokemon_id"]), int(r["version_group_id"])
+        if pid not in poke_ident or vg not in vg_ident:
+            continue
+        raw.setdefault(poke_ident[pid], {}).setdefault(vg_ident[vg], set()).add(
+            (int(r["level"] or 0), int(r["move_id"]))
+        )
+
+    sets: list[list[list[int]]] = []
+    index: dict[tuple, int] = {}
+    pokemon: dict[str, dict[str, int]] = {}
+    used_moves: set[int] = set()
+    for ident, by_vg in sorted(raw.items()):
+        for vg, entries in sorted(by_vg.items()):
+            key = tuple(sorted(entries))
+            if key not in index:
+                index[key] = len(sets)
+                sets.append([list(e) for e in key])
+            pokemon.setdefault(ident, {})[vg] = index[key]
+            used_moves.update(m for _, m in key)
+
+    move_names: dict[int, dict[str, str]] = {}
+    for r in tables["move_names"]:
+        lang = lang_by_id.get(int(r["local_language_id"]))
+        if lang and r["name"]:
+            move_names.setdefault(int(r["move_id"]), {})[lang] = r["name"]
+
+    def opt_int(value: str) -> int | None:
+        return int(value) if value else None
+
+    moves = {}
+    for r in tables["moves"]:
+        mid = int(r["id"])
+        if mid in used_moves:
+            moves[str(mid)] = {
+                "identifier": r["identifier"],
+                "names": move_names.get(mid, {}),
+                "type": type_ident.get(int(r["type_id"])) if r["type_id"] else None,
+                "class": class_ident.get(int(r["damage_class_id"])) if r["damage_class_id"] else None,
+                "power": opt_int(r["power"]),
+                "accuracy": opt_int(r["accuracy"]),
+                "pp": opt_int(r["pp"]),
+                "priority": int(r["priority"] or 0),
+            }
+    vg_order = {r["identifier"]: (int(r["generation_id"]), int(r["order"])) for r in tables["version_groups"]}
+    return {"format": 1, "version_groups": vg_order, "moves": moves, "sets": sets, "pokemon": pokemon}
+
+
 def write_atomic(data: dict, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".pokedex-", suffix=".json")
@@ -362,11 +439,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         tables = {name: fetch_csv(name, use_cache=not args.no_cache) for name in CSV_FILES}
         data = build(tables)
+        learnsets = build_learnsets(tables)
     except (DownloadError, ValueError, KeyError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 
     write_atomic(data, args.output)
+    write_atomic(learnsets, args.output.with_name("learnsets.json"))
     n_forms = sum(len(sp["forms"]) for sp in data["species"])
     print(f"{len(data['species'])} especies, {n_forms} formas regionales, {len(data['games'])} juegos -> {args.output}")
     return 0

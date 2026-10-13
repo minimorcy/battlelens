@@ -17,7 +17,7 @@ def dex():
 def overlay(qapp, dex):
     from battlelens.ui.overlay import Overlay
 
-    o = Overlay(dex, "es")
+    o = Overlay(dex, "es", mode="competitive")  # la ficha completa; el modo Normal tiene sus tests
     yield o
     o.close()
 
@@ -226,7 +226,7 @@ def test_sin_tu_pokemon_no_hay_comparativa(qapp, overlay, dex):
     overlay.show_battle([dex.view(3)], None, None)
     qapp.processEvents()
     assert "CONTRA TU" not in " | ".join(_labels(overlay))
-    assert overlay.width() == 320
+    assert overlay.width() == 360
 
 
 def test_submenu_de_regiones(qapp):
@@ -260,7 +260,7 @@ def test_datos_adicionales_stufful(qapp, overlay, dex):
     by_name = {w.objectName(): w.text() for w in overlay.findChildren(QLabel) if w.objectName()}
     assert by_name["capture"] == "Captura: 140 · Media"
     assert by_name["evolution"] == "Stufful → Bewear (Nv. 27)"
-    fluffy = next(w for w in overlay.findChildren(QLabel) if w.text().startswith("Peluche"))
+    fluffy = next(w for w in overlay.findChildren(QLabel) if "Peluche" in w.text() and w.toolTip())
     assert "Fuego" in fluffy.toolTip()
 
 
@@ -311,3 +311,70 @@ def test_ajustes_devuelven_configuracion(qapp):
     d.debug.setChecked(True)
     config, errors = d.collect()
     assert errors == {} and config.language == "en" and config.debug is True
+
+
+
+# ---- modos de ficha (add-display-modes) ------------------------------------------------
+
+def _named(overlay, name):
+    from PyQt6.QtWidgets import QLabel
+
+    return [w.text() for w in overlay.findChildren(QLabel) if w.objectName() == name]
+
+
+def test_modo_normal_compacto(qapp, dex):
+    from PyQt6.QtWidgets import QProgressBar
+
+    from battlelens.ui.overlay import Overlay
+
+    o = Overlay(dex, "es")  # Normal por defecto
+    o.show_species(dex.get_species(759), None, level=10)
+    qapp.processEvents()
+    texts = " | ".join(_labels(o))
+    assert _named(o, "capture") == ["Captura: 140 · Media"]
+    assert "DEBILIDADES" in texts and "Stufful → Bewear (Nv. 27)" in texts and "<b>340</b>" in texts
+    assert "RESISTENCIAS" not in texts and "HABILIDADES" not in texts and "MOVIMIENTOS" not in texts
+    assert not o.findChildren(QProgressBar)
+    assert o.width() == 300
+    o.close()
+
+
+def test_modo_competitivo_completo(qapp, overlay, dex):
+    overlay.show_species(dex.get_species(759), None, game="sword-shield", level=10)
+    qapp.processEvents()
+    assert _named(overlay, "level") == ["Nv. 10"]
+    assert _named(overlay, "move") == ["Placaje", "Malicioso", "Ojitos Tiernos", "Vendetta"]
+    assert "Fuego ×2" in _named(overlay, "ability-effect")
+    assert any("Fuego" in t for t in _named(overlay, "ability-description"))
+    assert "1 Ataque" in _named(overlay, "training")[0] and "6,8 kg" in _named(overlay, "training")[0]
+    assert _named(overlay, "range-hp") == ["34-43"]  # PS base 70 a nivel 10
+
+
+def test_competitivo_sin_nivel_pide_recalibrar(qapp, overlay, dex):
+    overlay.show_species(dex.get_species(759), None, game="sword-shield")
+    qapp.processEvents()
+    assert _named(overlay, "level") == ["Nv. ?"]
+    assert "incluyendo el nivel" in _named(overlay, "moves-hint")[0]
+    assert not _named(overlay, "range-hp")
+
+
+def test_competitivo_velocidad_y_movimientos_contra_ti(qapp, overlay, dex):
+    # Rival Stufful Nv. 10 contra tu Gastly Nv. 10 (Fantasma/Veneno):
+    # Vendetta (Siniestro) le hace ×2 y Placaje (Normal) ×0; los de estado no se marcan
+    overlay.show_battle([dex.view(759, "sword-shield")], dex.view(92), None, [10], 10)
+    qapp.processEvents()
+    assert _named(overlay, "speed") and "Velocidad:" in _named(overlay, "speed")[0]
+    assert sorted(_named(overlay, "move-vs-you")) == ["×0", "×2"]
+
+
+
+def test_ajustes_incluyen_modo_y_atajo(qapp):
+    from battlelens.core.config import Config
+    from battlelens.ui.settings import SettingsDialog
+
+    d = SettingsDialog(Config(overlay_mode="competitive"))
+    assert d.mode.currentData() == "competitive"
+    assert d.hotkey_edits["hotkey_toggle_mode"].text() == "Ctrl+Alt+M"
+    d.mode.setCurrentIndex(d.mode.findData("normal"))
+    config, errors = d.collect()
+    assert errors == {} and config.overlay_mode == "normal"

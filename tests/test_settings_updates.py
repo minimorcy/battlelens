@@ -94,3 +94,19 @@ def test_comprobacion_reciente():
     assert not due((now - timedelta(hours=3)).isoformat(), now)
     assert due((now - timedelta(hours=25)).isoformat(), now)
     assert due("basura", now)
+
+
+def test_modo_y_atajo_de_modo(tmp_path):
+    path = tmp_path / "config.toml"
+    cfg = Config(overlay_mode="competitive", hotkey_toggle_mode="Ctrl+Alt+K")
+    save_config(path, cfg)
+    assert load_config(path) == cfg
+    assert 'mode = "competitive"' in path.read_text(encoding="utf-8")
+
+
+def test_modo_por_defecto_y_no_valido(tmp_path):
+    assert Config().overlay_mode == "normal" and Config().hotkey_toggle_mode == "Ctrl+Alt+M"
+    path = tmp_path / "config.toml"
+    path.write_text('[overlay]\nmode = "pro"\n', encoding="utf-8")
+    with pytest.raises(ConfigError):
+        load_config(path)

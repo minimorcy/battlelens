@@ -69,7 +69,16 @@ def run_checks() -> dict:
         except OcrLanguageError as exc:
             raise _Warning(str(exc)) from exc
 
+    def load_learnsets():
+        from .core.learnsets import Learnsets
+
+        moves = Learnsets.get().probable_moves("stufful", 10, "sword-shield", 8)
+        if len(moves) != 4:
+            raise AssertionError(f"Stufful Nv. 10: {len(moves)} movimientos")
+        return "Stufful Nv. 10 → 4 movimientos"
+
     record("dataset", load_dataset)
+    record("learnsets", load_learnsets)
     record("match", match_pidgey)
     record("ocr", ocr_languages)
 

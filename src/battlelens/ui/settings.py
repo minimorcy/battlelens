@@ -18,12 +18,18 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from ..core.config import LANGUAGES, Config
+from ..core.config import LANGUAGES, MODES, Config
 from ..platform.hotkeys import HotkeyParseError, parse_hotkey
 from .icons import app_icon
 
 LANGUAGE_LABELS = {"es": "Español", "en": "English", "fr": "Français", "de": "Deutsch", "it": "Italiano"}
-HOTKEY_FIELDS = (("hotkey_recognize", "Reconocer"), ("hotkey_calibrate", "Calibrar"), ("hotkey_hide", "Ocultar ficha"))
+HOTKEY_FIELDS = (
+    ("hotkey_recognize", "Reconocer"),
+    ("hotkey_calibrate", "Calibrar"),
+    ("hotkey_hide", "Ocultar ficha"),
+    ("hotkey_toggle_mode", "Cambiar de modo"),
+)
+MODE_LABELS = {"normal": "Normal (aventura y captura)", "competitive": "Competitivo (combate)"}
 
 
 def _spin(minimum: float, maximum: float, value: float, step: float = 1, decimals: int = 0, suffix: str = ""):
@@ -72,11 +78,16 @@ class SettingsDialog(QDialog):
         for code in LANGUAGES:
             self.language.addItem(LANGUAGE_LABELS[code], code)
         self.language.setCurrentIndex(max(self.language.findData(config.language), 0))
+        self.mode = QComboBox()
+        for code in MODES:
+            self.mode.addItem(MODE_LABELS[code], code)
+        self.mode.setCurrentIndex(max(self.mode.findData(config.overlay_mode), 0))
         self.threshold = _spin(0, 100, config.threshold, 1, 0)
         self.auto_hide = _spin(0, 600, config.auto_hide_seconds, 1, 0, " s")
         self.debug = QCheckBox("Guardar recortes de depuración")
         self.debug.setChecked(config.debug)
         card = QFormLayout()
+        card.addRow("Modo de la ficha:", self.mode)
         card.addRow("Idioma de la ficha:", self.language)
         card.addRow("Umbral de reconocimiento:", self.threshold)
         card.addRow("Ocultar la ficha tras (0 = nunca):", self.auto_hide)
@@ -138,6 +149,8 @@ class SettingsDialog(QDialog):
             hotkey_recognize=self.hotkey_edits["hotkey_recognize"].text().strip(),
             hotkey_calibrate=self.hotkey_edits["hotkey_calibrate"].text().strip(),
             hotkey_hide=self.hotkey_edits["hotkey_hide"].text().strip(),
+            hotkey_toggle_mode=self.hotkey_edits["hotkey_toggle_mode"].text().strip(),
+            overlay_mode=self.mode.currentData(),
             threshold=float(self.threshold.value()),
             debug=self.debug.isChecked(),
             language=self.language.currentData(),

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 import logging
 import os
 import sys
@@ -35,7 +36,14 @@ from .core.matcher import NameMatcher
 from .core.pokedex import DatasetMissingError, Pokedex
 from .core.profiles import Profile, ProfileStore
 from .core.storage import app_data_dir
-from .pipeline import RecognitionPipeline, RecognitionResult, combined_fingerprint, crop_regions, read_regions
+from .pipeline import (
+    RecognitionPipeline,
+    RecognitionResult,
+    combined_fingerprint,
+    crop_regions,
+    levels_of,
+    read_regions,
+)
 from .platform import windows
 from .platform.capture import CaptureError, WindowMinimized, WindowUnavailable, capture_client
 from .platform.hotkeys import Hotkey, HotkeyManager, HotkeyParseError, parse_hotkey
@@ -106,7 +114,8 @@ class Controller(QObject):
         self.pokedex = pokedex
         self.detector = GameDetector(pokedex.games)
 
-        self.overlay = Overlay(pokedex, config.language, config.auto_hide_seconds)
+        self.overlay = Overlay(pokedex, config.language, config.auto_hide_seconds, mode=config.overlay_mode)
+        self._last_battle = None  # (clave, juego, niveles) de la última ficha, para redibujarla
         if self.state.overlay_pos:
             self.overlay.saved_pos = QPoint(*self.state.overlay_pos)
         self.overlay.moved.connect(self._on_overlay_moved)
@@ -130,6 +139,8 @@ class Controller(QObject):
         )
         self.tray.recognize_requested.connect(self.recognize)
         self.tray.auto_detect_toggled.connect(self.set_auto_detect)
+        self.tray.mode_selected.connect(self.set_mode)
+        self.tray.set_mode(config.overlay_mode)
         self.tray.window_selected.connect(self.select_window)
         self.tray.profile_selected.connect(self.select_profile)
         self.tray.profile_game_selected.connect(self.set_profile_game)
@@ -170,6 +181,7 @@ class Controller(QObject):
             ("recognize", config.hotkey_recognize),
             ("calibrate", config.hotkey_calibrate),
             ("hide", config.hotkey_hide),
+            ("toggle_mode", config.hotkey_toggle_mode),
         ):
             try:
                 bindings[name] = parse_hotkey(text)
@@ -181,7 +193,7 @@ class Controller(QObject):
     def _startup_notices(self, failed: list[str], bindings: dict[str, Hotkey]) -> None:
         notices = []
         if failed:
-            labels = {"recognize": "reconocer", "calibrate": "calibrar", "hide": "ocultar"}
+            labels = {"recognize": "reconocer", "calibrate": "calibrar", "hide": "ocultar", "toggle_mode": "cambiar de modo"}
             detail = ", ".join(
                 f"{labels[n]} ({bindings[n].text})" if n in bindings else f"{labels[n]} (inválido)" for n in failed
             )
@@ -257,8 +269,8 @@ class Controller(QObject):
         old = self.config
         save_config(self.data_dir / "config.toml", new)
         self.config = new
-        if (new.hotkey_recognize, new.hotkey_calibrate, new.hotkey_hide) != (
-            old.hotkey_recognize, old.hotkey_calibrate, old.hotkey_hide
+        if (new.hotkey_recognize, new.hotkey_calibrate, new.hotkey_hide, new.hotkey_toggle_mode) != (
+            old.hotkey_recognize, old.hotkey_calibrate, old.hotkey_hide, old.hotkey_toggle_mode
         ):
             self.hotkeys.stop()
             bindings, invalid = self._parse_hotkeys(new)
@@ -272,6 +284,10 @@ class Controller(QObject):
         self.pipeline.debug_dir = self.data_dir / "debug" if new.debug else None
         self.overlay.language = new.language
         self.overlay.auto_hide_seconds = new.auto_hide_seconds
+        if new.overlay_mode != old.overlay_mode:
+            self.overlay.mode = new.overlay_mode
+            self.tray.set_mode(new.overlay_mode)
+            self._redraw_last_battle()
         self._watch_timer.setInterval(new.detection_interval_ms)
         self.battle.hide_after_seconds = new.detection_hide_after_seconds
         if new.detection_enabled != old.detection_enabled:
@@ -307,7 +323,33 @@ class Controller(QObject):
         self._about.activateWindow()
 
     def _on_hotkey(self, name: str) -> None:
-        {"recognize": self.recognize, "calibrate": self.calibrate_new, "hide": self.hide_overlay}[name]()
+        {
+            "recognize": self.recognize,
+            "calibrate": self.calibrate_new,
+            "hide": self.hide_overlay,
+            "toggle_mode": self.toggle_mode,
+        }[name]()
+
+    # ---- modos de ficha (spec display-modes) ---------------------------------------
+
+    def set_mode(self, mode: str) -> None:
+        if mode != self.config.overlay_mode:
+            new = replace(self.config, overlay_mode=mode)
+            save_config(self.data_dir / "config.toml", new)
+            self.config = new
+        self.overlay.mode = mode
+        self.tray.set_mode(mode)
+        self._redraw_last_battle()
+
+    def toggle_mode(self) -> None:
+        mode = "normal" if self.config.overlay_mode == "competitive" else "competitive"
+        self.set_mode(mode)
+        self.tray.notify("Ficha: " + ("Competitivo" if mode == "competitive" else "Normal"))
+
+    def _redraw_last_battle(self) -> None:
+        if self._last_battle is not None and self.overlay.isVisible():
+            key, game, levels = self._last_battle
+            self._show_battle(key, game, self._target_rect(), levels)
 
     def hide_overlay(self) -> None:
         self.overlay.hide()
@@ -363,22 +405,24 @@ class Controller(QObject):
     def _read_auto(self, crops, fp, profile: Profile):
         readings = read_regions(crops, recognize, self.pipeline.matcher, profile.ocr_languages)
         key = tuple(readings[r].match.species_id if r in readings else None for r in ("rival", "rival2", "own"))
-        return key, fp, profile
+        return key, fp, profile, levels_of(readings)
 
     def _on_auto_result(self, payload) -> None:
         self._busy = False
-        key, fp, profile = payload
+        key, fp, profile, levels = payload
         if self.battle.on_result(key, fp, time.monotonic()) is Action.SHOW:
-            log.info("Detección automática: %s", key)
-            self._show_battle(key, profile.game, self._target_rect())
+            log.info("Detección automática: %s (niveles %s)", key, levels)
+            self._show_battle(key, profile.game, self._target_rect(), levels)
 
-    def _show_battle(self, key, game: str | None, rect) -> None:
+    def _show_battle(self, key, game: str | None, rect, levels=(None, None, None)) -> None:
         """Muestra las tarjetas de los rivales de la clave (rival, rival2, own) y la comparativa."""
+        self._last_battle = (key, game, levels)
         rival, rival2, own = key
         lang = self.config.language
-        rivals = [self.pokedex.view(sid, game, lang) for sid in (rival, rival2) if sid is not None]
+        pairs = [(sid, lvl) for sid, lvl in zip((rival, rival2), levels[:2]) if sid is not None]
+        rivals = [self.pokedex.view(sid, game, lang) for sid, _ in pairs]
         own_view = self.pokedex.view(own, game, lang) if own is not None else None
-        self.overlay.show_battle(rivals, own_view, rect)
+        self.overlay.show_battle(rivals, own_view, rect, [lvl for _, lvl in pairs], levels[2])
 
     def _on_auto_failure(self, exc: Exception) -> None:
         self._busy = False
@@ -415,7 +459,7 @@ class Controller(QObject):
         self._busy = False
         rect = self._target_rect()
         if result.any_rival:
-            self._show_battle(result.key, self._recognition_game, rect)
+            self._show_battle(result.key, self._recognition_game, rect, result.levels)
             self.battle.on_manual_result(result.key, result.fingerprint)
         else:
             self.overlay.show_unrecognized(result.match.raw_text, rect)

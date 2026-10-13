@@ -66,3 +66,19 @@ def name_candidates(text: str) -> list[tuple[str, float]]:
     known = {c for c, _ in candidates}
     candidates += [(c, p) for c, p in trimmed if c not in known]
     return candidates
+
+
+_LEVEL_VALUE = re.compile(r"(?:\b(?:lv|nv|niv|n|l)\s*\.?|:l)\s*(\d{1,3})\b", re.IGNORECASE)
+_TRAILING_VALUE = re.compile(r"\s(\d{1,3})\s*$")
+
+
+def extract_level(readings) -> int | None:
+    """Nivel (1-100) leído en alguna lectura de OCR; primero con prefijo («Nv. 10»), luego al final («… 10»)."""
+    readings = [r for r in readings if r]
+    for pattern in (_LEVEL_VALUE, _TRAILING_VALUE):
+        for text in readings:
+            for match in pattern.finditer(text):
+                value = int(match.group(1))
+                if 1 <= value <= 100:
+                    return value
+    return None

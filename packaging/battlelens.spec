@@ -11,6 +11,7 @@ PKG = os.path.join(SRC, "battlelens")
 
 datas = [
     (os.path.join(PKG, "data", "pokedex.json"), "battlelens/data"),
+    (os.path.join(PKG, "data", "learnsets.json"), "battlelens/data"),
     (os.path.join(PKG, "assets", "icon.png"), "battlelens/assets"),
     (os.path.join(ROOT, "LICENSE"), "."),
 ]
