@@ -51,6 +51,16 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
 
 La interfaz de la app está en español; el contenido de la ficha (Pokémon, tipos, habilidades, movimientos) está disponible en español, inglés, francés, alemán e italiano (`overlay.language`).
 
+### Directo con OBS (opcional)
+
+BattleLens está pensado para jugar y el modo stream es un extra: desactivado, no cambia nada. Tu ficha está oculta a propósito en la captura de pantalla, así que el público tiene su propia ficha a través de OBS:
+
+1. Bandeja → **Modo stream (OBS)**.
+2. Bandeja → **Copiar URL para OBS** (por defecto `http://localhost:17320/`).
+3. En OBS, añade una **Fuente de navegador** con esa URL (p. ej., 800×900) y colócala en tu escena. El fondo es transparente.
+
+La ficha del stream se actualiza con cada rival, entra y sale con una animación y se oculta al terminar el combate. Cerrar tu ficha con un clic no la oculta; `Ctrl+Alt+S` sí. Añade `?scale=1.5` a la URL para agrandarla. Tiene su propio modo de ficha (Normal por defecto) en *Ajustes → Modo stream* y solo escucha en tu propio PC (`127.0.0.1`).
+
 ### Configuración
 
 Todo se puede cambiar desde bandeja → **Ajustes…** (los cambios se aplican al momento). Los mismos valores están en `%APPDATA%\BattleLens\config.toml`:
@@ -66,9 +76,13 @@ Todo se puede cambiar desde bandeja → **Ajustes…** (los cambios se aplican a
 | `overlay.mode` | `normal` | Ficha `normal` (compacta) o `competitive` (completa) |
 | `hotkeys.toggle_mode` | `Ctrl+Alt+M` | Cambiar de modo |
 | `hotkeys.cycle_form` | `Ctrl+Alt+F` | Alternar la forma del rival (megaevoluciones, Rotom…) |
+| `hotkeys.toggle_stream` | `Ctrl+Alt+S` | Mostrar/ocultar la ficha del stream |
+| `stream.enabled` | `false` | Modo stream: fuente de navegador para OBS |
+| `stream.port` | `17320` | Puerto local de la fuente para OBS (`http://localhost:17320/`) |
+| `stream.card_mode` | `normal` | Ficha del stream: `normal` o `competitive`, independiente de la tuya |
 | `overlay.language` | `es` | Idioma de la ficha: `es`, `en`, `fr`, `de`, `it` |
 | `overlay.auto_hide_seconds` | `0` | Ocultar la ficha tras N segundos (0 = nunca) |
-| `updates.check` | `true` | Avisar una vez al día si hay versión nueva en GitHub (única conexión de la app) |
+| `updates.check` | `true` | Avisar una vez al día si hay versión nueva en GitHub (única conexión saliente de la app) |
 
 ### Si no reconoce bien
 

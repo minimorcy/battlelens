@@ -32,6 +32,7 @@ STAT_LABELS = {
     "special_defense": "Def. Esp.",
     "speed": "Velocidad",
 }
+CAPTURE_COLORS = {"Fácil": "#3ddc97", "Media": "#ffcb05", "Difícil": "#ff8c42", "Muy difícil": "#e5484d"}
 MULTIPLIER_LABELS = {4.0: "×4", 2.0: "×2", 0.5: "×½", 0.25: "×¼", 0.0: "×0"}
 
 PANEL_BG = "rgba(24, 26, 34, 235)"

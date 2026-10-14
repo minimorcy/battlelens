@@ -29,6 +29,7 @@ HOTKEY_FIELDS = (
     ("hotkey_hide", "Ocultar ficha"),
     ("hotkey_toggle_mode", "Cambiar de modo"),
     ("hotkey_cycle_form", "Cambiar de forma"),
+    ("hotkey_toggle_stream", "Ficha del stream"),
 )
 MODE_LABELS = {"normal": "Normal (aventura y captura)", "competitive": "Competitivo (combate)"}
 
@@ -108,6 +109,21 @@ class SettingsDialog(QDialog):
         detection.addRow("Intervalo de vigilancia:", self.interval)
         detection.addRow("Ocultar al terminar el combate tras:", self.hide_after)
 
+        # Modo stream (spec stream-mode)
+        self.stream_enabled = QCheckBox("Fuente de navegador para OBS")
+        self.stream_enabled.setChecked(config.stream_enabled)
+        self.stream_port = QSpinBox()
+        self.stream_port.setRange(1024, 65535)
+        self.stream_port.setValue(config.stream_port)
+        self.stream_mode = QComboBox()
+        for code in MODES:
+            self.stream_mode.addItem(MODE_LABELS[code], code)
+        self.stream_mode.setCurrentIndex(max(self.stream_mode.findData(config.stream_card_mode), 0))
+        stream = QFormLayout()
+        stream.addRow("", self.stream_enabled)
+        stream.addRow("Puerto (http://localhost:…/):", self.stream_port)
+        stream.addRow("Ficha del stream:", self.stream_mode)
+
         # Actualizaciones
         self.updates = QCheckBox("Comprobar una vez al día si hay versión nueva")
         self.updates.setChecked(config.updates_check)
@@ -122,7 +138,8 @@ class SettingsDialog(QDialog):
         buttons.rejected.connect(self.reject)
 
         layout = QVBoxLayout(self)
-        for title, form in (("Atajos de teclado", hotkeys), ("Ficha y reconocimiento", card), ("Detección automática", detection)):
+        for title, form in (("Atajos de teclado", hotkeys), ("Ficha y reconocimiento", card),
+                            ("Detección automática", detection), ("Modo stream", stream)):
             group = QGroupBox(title)
             group.setLayout(form)
             layout.addWidget(group)
@@ -152,6 +169,10 @@ class SettingsDialog(QDialog):
             hotkey_hide=self.hotkey_edits["hotkey_hide"].text().strip(),
             hotkey_toggle_mode=self.hotkey_edits["hotkey_toggle_mode"].text().strip(),
             hotkey_cycle_form=self.hotkey_edits["hotkey_cycle_form"].text().strip(),
+            hotkey_toggle_stream=self.hotkey_edits["hotkey_toggle_stream"].text().strip(),
+            stream_enabled=self.stream_enabled.isChecked(),
+            stream_port=int(self.stream_port.value()),
+            stream_card_mode=self.stream_mode.currentData(),
             overlay_mode=self.mode.currentData(),
             threshold=float(self.threshold.value()),
             debug=self.debug.isChecked(),

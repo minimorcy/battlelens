@@ -31,6 +31,7 @@ def controller(qapp, tmp_path, monkeypatch):
         updates_check=False,
         hotkey_toggle_mode="Ctrl+Alt+Shift+F18",
         hotkey_cycle_form="Ctrl+Alt+Shift+F17",
+        hotkey_toggle_stream="Ctrl+Alt+Shift+F16",
         detection_enabled=False,
     )
     c = Controller(qapp, config, Pokedex.load())
@@ -210,6 +211,7 @@ def auto_controller(qapp, tmp_path, monkeypatch):
         updates_check=False,
         hotkey_toggle_mode="Ctrl+Alt+Shift+F18",
         hotkey_cycle_form="Ctrl+Alt+Shift+F17",
+        hotkey_toggle_stream="Ctrl+Alt+Shift+F16",
         detection_enabled=True,
         detection_interval_ms=200,
         detection_hide_after_seconds=1.0,
@@ -458,6 +460,106 @@ def test_probables_de_tu_pokemon_con_nivel(qapp, controller):
     controller._show_battle((821, None, 813), "sword-shield", None, (None, None, 15))
     qapp.processEvents()
     assert len(_card_names(controller, "own-move")) == 4
+
+
+def _free_port():
+    import socket
+
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
+
+
+def test_modo_stream_publica_y_oculta(qapp, controller, tmp_path):
+    from battlelens.core.config import load_config
+
+    controller.tray.notify = lambda msg, warning=False: None
+    controller.apply_config(replace_config(controller, stream_port=_free_port()))
+    controller.set_stream_enabled(True)  # como la casilla «Modo stream» de la bandeja
+    assert controller.stream_server.running and controller.tray.stream_action.isChecked()
+    assert controller.tray.copy_url_action.isEnabled()
+    assert load_config(tmp_path / "config.toml").stream_enabled
+    try:
+        controller._show_battle((66, None, 813), "sword-shield", None, (16, None, 15))
+        snapshot = controller.stream_state.snapshot()
+        assert snapshot["visible"] and snapshot["cards"][0]["name"] == "Machop"
+        assert snapshot["cards"][0]["versus"]["title"] == "Contra tu Scorbunny"
+
+        controller.hide_overlay()  # clic en la ficha privada
+        assert controller.stream_state.visible
+        controller.toggle_stream_card()  # Ctrl+Alt+S
+        assert not controller.stream_state.visible
+        controller.toggle_stream_card()
+        assert controller.stream_state.visible
+
+        controller.overlay.show()
+        controller._end_battle()  # la detección da por terminado el combate
+        assert not controller.stream_state.visible and not controller.overlay.isVisible()
+    finally:
+        controller.set_stream_enabled(False)
+    assert not controller.stream_server.running and not controller.tray.copy_url_action.isEnabled()
+
+
+def test_modo_de_la_ficha_del_stream_desde_ajustes(qapp, controller):
+    controller.tray.notify = lambda msg, warning=False: None
+    controller._show_battle((66, None, None), "sword-shield", None, (16, None, None))
+    assert controller.stream_state.snapshot()["cards"][0]["level"] is None
+    controller.apply_config(replace_config(controller, stream_card_mode="competitive"))
+    snapshot = controller.stream_state.snapshot()
+    assert snapshot["mode"] == "competitive" and snapshot["cards"][0]["level"] == "Nv. 16"
+    assert controller.overlay.mode == "normal"  # la ficha privada no cambia
+
+
+def test_ajustes_reinician_el_servidor_en_otro_puerto(qapp, controller):
+    controller.tray.notify = lambda msg, warning=False: None
+    first, second = _free_port(), _free_port()
+    controller.apply_config(replace_config(controller, stream_enabled=True, stream_port=first))
+    try:
+        assert controller.stream_server.port == first
+        controller.apply_config(replace_config(controller, stream_port=second))
+        assert controller.stream_server.port == second
+        assert controller.tray.copy_url_action.text().endswith(f"(http://localhost:{second}/)")
+    finally:
+        controller.apply_config(replace_config(controller, stream_enabled=False))
+
+
+def test_copiar_url_para_obs(qapp, controller):
+    from PyQt6.QtGui import QGuiApplication
+
+    messages = []
+    controller.tray.notify = lambda msg, warning=False: messages.append(msg)
+    port = _free_port()
+    controller.apply_config(replace_config(controller, stream_enabled=True, stream_port=port))
+    try:
+        controller.copy_stream_url()
+        assert QGuiApplication.clipboard().text() == f"http://localhost:{port}/"
+        assert messages[-1] == f"URL copiada: http://localhost:{port}/"
+    finally:
+        controller.apply_config(replace_config(controller, stream_enabled=False))
+
+
+def test_puerto_ocupado_avisa(qapp, controller):
+    import socket
+
+    warnings = []
+    controller.tray.notify = lambda msg, warning=False: warnings.append(msg) if warning else None
+    busy = socket.socket()
+    busy.bind(("127.0.0.1", 0))
+    busy.listen()
+    port = busy.getsockname()[1]
+    try:
+        controller.apply_config(replace_config(controller, stream_enabled=True, stream_port=port))
+        assert not controller.stream_server.running
+        assert warnings == [f"El puerto {port} está ocupado: cámbialo en Ajustes."]
+    finally:
+        busy.close()
+        controller.apply_config(replace_config(controller, stream_enabled=False))
+
+
+def replace_config(controller, **changes):
+    from dataclasses import replace
+
+    return replace(controller.config, **changes)
 
 
 def test_modo_desde_ajustes(qapp, controller):

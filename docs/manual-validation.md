@@ -18,6 +18,7 @@ Con `recognition.debug = true` en `%APPDATA%\BattleLens\config.toml`: calibra, r
 - [ ] **Formas alternativas** — en X/Y, contra un Pokémon que megaevoluciona, `Ctrl+Alt+F` muestra su mega y la ficha la mantiene hasta que sale; en Platino, Rotom alterna entre sus cinco formas.
 - [ ] **Nivel en Espada a pantalla completa** — con la región del rival incluyendo el nivel, reconocer unos 10 rivales en modo Competitivo y anotar en cuántos aparece el nivel: __/10.
 - [ ] **Tus movimientos** — calibrar el menú de ataques en Espada y en un juego de GBA: al abrir «Luchar» la ficha muestra tus 4 movimientos con su multiplicador; en el siguiente combate con el mismo Pokémon aparecen sin abrir el menú; las animaciones del combate no ocultan la ficha.
+- [ ] **Modo stream con OBS** — activar el modo stream, añadir la URL como fuente de navegador en OBS: la ficha aparece con fondo transparente al reconocer un rival, `?scale=1.5` la agranda, se oculta al terminar el combate, `Ctrl+Alt+S` la quita sin tocar la privada, y el cortafuegos de Windows no pregunta nada.
 - [ ] **Activación automática** — con perfiles de dos juegos, cambiar de juego en el emulador y comprobar que se activa el perfil correcto.
 
 ## Instalador y publicación

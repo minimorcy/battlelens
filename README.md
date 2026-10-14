@@ -51,6 +51,16 @@ BattleLens uses the text recognition that ships with Windows. Almost every PC al
 
 The app's interface is currently in Spanish (menu names are given in *italics* above); the card content (Pokémon, types, abilities, moves) is available in English, Spanish, French, German and Italian (`overlay.language`).
 
+### Streaming with OBS (optional)
+
+BattleLens is built for playing, and the stream mode is an extra: turned off, nothing changes. Your own card is hidden from screen capture on purpose, so viewers get their own card through OBS:
+
+1. Tray → **Stream mode (OBS)** (*Modo stream (OBS)*).
+2. Tray → **Copy URL for OBS** (*Copiar URL para OBS*) — by default `http://localhost:17320/`.
+3. In OBS, add a **Browser source** with that URL (e.g. 800×900) and place it in your scene. The background is transparent.
+
+The stream card updates with every opponent, slides in and out, and hides when the battle ends. Clicking your private card doesn't hide it; `Ctrl+Alt+S` does. Add `?scale=1.5` to the URL to make it bigger. It has its own card mode (Normal by default) in *Settings → Stream mode*, and it only listens on your own PC (`127.0.0.1`).
+
 ### Configuration
 
 Everything can be changed from tray → **Settings…** (*Ajustes…*) (changes apply immediately). The same values live in `%APPDATA%\BattleLens\config.toml`:
@@ -66,9 +76,13 @@ Everything can be changed from tray → **Settings…** (*Ajustes…*) (changes 
 | `overlay.mode` | `normal` | `normal` (compact) or `competitive` (full) card |
 | `hotkeys.toggle_mode` | `Ctrl+Alt+M` | Switch mode |
 | `hotkeys.cycle_form` | `Ctrl+Alt+F` | Cycle the opponent's form (Mega Evolutions, Rotom…) |
+| `hotkeys.toggle_stream` | `Ctrl+Alt+S` | Show/hide the stream card |
+| `stream.enabled` | `false` | Stream mode: browser source for OBS |
+| `stream.port` | `17320` | Local port of the OBS source (`http://localhost:17320/`) |
+| `stream.card_mode` | `normal` | Stream card: `normal` or `competitive`, independent of yours |
 | `overlay.language` | `es` | Card language: `es`, `en`, `fr`, `de`, `it` |
 | `overlay.auto_hide_seconds` | `0` | Hide the card after N seconds (0 = never) |
-| `updates.check` | `true` | Check once a day for a new version on GitHub (the app's only network connection) |
+| `updates.check` | `true` | Check once a day for a new version on GitHub (the app's only outgoing connection) |
 
 ### If recognition fails
 

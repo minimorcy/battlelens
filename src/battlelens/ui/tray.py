@@ -25,6 +25,8 @@ class Tray(QObject):
     recalibrate_requested = pyqtSignal()
     region_requested = pyqtSignal(str)  # calibrar "rival", "rival2", "own" o "moves"
     region_remove_requested = pyqtSignal(str)
+    stream_toggled = pyqtSignal(bool)
+    copy_stream_url_requested = pyqtSignal()
     delete_profile_requested = pyqtSignal()
     open_data_requested = pyqtSignal()
     install_ocr_requested = pyqtSignal()
@@ -78,6 +80,13 @@ class Tray(QObject):
         for name, action in self.mode_actions.items():
             action.setChecked(name == mode)
 
+    def set_stream(self, enabled: bool, url: str | None) -> None:
+        self.stream_action.blockSignals(True)
+        self.stream_action.setChecked(enabled)
+        self.stream_action.blockSignals(False)
+        self.copy_url_action.setEnabled(url is not None)
+        self.copy_url_action.setText(f"Copiar URL para OBS ({url})" if url else "Copiar URL para OBS")
+
     def set_auto_detect(self, enabled: bool) -> None:
         self.auto_detect_action.blockSignals(True)
         self.auto_detect_action.setChecked(enabled)
@@ -115,6 +124,12 @@ class Tray(QObject):
             self._mode_group.addAction(action)
             self._mode_menu.addAction(action)
             self.mode_actions[mode] = action
+        self.stream_action = m.addAction("Modo stream (OBS)")
+        self.stream_action.setCheckable(True)
+        self.stream_action.toggled.connect(self.stream_toggled)
+        self.copy_url_action = m.addAction("Copiar URL para OBS")
+        self.copy_url_action.triggered.connect(self.copy_stream_url_requested)
+        self.copy_url_action.setEnabled(False)
         m.addSeparator()
 
         self._windows_menu = m.addMenu("Ventana del emulador")

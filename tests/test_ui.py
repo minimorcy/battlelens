@@ -537,3 +537,33 @@ def test_redibujar_con_la_ficha_visible_mantiene_el_alto(qapp, dex):
     assert o.size() == fresh.size()
     o.close()
     fresh.close()
+
+
+# ---- modo stream (add-stream-mode) ---------------------------------------------------------
+
+def test_bandeja_modo_stream(qapp):
+    from battlelens.ui.tray import Tray
+
+    tray = Tray(lambda: [], lambda: None, lambda: ([], None), {})
+    assert not tray.stream_action.isChecked() and not tray.copy_url_action.isEnabled()
+    toggled = []
+    tray.stream_toggled.connect(toggled.append)
+    tray.set_stream(True, "http://localhost:17320/")  # reflejar el estado no emite la señal
+    assert tray.stream_action.isChecked() and tray.copy_url_action.isEnabled() and toggled == []
+    assert tray.copy_url_action.text() == "Copiar URL para OBS (http://localhost:17320/)"
+    tray.stream_action.trigger()
+    assert toggled == [False]
+    tray.hide()
+
+
+def test_ajustes_del_modo_stream(qapp):
+    from battlelens.core.config import Config
+    from battlelens.ui.settings import SettingsDialog
+
+    d = SettingsDialog(Config(stream_enabled=True, stream_port=18000, stream_card_mode="competitive"))
+    assert d.stream_enabled.isChecked() and d.stream_port.value() == 18000
+    assert d.stream_mode.currentData() == "competitive"
+    assert d.hotkey_edits["hotkey_toggle_stream"].text() == "Ctrl+Alt+S"
+    d.stream_port.setValue(18001)
+    config, errors = d.collect()
+    assert not errors and config.stream_port == 18001 and config.stream_enabled

@@ -27,6 +27,8 @@ hide = {hotkey_hide}
 toggle_mode = {hotkey_toggle_mode}
 # Alterna la forma del rival (Megaevoluciones, Rotom, Deoxys...).
 cycle_form = {hotkey_cycle_form}
+# Muestra u oculta la ficha del stream (modo stream).
+toggle_stream = {hotkey_toggle_stream}
 
 [recognition]
 # Puntuación mínima (0-100) para dar por reconocido un nombre.
@@ -49,6 +51,14 @@ mode = {overlay_mode}
 language = {language}
 # Segundos hasta ocultar el overlay automáticamente (0 = no se oculta solo).
 auto_hide_seconds = {auto_hide_seconds}
+
+[stream]
+# Fuente de navegador para OBS en http://localhost:<port>/ (solo en este PC).
+enabled = {stream_enabled}
+# Puerto local (1024-65535).
+port = {stream_port}
+# Ficha del stream: "normal" o "competitive", independiente de la tuya.
+card_mode = {stream_card_mode}
 
 [updates]
 # Comprueba una vez al día si hay una versión nueva en GitHub (única conexión de la app).
@@ -86,6 +96,10 @@ class Config:
     hotkey_toggle_mode: str = "Ctrl+Alt+M"
     overlay_mode: str = "normal"
     hotkey_cycle_form: str = "Ctrl+Alt+F"
+    hotkey_toggle_stream: str = "Ctrl+Alt+S"
+    stream_enabled: bool = False
+    stream_port: int = 17320
+    stream_card_mode: str = "normal"
 
     @classmethod
     def from_toml(cls, text: str) -> Config:
@@ -98,6 +112,7 @@ class Config:
         ov = data.get("overlay", {})
         det = data.get("detection", {})
         upd = data.get("updates", {})
+        st = data.get("stream", {})
         default = cls()
         cfg = cls(
             hotkey_recognize=hk.get("recognize", default.hotkey_recognize),
@@ -114,6 +129,10 @@ class Config:
             hotkey_toggle_mode=hk.get("toggle_mode", default.hotkey_toggle_mode),
             overlay_mode=ov.get("mode", default.overlay_mode),
             hotkey_cycle_form=hk.get("cycle_form", default.hotkey_cycle_form),
+            hotkey_toggle_stream=hk.get("toggle_stream", default.hotkey_toggle_stream),
+            stream_enabled=st.get("enabled", default.stream_enabled),
+            stream_port=st.get("port", default.stream_port),
+            stream_card_mode=st.get("card_mode", default.stream_card_mode),
         )
         cfg._validate()
         return cfg
@@ -130,6 +149,14 @@ class Config:
             raise ConfigError("hotkeys.toggle_mode debe ser un texto")
         if not isinstance(self.hotkey_cycle_form, str):
             raise ConfigError("hotkeys.cycle_form debe ser un texto")
+        if not isinstance(self.hotkey_toggle_stream, str):
+            raise ConfigError("hotkeys.toggle_stream debe ser un texto")
+        if not isinstance(self.stream_enabled, bool):
+            raise ConfigError("stream.enabled debe ser true o false")
+        if not isinstance(self.stream_port, int) or isinstance(self.stream_port, bool) or not 1024 <= self.stream_port <= 65535:
+            raise ConfigError("stream.port debe ser un entero entre 1024 y 65535")
+        if self.stream_card_mode not in MODES:
+            raise ConfigError(f"stream.card_mode debe ser uno de: {', '.join(MODES)}")
         if self.language not in LANGUAGES:
             raise ConfigError(f"overlay.language debe ser uno de: {', '.join(LANGUAGES)}")
         if not isinstance(self.updates_check, bool):

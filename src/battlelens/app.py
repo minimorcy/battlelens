@@ -24,7 +24,7 @@ from PyQt6.QtCore import (
     QUrl,
     pyqtSignal,
 )
-from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtGui import QDesktopServices, QGuiApplication
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from . import APP_NAME, __version__
@@ -66,6 +66,8 @@ from .ui.calibrator import CalibrationDialog, ask_profile
 from .ui.icons import app_icon
 from .ui.overlay import Overlay
 from .ui.tray import Tray
+from .stream.payload import build_cards
+from .stream.server import StreamServer, StreamState
 from .vision.preprocess import crop_region, fingerprint, fingerprint_distance
 
 log = logging.getLogger("battlelens")
@@ -122,6 +124,10 @@ class Controller(QObject):
         self.overlay = Overlay(pokedex, config.language, config.auto_hide_seconds, mode=config.overlay_mode)
         self._last_battle = None  # (clave, juego, niveles) de la última ficha, para redibujarla
         self._form_choice: dict[int, str] = {}  # especie -> forma elegida con el atajo (add-alternate-forms D4)
+        # Modo stream: fuente de navegador para OBS (spec stream-mode)
+        self.stream_state = StreamState(config.stream_card_mode)
+        self.stream_server = StreamServer(self.stream_state)
+        self._stream_args = None  # (rivales, tu Pokémon, niveles, movimientos, probables) de la última ficha
         if self.state.overlay_pos:
             self.overlay.saved_pos = QPoint(*self.state.overlay_pos)
         self.overlay.moved.connect(self._on_overlay_moved)
@@ -162,6 +168,8 @@ class Controller(QObject):
         self.tray.about_requested.connect(self.show_about)
         self.tray.settings_requested.connect(self.show_settings)
         self.tray.update_requested.connect(self.open_update)
+        self.tray.stream_toggled.connect(self.set_stream_enabled)
+        self.tray.copy_stream_url_requested.connect(self.copy_stream_url)
         self._settings: SettingsDialog | None = None
         self.release: Release | None = None
         self._about: AboutDialog | None = None
@@ -173,6 +181,7 @@ class Controller(QObject):
         if auto:
             self._watch_timer.start()
 
+        self._apply_stream(config)
         self.hotkeys = HotkeyManager(bindings)
         self.hotkeys.triggered.connect(self._on_hotkey)
         failed = self.hotkeys.start() + invalid
@@ -191,6 +200,7 @@ class Controller(QObject):
             ("hide", config.hotkey_hide),
             ("toggle_mode", config.hotkey_toggle_mode),
             ("cycle_form", config.hotkey_cycle_form),
+            ("toggle_stream", config.hotkey_toggle_stream),
         ):
             try:
                 bindings[name] = parse_hotkey(text)
@@ -203,7 +213,7 @@ class Controller(QObject):
         notices = []
         if failed:
             labels = {"recognize": "reconocer", "calibrate": "calibrar", "hide": "ocultar", "toggle_mode": "cambiar de modo",
-                      "cycle_form": "cambiar de forma"}
+                      "cycle_form": "cambiar de forma", "toggle_stream": "ficha del stream"}
             detail = ", ".join(
                 f"{labels[n]} ({bindings[n].text})" if n in bindings else f"{labels[n]} (inválido)" for n in failed
             )
@@ -280,8 +290,9 @@ class Controller(QObject):
         save_config(self.data_dir / "config.toml", new)
         self.config = new
         if (new.hotkey_recognize, new.hotkey_calibrate, new.hotkey_hide, new.hotkey_toggle_mode,
-                new.hotkey_cycle_form) != (
-            old.hotkey_recognize, old.hotkey_calibrate, old.hotkey_hide, old.hotkey_toggle_mode, old.hotkey_cycle_form
+                new.hotkey_cycle_form, new.hotkey_toggle_stream) != (
+            old.hotkey_recognize, old.hotkey_calibrate, old.hotkey_hide, old.hotkey_toggle_mode, old.hotkey_cycle_form,
+            old.hotkey_toggle_stream
         ):
             self.hotkeys.stop()
             bindings, invalid = self._parse_hotkeys(new)
@@ -303,7 +314,53 @@ class Controller(QObject):
         self.battle.hide_after_seconds = new.detection_hide_after_seconds
         if new.detection_enabled != old.detection_enabled:
             self.set_auto_detect(new.detection_enabled)
+        if (new.stream_enabled, new.stream_port) != (old.stream_enabled, old.stream_port):
+            self._apply_stream(new)
+        if new.stream_card_mode != old.stream_card_mode:
+            self.stream_state.mode = new.stream_card_mode
+            self._publish_stream(keep_visibility=True)
         self.tray.notify("Ajustes guardados.")
+
+    # ---- modo stream (spec stream-mode) -------------------------------------------
+
+    def _apply_stream(self, config: Config) -> None:
+        """Arranca, reinicia o para la fuente para OBS según la configuración."""
+        if not config.stream_enabled:
+            self.stream_server.stop()
+        elif not self.stream_server.running or self.stream_server.port != config.stream_port:
+            if not self.stream_server.start(config.stream_port):
+                self.tray.notify(f"El puerto {config.stream_port} está ocupado: cámbialo en Ajustes.", warning=True)
+        self.tray.set_stream(config.stream_enabled, self.stream_server.url)
+
+    def set_stream_enabled(self, enabled: bool) -> None:
+        if enabled != self.config.stream_enabled:
+            new = replace(self.config, stream_enabled=enabled)
+            save_config(self.data_dir / "config.toml", new)
+            self.config = new
+        self._apply_stream(self.config)
+        if enabled and self.stream_server.running:
+            self.tray.notify(f"Modo stream activo. Añade en OBS una fuente de navegador con {self.stream_server.url}")
+
+    def copy_stream_url(self) -> None:
+        url = self.stream_server.url
+        if url:
+            QGuiApplication.clipboard().setText(url)
+            self.tray.notify(f"URL copiada: {url}")
+
+    def _publish_stream(self, keep_visibility: bool = False) -> None:
+        """Publica la última ficha en la fuente para OBS, en el modo de ficha del stream."""
+        if self._stream_args is None:
+            return
+        rivals, own, levels, moves, probable = self._stream_args
+        visible = self.stream_state.visible
+        cards = build_cards(self.pokedex, rivals, own, levels, moves, probable,
+                            self.config.stream_card_mode, self.config.language)
+        self.stream_state.publish(cards)
+        if keep_visibility:
+            self.stream_state.set_visible(visible)
+
+    def toggle_stream_card(self) -> None:
+        self.stream_state.set_visible(not self.stream_state.visible)
 
     # ---- actualizaciones (spec update-check) ------------------------------------
 
@@ -340,6 +397,7 @@ class Controller(QObject):
             "hide": self.hide_overlay,
             "toggle_mode": self.toggle_mode,
             "cycle_form": self.cycle_form,
+            "toggle_stream": self.toggle_stream_card,
         }[name]()
 
     # ---- modos de ficha (spec display-modes) ---------------------------------------
@@ -378,6 +436,11 @@ class Controller(QObject):
                 self._form_choice[sid] = cycle[(index + 1) % len(cycle)]
                 self._redraw_last_battle()
                 return
+
+    def _end_battle(self) -> None:
+        """Fin del combate según la detección automática: se ocultan la ficha y la del stream."""
+        self.overlay.hide()
+        self.stream_state.set_visible(False)
 
     def hide_overlay(self) -> None:
         self.overlay.hide()
@@ -426,7 +489,7 @@ class Controller(QObject):
             self._watch_moves(moves_crop, profile)
         action = self.battle.on_frame(fp, time.monotonic())
         if action is Action.HIDE:
-            self.overlay.hide()
+            self._end_battle()
         elif action is Action.RECOGNIZE and not self._busy:
             self._busy = True
             task = _Task(self._read_auto, crop, fp, profile)
@@ -515,6 +578,8 @@ class Controller(QObject):
         own_view = self.pokedex.view(own, game, lang) if own is not None else None
         own_moves, probable = self._own_moves(own_view, levels[2]) if own_view is not None else ([], False)
         self.overlay.show_battle(rivals, own_view, rect, [lvl for _, lvl in pairs], levels[2], own_moves, probable)
+        self._stream_args = (rivals, own_view, [lvl for _, lvl in pairs], own_moves, probable)
+        self._publish_stream()
 
     def _on_auto_failure(self, exc: Exception) -> None:
         self._busy = False
@@ -728,6 +793,7 @@ class Controller(QObject):
 
     def quit(self) -> None:
         self._watch_timer.stop()
+        self.stream_server.stop()
         self.hotkeys.stop()
         self._save_state()
         self.tray.hide()

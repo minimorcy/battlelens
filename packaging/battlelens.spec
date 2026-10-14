@@ -13,6 +13,7 @@ datas = [
     (os.path.join(PKG, "data", "pokedex.json"), "battlelens/data"),
     (os.path.join(PKG, "data", "learnsets.json"), "battlelens/data"),
     (os.path.join(PKG, "assets", "icon.png"), "battlelens/assets"),
+    (os.path.join(PKG, "stream", "static"), "battlelens/stream/static"),  # página para OBS (add-stream-mode D7)
     (os.path.join(ROOT, "LICENSE"), "."),
 ]
 datas += copy_metadata("battlelens")

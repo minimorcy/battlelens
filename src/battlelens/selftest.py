@@ -27,6 +27,8 @@ REQUIRED_MODULES = (
     "battlelens.ui.about",
     "battlelens.ui.settings",
     "battlelens.core.updates",
+    "battlelens.stream.server",
+    "http.server",
 )
 
 
@@ -77,9 +79,16 @@ def run_checks() -> dict:
             raise AssertionError(f"Stufful Nv. 10: {len(moves)} movimientos")
         return "Stufful Nv. 10 → 4 movimientos"
 
+    def stream_page():
+        from .stream.server import STATIC_FILES, read_static
+
+        sizes = {name: len(read_static(name)) for name, _ in STATIC_FILES.values()}
+        return ", ".join(f"{name} {size} B" for name, size in sizes.items())
+
     record("dataset", load_dataset)
     record("learnsets", load_learnsets)
     record("match", match_pidgey)
+    record("stream", stream_page)
     record("ocr", ocr_languages)
 
     ok = all(c["status"] != "fail" for c in checks.values())
