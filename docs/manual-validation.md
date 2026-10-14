@@ -19,6 +19,7 @@ Con `recognition.debug = true` en `%APPDATA%\BattleLens\config.toml`: calibra, r
 - [ ] **Nivel en Espada a pantalla completa** — con la región del rival incluyendo el nivel, reconocer unos 10 rivales en modo Competitivo y anotar en cuántos aparece el nivel: __/10.
 - [ ] **Tus movimientos** — calibrar el menú de ataques en Espada y en un juego de GBA: al abrir «Luchar» la ficha muestra tus 4 movimientos con su multiplicador; en el siguiente combate con el mismo Pokémon aparecen sin abrir el menú; las animaciones del combate no ocultan la ficha.
 - [ ] **Modo stream con OBS** — activar el modo stream, añadir la URL como fuente de navegador en OBS: la ficha aparece con fondo transparente al reconocer un rival, `?scale=1.5` la agranda, se oculta al terminar el combate, `Ctrl+Alt+S` la quita sin tocar la privada, y el cortafuegos de Windows no pregunta nada.
+- [ ] **Presets** — con «Nuevo perfil con un preset…» en un combate de: GB/GBC (mGBA o SameBoy), GBA (mGBA), DS (melonDS en vertical y en horizontal, DeSmuME) y Espada (Eden/Ryujinx): los recuadros caen sobre los nombres y la detección automática funciona con el perfil guardado. Anotar ajustes necesarios de las regiones.
 - [ ] **Activación automática** — con perfiles de dos juegos, cambiar de juego en el emulador y comprobar que se activa el perfil correcto.
 
 ## Instalador y publicación

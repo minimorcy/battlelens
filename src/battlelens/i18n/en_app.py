@@ -14,8 +14,6 @@ EN: dict[str, str] = {
     "Falta el OCR de Windows. Instálalo desde el menú de la bandeja: «Instalar OCR de Windows…».":
         'Windows OCR is missing. Install it from the tray menu: "Install Windows OCR…".',
     "Selecciona la ventana del emulador en el menú de la bandeja.": "Select the emulator window in the tray menu.",
-    "Calibra un perfil para este juego (menú de la bandeja o atajo de calibrar).":
-        "Calibrate a profile for this game (tray menu or the calibrate shortcut).",
     "Listo. Pulsa {hotkey} en un combate.": "Ready. Press {hotkey} during a battle.",
     # ---- app.py: OCR ----
     "Instalar OCR de Windows": "Install Windows OCR",
@@ -107,4 +105,6 @@ EN: dict[str, str] = {
     'Creando el informe…': 'Creating the report…',
     'No se pudo crear el informe: {error}': 'Could not create the report: {error}',
     'Informe creado: {path}': 'Report created: {path}',
+    'Entra en un combate y abre «Nuevo perfil con un preset…» en la bandeja (o calibra a mano).': 'Enter a battle and open "New profile from a preset…" in the tray (or calibrate manually).',
+    ' · Nv. {level}': ' · Lv. {level}',
 }

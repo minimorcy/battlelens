@@ -19,7 +19,7 @@ Un perfil SHALL contener: identificador, nombre visible, región del nombre del 
 - **THEN** se carga correctamente sin región del 2.º rival ni de tu Pokémon
 
 ### Requirement: Calibración interactiva
-El sistema SHALL ofrecer un modo de calibración que muestre una captura de la ventana objetivo y permita dibujar con el ratón un rectángulo sobre ella, confirmarlo con Enter o cancelarlo con Esc. Al confirmar un perfil nuevo, el sistema MUST pedir el nombre del perfil y el juego, proponiendo ambos según el juego detectado en el título de la ventana.
+El sistema SHALL ofrecer un modo de calibración que muestre una captura de la ventana objetivo y permita dibujar con el ratón un rectángulo sobre ella, confirmarlo con Enter o cancelarlo con Esc. Al confirmar un perfil nuevo, el sistema MUST pedir el nombre del perfil y el juego, proponiendo ambos según el juego detectado en el título de la ventana. Como alternativa a dibujar las regiones, el sistema SHALL ofrecer crear el perfil con un preset del juego (spec `game-presets`).
 
 #### Scenario: Calibración completada
 - **WHEN** el usuario dibuja un rectángulo, pulsa Enter, y confirma nombre y juego
@@ -40,6 +40,10 @@ El sistema SHALL ofrecer un modo de calibración que muestre una captura de la v
 #### Scenario: Calibración sin ventana objetivo
 - **WHEN** el usuario inicia la calibración sin ventana objetivo seleccionada
 - **THEN** se le indica que seleccione primero una ventana y no se abre la calibración
+
+#### Scenario: Con un preset
+- **WHEN** el usuario elige «Nuevo perfil con un preset…» en lugar de calibrar
+- **THEN** se abre el asistente de preset (spec `game-presets`)
 
 ### Requirement: Persistencia de perfiles
 El sistema SHALL guardar cada perfil como un archivo JSON en `%APPDATA%\BattleLens\profiles\` y MUST cargarlos todos al arrancar.

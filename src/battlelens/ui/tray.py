@@ -23,6 +23,7 @@ class Tray(QObject):
     profile_selected = pyqtSignal(str)
     profile_game_selected = pyqtSignal(object)  # id de juego o None
     calibrate_requested = pyqtSignal()
+    preset_requested = pyqtSignal()
     recalibrate_requested = pyqtSignal()
     region_requested = pyqtSignal(str)  # calibrar "rival", "rival2", "own" o "moves"
     region_remove_requested = pyqtSignal(str)
@@ -141,6 +142,7 @@ class Tray(QObject):
         self._game_menu = m.addMenu(_("Juego del perfil activo"))
         self._game_menu.aboutToShow.connect(self._populate_games)
 
+        m.addAction(_("Nuevo perfil con un preset…")).triggered.connect(self.preset_requested)
         self._calibrate_action = m.addAction(_("Calibrar nuevo perfil…") + self._hint("calibrate"))
         self._calibrate_action.triggered.connect(self.calibrate_requested)
         self._regions_menu = m.addMenu(_("Regiones del perfil"))

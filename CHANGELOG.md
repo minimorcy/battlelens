@@ -5,9 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ## [Sin publicar]
 
 ### Añadido
+- «Nuevo perfil con un preset…»: regiones ya medidas para los juegos de GB, GBA, DS y Espada/Escudo; BattleLens localiza la imagen del juego en la ventana del emulador y muestra los recuadros y lo que lee para confirmarlos antes de guardar. Es la propuesta del primer arranque.
 - «Informar de un problema…» en la bandeja: crea un ZIP con la configuración, los perfiles, el registro y una captura del emulador con lo que lee BattleLens en cada región (sin datos personales en los textos y sin enviar nada) y abre el formulario de fallo de GitHub ya rellenado, ahora bilingüe.
 - Interfaz en inglés: menús, avisos, diálogos y textos de la ficha (y de la del stream) en español o inglés, según el idioma de Windows o elegido en Ajustes; independiente del idioma de los datos Pokémon.
 - Modo stream (opcional): fuente de navegador para OBS en `http://localhost:17320/` con la ficha sobre fondo transparente, que se actualiza con cada rival y se oculta al terminar el combate; atajo `Ctrl+Alt+S` para mostrarla u ocultarla, «Copiar URL para OBS» en la bandeja y sección en Ajustes.
+
+### Cambiado
+- Mejor reconocimiento con las fuentes pixeladas de GBA/DS: la «A» leída como «R» o la «D» como «O» ya no impiden reconocer el nombre.
 
 ## [0.2.1] - 2026-10-13
 

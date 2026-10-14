@@ -38,6 +38,7 @@ from .core.matcher import NameMatcher
 from .core.moves import MoveMatcher, MoveMemory
 from .core.pokedex import DatasetMissingError, Pokedex
 from .core.profiles import Profile, ProfileStore
+from .core.presets import preset_for, to_profile_regions
 from .core.report import ReportInputs, issue_form_url, write_report
 from .core.storage import app_data_dir
 from .i18n import N_, _, resolve_language, set_language
@@ -69,6 +70,7 @@ from .ui.settings import SettingsDialog
 from .ui.calibrator import CalibrationDialog, ask_profile
 from .ui.icons import app_icon
 from .ui.overlay import Overlay
+from .ui.preset_wizard import PresetWizard
 from .ui.report import ReportDialog
 from .ui.tray import Tray
 from .stream.payload import build_cards
@@ -164,6 +166,7 @@ class Controller(QObject):
         self.tray.profile_selected.connect(self.select_profile)
         self.tray.profile_game_selected.connect(self.set_profile_game)
         self.tray.calibrate_requested.connect(self.calibrate_new)
+        self.tray.preset_requested.connect(self.new_profile_from_preset)
         self.tray.recalibrate_requested.connect(self.recalibrate)
         self.tray.region_requested.connect(self.calibrate_region)
         self.tray.region_remove_requested.connect(self.remove_region)
@@ -232,7 +235,7 @@ class Controller(QObject):
         if self.target is None:
             notices.append(_("Selecciona la ventana del emulador en el menú de la bandeja."))
         elif self.profiles.active is None:
-            notices.append(_("Calibra un perfil para este juego (menú de la bandeja o atajo de calibrar)."))
+            notices.append(_("Entra en un combate y abre «Nuevo perfil con un preset…» en la bandeja (o calibra a mano)."))
         if notices:
             self.tray.notify("\n".join(notices), warning=bool(failed))
         else:
@@ -827,6 +830,64 @@ class Controller(QObject):
             self._calibrate_new_with(image)
         finally:
             self._modal_open = False
+
+    # ---- perfiles con preset (spec game-presets) ----------------------------------
+
+    def new_profile_from_preset(self) -> None:
+        image = self._capture_for_calibration()
+        if image is None:
+            return
+        self._modal_open = True
+        try:
+            self._new_profile_from_preset_with(image)
+        finally:
+            self._modal_open = False
+
+    def _preset_reading(self, role: str, crop) -> str:
+        """Lo que lee BattleLens en un recuadro del asistente: especie (o texto) y nivel."""
+        profile_languages = self.profiles.active.ocr_languages if self.profiles.active else ("es", "en")
+        try:
+            if role == "moves":
+                moves = read_moves(crop, recognize, self.move_matcher(), profile_languages)
+                return ", ".join(m.name(self.config.language) for m in moves)
+            reading = read_crop(crop, recognize, self.pipeline.matcher, profile_languages)
+        except Exception as exc:  # noqa: BLE001 - el asistente sigue aunque falle una lectura
+            return str(exc)
+        match = reading.match
+        if not match.recognized:
+            return match.raw_text.strip()
+        name = self.pokedex.get_species(match.species_id).name(self.config.language)
+        level = _(" · Nv. {level}", level=reading.level) if reading.level else ""
+        return f"{name}{level}"
+
+    def _new_profile_from_preset_with(self, image) -> None:
+        lang = self.config.language
+        detection = self.detector.detect_version(self._current_title())
+        games = [(g.id, g.name(lang)) for g in self.pokedex.games if preset_for(g.id)]
+        wizard = PresetWizard(image, games, detection.game_id if detection else None, self._preset_reading)
+        if not wizard.exec() or wizard.action is None:
+            return
+        if wizard.action == "manual":
+            self._calibrate_new_with(image)
+            return
+        game = self.pokedex.get_game(wizard.game_id)
+        if detection is not None and detection.game_id == wizard.game_id:
+            default_name = f"Pokémon {detection.version_name(lang)}"
+        else:
+            default_name = f"Pokémon {game.name(lang)}" if game else _("Mi juego")
+        answer = ask_profile(default_name, self.pokedex.games, wizard.game_id, lang)
+        if answer is None:
+            return
+        name, game_id = answer
+        h, w = image.shape[:2]
+        regions = to_profile_regions(wizard.preset, wizard.viewport, w, h)
+        profile = Profile(name, regions["rival"], game=game_id, own_region=regions.get("own"),
+                          moves_region=regions.get("moves"))
+        self.profiles.save(profile, activate=True)
+        self.battle.reset()
+        self._save_state()
+        self.tray.refresh_tooltip()
+        self.tray.notify(_("Perfil «{name}» creado y activo.", name=name))
 
     def _calibrate_new_with(self, image) -> None:
         dialog = CalibrationDialog(image, _("Calibrar nuevo perfil"))

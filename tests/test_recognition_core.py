@@ -78,3 +78,14 @@ def test_texto_con_ruido(matcher, raw, species_id):
 def test_palabra_corta_no_da_falso_positivo(matcher):
     # "PII" es el nombre alemán de Cleffa: una palabra suelta tan corta no debe bastar.
     assert not matcher.match("PII NG").recognized
+
+
+def test_letras_confundidas_en_fuentes_pixeladas():
+    from battlelens.core.matcher import NameMatcher
+    from battlelens.core.pokedex import Pokedex
+
+    matcher = NameMatcher(Pokedex.load())
+    for text, species in (("RRTTRTR", 19), ("CHRRIZRRD", 6), ("GROUOON", 383)):
+        result = matcher.match(text)
+        assert result.species_id == species and result.score == 97
+    assert matcher.match("PIDGEY").score == 100  # lo exacto sigue ganando
