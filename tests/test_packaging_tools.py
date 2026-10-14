@@ -71,3 +71,9 @@ def test_archivo_de_version_windows(tmp_path):
     build.write_version_file("0.2.0", out)
     text = out.read_text(encoding="utf-8")
     assert "filevers=(0, 2, 0, 0)" in text and "StringStruct('ProductVersion', '0.2.0')" in text
+
+
+def test_notas_bilingues():
+    notes = release_notes.build_notes(CHANGELOG, "0.2.0")
+    assert "## Instalación" in notes and "## Installation" in notes
+    assert "Run anyway" in notes and "unofficial fan project" in notes

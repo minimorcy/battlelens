@@ -21,12 +21,23 @@ INSTALL_NOTES = """\
 3. Si Windows muestra «Windows protegió su PC» (SmartScreen), pulsa **Más información → Ejecutar de todas formas**.
    Aparece porque el ejecutable no está firmado con un certificado de pago. Puedes comprobar la descarga con `SHA256SUMS.txt`.
 4. BattleLens usa el OCR de Windows. Si falta el paquete de idioma, la app te ofrece instalarlo desde su menú.
+
+## Installation
+
+1. Download **`BattleLens-Setup-{version}.exe`** (or the portable ZIP if you'd rather not install anything).
+2. Run it. No administrator rights needed.
+3. If Windows shows "Windows protected your PC" (SmartScreen), click **More info → Run anyway**.
+   It appears because the executable isn't signed with a paid certificate. You can verify the download with `SHA256SUMS.txt`.
+4. BattleLens uses Windows' built-in OCR. If the language pack is missing, the app offers to install it from its menu.
 """
 
 DISCLAIMER = (
     "> BattleLens es un proyecto de fans no oficial. No está afiliado ni respaldado por Nintendo, "
     "The Pokémon Company, Creatures Inc. ni GAME FREAK inc. Pokémon y los nombres de los Pokémon son "
-    "marcas registradas de sus respectivos titulares. Datos de Pokémon: PokéAPI (BSD-3-Clause)."
+    "marcas registradas de sus respectivos titulares. Datos de Pokémon: PokéAPI (BSD-3-Clause).\n>\n"
+    "> BattleLens is an unofficial fan project. It is not affiliated with, endorsed, sponsored or approved by "
+    "Nintendo, The Pokémon Company, Creatures Inc. or GAME FREAK inc. Pokémon and Pokémon character names are "
+    "trademarks of their respective owners. Pokémon data: PokéAPI (BSD-3-Clause)."
 )
 
 

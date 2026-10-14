@@ -2,7 +2,7 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versionado [SemVer](https://semver.org/lang/es/).
 
-## [Sin publicar]
+## [0.3.0] - 2026-10-14
 
 ### Añadido
 - «Nuevo perfil con un preset…»: regiones ya medidas para los juegos de GB, GBA, DS y Espada/Escudo; BattleLens localiza la imagen del juego en la ventana del emulador y muestra los recuadros y lo que lee para confirmarlos antes de guardar. Es la propuesta del primer arranque.
@@ -12,6 +12,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ### Cambiado
 - Mejor reconocimiento con las fuentes pixeladas de GBA/DS: la «A» leída como «R» o la «D» como «O» ya no impiden reconocer el nombre.
+
+### English
+
+**Added**
+- "New profile from a preset…": ready-made regions for GB, GBA, DS and Sword/Shield games. BattleLens finds the game image in the emulator window and shows the boxes and what it reads, so you can confirm them before saving. It's what the first run suggests.
+- "Report a problem…" in the tray: creates a ZIP with your settings, profiles, log and a capture of the emulator with what BattleLens reads in each region (no personal data in the text files, nothing is sent) and opens the GitHub bug form already filled in, now bilingual.
+- English interface: menus, notices, dialogs and card labels (also on the stream card) in English or Spanish, following the Windows language or chosen in Settings; independent of the Pokémon data language.
+- Stream mode (optional): a browser source for OBS at `http://localhost:17320/` with the card on a transparent background, updated with every opponent and hidden when the battle ends; `Ctrl+Alt+S` shows/hides it, "Copy URL for OBS" in the tray and a section in Settings.
+
+**Changed**
+- Better recognition with the pixel fonts of GBA/DS: an "A" read as "R" or a "D" read as "O" no longer prevents recognizing the name.
 
 ## [0.2.1] - 2026-10-13
 
