@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Logo de BattleLens: lupa (Lens) con un rayo (Battle). Diseño original. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#232937"/>
+      <stop offset="1" stop-color="#0f1218"/>
+    </linearGradient>
+    <linearGradient id="ring" gradientUnits="userSpaceOnUse" x1="100" y1="100" x2="440" y2="440">
+      <stop offset="0" stop-color="#ffe066"/>
+      <stop offset="0.5" stop-color="#ffb020"/>
+      <stop offset="1" stop-color="#f85888"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bg)"/>
+  <!-- mango debajo del aro: su extremo interior queda oculto y aro y mango se ven como una sola pieza -->
+  <line x1="316" y1="316" x2="414" y2="414" stroke="url(#ring)" stroke-width="64"/>
+  <circle cx="414" cy="414" r="32" fill="url(#ring)"/>
+  <circle cx="226" cy="226" r="126" fill="#141821" stroke="url(#ring)" stroke-width="46"/>
+  <path d="M250 124 L160 246 H218 L198 330 L294 202 H236 L266 124 Z" fill="#eef0f5" stroke="#eef0f5" stroke-width="12" stroke-linejoin="round"/>
+</svg>

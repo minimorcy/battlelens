@@ -2,6 +2,18 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versionado [SemVer](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Cambiado
+- Logo nuevo: una lupa con un rayo, dibujado en vectorial (`packaging/logo.svg`); de él salen el icono de la app, el del instalador y los de la web.
+- Web rediseñada: captura anotada, comparativa, sección para streamers, preguntas frecuentes y novedades de la 0.3.
+
+### English
+
+**Changed**
+- New logo: a magnifying glass with a lightning bolt, drawn as a vector (`packaging/logo.svg`); the app, installer and website icons are generated from it.
+- Redesigned website: annotated screenshot, comparison, streamer section, FAQ and what's new in 0.3.
+
 ## [0.3.0] - 2026-10-14
 
 ### Añadido
