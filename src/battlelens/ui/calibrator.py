@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
 
 from ..core.pokedex import Game
 from ..core.profiles import Region, RegionTooSmallError
+from ..i18n import N_, _
 
 
 class _Selector(QWidget):
@@ -85,18 +86,19 @@ class _Selector(QWidget):
 class CalibrationDialog(QDialog):
     """Devuelve la región elegida en `self.region` si el usuario confirma con Enter."""
 
-    def __init__(self, image: np.ndarray, title: str, target: str = "nombre del Pokémon rival") -> None:
+    def __init__(self, image: np.ndarray, title: str, target: str = N_("nombre del Pokémon rival")) -> None:
         super().__init__(None, Qt.WindowType.WindowStaysOnTopHint)
         self.setWindowTitle(title)
         self.region: Region | None = None
         screen = QGuiApplication.primaryScreen().availableGeometry()
         max_size = screen.size() * 0.85
 
-        help_text = QLabel(
-            f"Dibuja un rectángulo que cubra el <b>{target}</b>; cuanto más ajustado, mejor "
+        help_text = QLabel(_(
+            "Dibuja un rectángulo que cubra el <b>{target}</b>; cuanto más ajustado, mejor "
             "(no pasa nada si incluye el nivel). "
-            "<b>Enter</b> confirma · <b>Esc</b> cancela."
-        )
+            "<b>Enter</b> confirma · <b>Esc</b> cancela.",
+            target=_(target),
+        ))
         help_text.setTextFormat(Qt.TextFormat.RichText)
         self._error = QLabel()
         self._error.setStyleSheet("color:#e5484d; font-weight:600;")
@@ -118,7 +120,7 @@ class CalibrationDialog(QDialog):
     def _confirm(self) -> None:
         selection = self._selector.selection_in_image_px()
         if selection is None:
-            self._error.setText("Primero dibuja un rectángulo sobre el nombre.")
+            self._error.setText(_("Primero dibuja un rectángulo sobre el nombre."))
             return
         w, h = self._selector.image_size
         try:
@@ -134,18 +136,18 @@ class ProfileDialog(QDialog):
 
     def __init__(self, default_name: str, games: list[Game], default_game: str | None, lang: str = "es") -> None:
         super().__init__(None, Qt.WindowType.WindowStaysOnTopHint)
-        self.setWindowTitle("Nuevo perfil")
+        self.setWindowTitle(_("Nuevo perfil"))
         self.name_edit = QLineEdit(default_name)
         self.game_combo = QComboBox()
-        self.game_combo.addItem("Sin especificar (formas originales, tabla actual)", None)
+        self.game_combo.addItem(_("Sin especificar (formas originales, tabla actual)"), None)
         for game in sorted(games, key=lambda g: g.generation):
             self.game_combo.addItem(f"Gen {game.generation} · {game.name(lang)}", game.id)
         index = self.game_combo.findData(default_game)
         self.game_combo.setCurrentIndex(max(index, 0))
 
         form = QFormLayout()
-        form.addRow("Nombre del perfil:", self.name_edit)
-        form.addRow("Juego:", self.game_combo)
+        form.addRow(_("Nombre del perfil:"), self.name_edit)
+        form.addRow(_("Juego:"), self.game_combo)
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttons.accepted.connect(self._accept)
         buttons.rejected.connect(self.reject)

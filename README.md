@@ -49,7 +49,7 @@ BattleLens uses the text recognition that ships with Windows. Almost every PC al
    - With the 2nd opponent, double battles show two cards side by side.
    - **Your moves:** also calibrate the **move menu** (*Menú de ataques*) with the Fight menu open, over the 4 moves. Each time you open it, BattleLens reads your Pokémon's moves and remembers them per species; every card then shows **"Your moves"** (*Tus movimientos*) with how much each one does to that opponent. Until they're read, it shows your Pokémon's likely moves for its level.
 
-The app's interface is currently in Spanish (menu names are given in *italics* above); the card content (Pokémon, types, abilities, moves) is available in English, Spanish, French, German and Italian (`overlay.language`).
+The interface is in **English or Spanish**: it follows your Windows language, or choose it in *Settings → Interface language* (`interface.language`). The Spanish menu names are given in *italics* above. Pokémon data (names, types, abilities, moves) is a separate setting, available in English, Spanish, French, German and Italian (`overlay.language`).
 
 ### Streaming with OBS (optional)
 
@@ -80,7 +80,8 @@ Everything can be changed from tray → **Settings…** (*Ajustes…*) (changes 
 | `stream.enabled` | `false` | Stream mode: browser source for OBS |
 | `stream.port` | `17320` | Local port of the OBS source (`http://localhost:17320/`) |
 | `stream.card_mode` | `normal` | Stream card: `normal` or `competitive`, independent of yours |
-| `overlay.language` | `es` | Card language: `es`, `en`, `fr`, `de`, `it` |
+| `interface.language` | `auto` | Menus, notices and card labels: `auto` (Windows language), `es` or `en` |
+| `overlay.language` | `es` | Pokémon data language: `es`, `en`, `fr`, `de`, `it` |
 | `overlay.auto_hide_seconds` | `0` | Hide the card after N seconds (0 = never) |
 | `updates.check` | `true` | Check once a day for a new version on GitHub (the app's only outgoing connection) |
 

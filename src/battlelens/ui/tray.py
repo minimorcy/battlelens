@@ -9,6 +9,7 @@ from PyQt6.QtGui import QAction, QActionGroup
 from PyQt6.QtWidgets import QMenu, QSystemTrayIcon
 
 from .. import APP_NAME
+from ..i18n import N_, _
 from ..core.profiles import Profile
 from ..platform.windows import WindowInfo
 from .icons import app_icon
@@ -69,11 +70,11 @@ class Tray(QObject):
 
     def set_hotkey_hints(self, hotkey_texts: dict[str, str]) -> None:
         self._hotkeys = hotkey_texts
-        self._recognize_action.setText("Reconocer ahora" + self._hint("recognize"))
-        self._calibrate_action.setText("Calibrar nuevo perfil…" + self._hint("calibrate"))
+        self._recognize_action.setText(_("Reconocer ahora") + self._hint("recognize"))
+        self._calibrate_action.setText(_("Calibrar nuevo perfil…") + self._hint("calibrate"))
 
     def show_update(self, version: str) -> None:
-        self.update_action.setText(f"Descargar BattleLens {version}…")
+        self.update_action.setText(_("Descargar BattleLens {version}…", version=version))
         self.update_action.setVisible(True)
 
     def set_mode(self, mode: str) -> None:
@@ -85,7 +86,7 @@ class Tray(QObject):
         self.stream_action.setChecked(enabled)
         self.stream_action.blockSignals(False)
         self.copy_url_action.setEnabled(url is not None)
-        self.copy_url_action.setText(f"Copiar URL para OBS ({url})" if url else "Copiar URL para OBS")
+        self.copy_url_action.setText(_("Copiar URL para OBS ({url})", url=url) if url else _("Copiar URL para OBS"))
 
     def set_auto_detect(self, enabled: bool) -> None:
         self.auto_detect_action.blockSignals(True)
@@ -100,8 +101,8 @@ class Tray(QObject):
         profiles, active_id = self._get_profiles()
         active = next((p for p in profiles if p.id == active_id), None)
         lines = [APP_NAME]
-        lines.append(f"Ventana: {target.exe if target else '— selecciona una —'}")
-        lines.append(f"Perfil: {active.name if active else '— calibra uno —'}")
+        lines.append(_("Ventana: {window}", window=target.exe if target else _("— selecciona una —")))
+        lines.append(_("Perfil: {profile}", profile=active.name if active else _("— calibra uno —")))
         self.icon.setToolTip("\n".join(lines))
 
     def _hint(self, name: str) -> str:
@@ -110,56 +111,56 @@ class Tray(QObject):
 
     def _build_menu(self) -> None:
         m = self.menu
-        recognize = self._recognize_action = m.addAction("Reconocer ahora" + self._hint("recognize"))
+        recognize = self._recognize_action = m.addAction(_("Reconocer ahora") + self._hint("recognize"))
         recognize.triggered.connect(self.recognize_requested)
-        self.auto_detect_action = m.addAction("Detección automática")
+        self.auto_detect_action = m.addAction(_("Detección automática"))
         self.auto_detect_action.setCheckable(True)
         self.auto_detect_action.toggled.connect(self.auto_detect_toggled)
-        self._mode_menu = m.addMenu("Modo de la ficha")
+        self._mode_menu = m.addMenu(_("Modo de la ficha"))
         self._mode_group = QActionGroup(self._mode_menu)
         self.mode_actions: dict[str, QAction] = {}
-        for mode, label in (("normal", "Normal (aventura y captura)"), ("competitive", "Competitivo (combate)")):
+        for mode, label in (("normal", _("Normal (aventura y captura)")), ("competitive", _("Competitivo (combate)"))):
             action = QAction(label + self._hint("toggle_mode"), self._mode_menu, checkable=True)
             action.triggered.connect(lambda _=False, md=mode: self.mode_selected.emit(md))
             self._mode_group.addAction(action)
             self._mode_menu.addAction(action)
             self.mode_actions[mode] = action
-        self.stream_action = m.addAction("Modo stream (OBS)")
+        self.stream_action = m.addAction(_("Modo stream (OBS)"))
         self.stream_action.setCheckable(True)
         self.stream_action.toggled.connect(self.stream_toggled)
-        self.copy_url_action = m.addAction("Copiar URL para OBS")
+        self.copy_url_action = m.addAction(_("Copiar URL para OBS"))
         self.copy_url_action.triggered.connect(self.copy_stream_url_requested)
         self.copy_url_action.setEnabled(False)
         m.addSeparator()
 
-        self._windows_menu = m.addMenu("Ventana del emulador")
+        self._windows_menu = m.addMenu(_("Ventana del emulador"))
         self._windows_menu.aboutToShow.connect(self._populate_windows)
-        self._profiles_menu = m.addMenu("Perfil activo")
+        self._profiles_menu = m.addMenu(_("Perfil activo"))
         self._profiles_menu.aboutToShow.connect(self._populate_profiles)
-        self._game_menu = m.addMenu("Juego del perfil activo")
+        self._game_menu = m.addMenu(_("Juego del perfil activo"))
         self._game_menu.aboutToShow.connect(self._populate_games)
 
-        self._calibrate_action = m.addAction("Calibrar nuevo perfil…" + self._hint("calibrate"))
+        self._calibrate_action = m.addAction(_("Calibrar nuevo perfil…") + self._hint("calibrate"))
         self._calibrate_action.triggered.connect(self.calibrate_requested)
-        self._regions_menu = m.addMenu("Regiones del perfil")
+        self._regions_menu = m.addMenu(_("Regiones del perfil"))
         self._regions_menu.aboutToShow.connect(self._populate_regions)
-        self._delete = m.addAction("Eliminar perfil activo…")
+        self._delete = m.addAction(_("Eliminar perfil activo…"))
         self._delete.triggered.connect(self.delete_profile_requested)
         m.addSeparator()
-        self.install_ocr_action = m.addAction("Instalar OCR de Windows…")
+        self.install_ocr_action = m.addAction(_("Instalar OCR de Windows…"))
         self.install_ocr_action.triggered.connect(self.install_ocr_requested)
         self.install_ocr_action.setVisible(False)
-        m.addAction("Ajustes…").triggered.connect(self.settings_requested)
-        m.addAction("Abrir carpeta de datos").triggered.connect(self.open_data_requested)
-        self.update_action = m.addAction("Descargar versión nueva…")
+        m.addAction(_("Ajustes…")).triggered.connect(self.settings_requested)
+        m.addAction(_("Abrir carpeta de datos")).triggered.connect(self.open_data_requested)
+        self.update_action = m.addAction(_("Descargar versión nueva…"))
         self.update_action.triggered.connect(self.update_requested)
         self.update_action.setVisible(False)
-        m.addAction("Acerca de…").triggered.connect(self.about_requested)
-        m.addAction("Salir").triggered.connect(self.quit_requested)
+        m.addAction(_("Acerca de…")).triggered.connect(self.about_requested)
+        m.addAction(_("Salir")).triggered.connect(self.quit_requested)
         m.aboutToShow.connect(self._update_enabled)
 
     def _update_enabled(self) -> None:
-        _, active_id = self._get_profiles()
+        _profiles, active_id = self._get_profiles()
         self._regions_menu.setEnabled(active_id is not None)
         self._game_menu.setEnabled(active_id is not None)
         self._delete.setEnabled(active_id is not None)
@@ -171,7 +172,7 @@ class Tray(QObject):
         group = QActionGroup(menu)
         windows = self._list_windows()
         if not windows:
-            menu.addAction("(no hay ventanas)").setEnabled(False)
+            menu.addAction(_("(no hay ventanas)")).setEnabled(False)
         for info in windows:
             action = QAction(info.label, menu, checkable=True)
             action.setChecked(target is not None and target.hwnd == info.hwnd)
@@ -185,7 +186,7 @@ class Tray(QObject):
         profiles, active_id = self._get_profiles()
         group = QActionGroup(menu)
         if not profiles:
-            menu.addAction("(ninguno: calibra uno)").setEnabled(False)
+            menu.addAction(_("(ninguno: calibra uno)")).setEnabled(False)
         for profile in profiles:
             action = QAction(profile.name, menu, checkable=True)
             action.setChecked(profile.id == active_id)
@@ -200,16 +201,16 @@ class Tray(QObject):
         active = next((p for p in profiles if p.id == active_id), None)
         if active is None:
             return
-        menu.addAction("Recalibrar rival").triggered.connect(lambda: self.recalibrate_requested.emit())
+        menu.addAction(_("Recalibrar rival")).triggered.connect(lambda: self.recalibrate_requested.emit())
         for role, label, current in (
-            ("rival2", "2.º rival (combates dobles)", active.rival2_region),
-            ("own", "tu Pokémon", active.own_region),
-            ("moves", "menú de ataques", active.moves_region),
+            ("rival2", N_("2.º rival (combates dobles)"), active.rival2_region),
+            ("own", N_("tu Pokémon"), active.own_region),
+            ("moves", N_("menú de ataques"), active.moves_region),
         ):
-            verb = "Recalibrar" if current else "Calibrar"
-            menu.addAction(f"{verb} {label}…").triggered.connect(lambda _=False, r=role: self.region_requested.emit(r))
+            text = _("Recalibrar {label}…", label=_(label)) if current else _("Calibrar {label}…", label=_(label))
+            menu.addAction(text).triggered.connect(lambda _=False, r=role: self.region_requested.emit(r))
             if current:
-                menu.addAction(f"Quitar {label}").triggered.connect(
+                menu.addAction(_("Quitar {label}", label=_(label))).triggered.connect(
                     lambda _=False, r=role: self.region_remove_requested.emit(r)
                 )
 
@@ -220,7 +221,7 @@ class Tray(QObject):
         active = next((p for p in profiles if p.id == active_id), None)
         current = active.game if active else None
         group = QActionGroup(menu)
-        for game_id, label in [(None, "Sin especificar"), *self._get_games()]:
+        for game_id, label in [(None, _("Sin especificar")), *self._get_games()]:
             action = QAction(label, menu, checkable=True)
             action.setChecked(game_id == current)
             action.triggered.connect(lambda _=False, g=game_id: self.profile_game_selected.emit(g))

@@ -5,6 +5,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ## [Sin publicar]
 
 ### Añadido
+- Interfaz en inglés: menús, avisos, diálogos y textos de la ficha (y de la del stream) en español o inglés, según el idioma de Windows o elegido en Ajustes; independiente del idioma de los datos Pokémon.
 - Modo stream (opcional): fuente de navegador para OBS en `http://localhost:17320/` con la ficha sobre fondo transparente, que se actualiza con cada rival y se oculta al terminar el combate; atajo `Ctrl+Alt+S` para mostrarla u ocultarla, «Copiar URL para OBS» en la bandeja y sección en Ajustes.
 
 ## [0.2.1] - 2026-10-13

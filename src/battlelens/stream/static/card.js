@@ -1,5 +1,6 @@
 // Ficha de BattleLens para OBS: consulta /state y dibuja las tarjetas (add-stream-mode D5).
 // Todo el texto se inserta con textContent: nada del estado se interpreta como HTML.
+// Sin textos propios: todos llegan traducidos en el estado (card.labels, add-english-ui D5).
 "use strict";
 
 const POLL_MS = 400;
@@ -52,7 +53,7 @@ function renderCard(card) {
     title.appendChild(el("span", "section", v.title));
     title.appendChild(el("span", "pill verdict " + v.verdict.key, v.verdict.label));
     root.appendChild(title);
-    [["Tú", v.you], ["Él", v.them]].forEach(([who, types]) => {
+    [[card.labels.you, v.you], [card.labels.them, v.them]].forEach(([who, types]) => {
       const line = el("div", "line");
       line.appendChild(el("span", "who", who));
       line.appendChild(row(types));
@@ -96,7 +97,7 @@ function renderCard(card) {
       bar.appendChild(fill);
       grid.appendChild(bar);
     });
-    grid.appendChild(el("span", "label", "Total"));
+    grid.appendChild(el("span", "label", card.labels.total));
     grid.appendChild(el("span", "value", String(card.stats.total)));
     root.appendChild(grid);
   } else if (card.total) {

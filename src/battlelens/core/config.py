@@ -8,6 +8,7 @@ import tomllib
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from ..i18n import _
 from .storage import write_json_atomic, write_text_atomic
 
 log = logging.getLogger(__name__)
@@ -16,6 +17,10 @@ CONFIG_TEMPLATE = """\
 # Configuración de BattleLens.
 # Puedes editar este archivo (los cambios se aplican al reiniciar) o usar «Ajustes…» en la bandeja,
 # que lo reescribe con estos mismos comentarios.
+
+[interface]
+# Idioma de menús, avisos y textos de la ficha: "auto" (el de Windows), "es" o "en".
+language = {interface_language}
 
 [hotkeys]
 # Combinaciones con al menos un modificador (Ctrl, Alt, Shift, Win).
@@ -66,6 +71,7 @@ check = {updates_check}
 """
 LANGUAGES = ("es", "en", "fr", "de", "it")
 MODES = ("normal", "competitive")
+INTERFACE_LANGUAGES = ("auto", "es", "en")
 
 
 def _toml_value(value) -> str:
@@ -100,19 +106,21 @@ class Config:
     stream_enabled: bool = False
     stream_port: int = 17320
     stream_card_mode: str = "normal"
+    interface_language: str = "auto"
 
     @classmethod
     def from_toml(cls, text: str) -> Config:
         try:
             data = tomllib.loads(text)
         except tomllib.TOMLDecodeError as exc:
-            raise ConfigError(f"config.toml no es TOML válido: {exc}") from exc
+            raise ConfigError(_("config.toml no es TOML válido: {error}", error=exc)) from exc
         hk = data.get("hotkeys", {})
         rec = data.get("recognition", {})
         ov = data.get("overlay", {})
         det = data.get("detection", {})
         upd = data.get("updates", {})
         st = data.get("stream", {})
+        ui = data.get("interface", {})
         default = cls()
         cfg = cls(
             hotkey_recognize=hk.get("recognize", default.hotkey_recognize),
@@ -133,6 +141,7 @@ class Config:
             stream_enabled=st.get("enabled", default.stream_enabled),
             stream_port=st.get("port", default.stream_port),
             stream_card_mode=st.get("card_mode", default.stream_card_mode),
+            interface_language=ui.get("language", default.interface_language),
         )
         cfg._validate()
         return cfg
@@ -140,37 +149,39 @@ class Config:
     def _validate(self) -> None:
         for name in ("hotkey_recognize", "hotkey_calibrate", "hotkey_hide", "language"):
             if not isinstance(getattr(self, name), str):
-                raise ConfigError(f"{name} debe ser un texto")
+                raise ConfigError(_("{name} debe ser un texto", name=name))
         if not isinstance(self.threshold, (int, float)) or not 0 <= self.threshold <= 100:
-            raise ConfigError("recognition.threshold debe estar entre 0 y 100")
+            raise ConfigError(_("{key} debe estar entre {low} y {high}", key="recognition.threshold", low=0, high=100))
         if self.overlay_mode not in MODES:
-            raise ConfigError(f"overlay.mode debe ser uno de: {', '.join(MODES)}")
+            raise ConfigError(_("{key} debe ser uno de: {values}", key="overlay.mode", values=", ".join(MODES)))
         if not isinstance(self.hotkey_toggle_mode, str):
-            raise ConfigError("hotkeys.toggle_mode debe ser un texto")
+            raise ConfigError(_("{name} debe ser un texto", name="hotkeys.toggle_mode"))
         if not isinstance(self.hotkey_cycle_form, str):
-            raise ConfigError("hotkeys.cycle_form debe ser un texto")
+            raise ConfigError(_("{name} debe ser un texto", name="hotkeys.cycle_form"))
         if not isinstance(self.hotkey_toggle_stream, str):
-            raise ConfigError("hotkeys.toggle_stream debe ser un texto")
+            raise ConfigError(_("{name} debe ser un texto", name="hotkeys.toggle_stream"))
         if not isinstance(self.stream_enabled, bool):
-            raise ConfigError("stream.enabled debe ser true o false")
+            raise ConfigError(_("{key} debe ser true o false", key="stream.enabled"))
         if not isinstance(self.stream_port, int) or isinstance(self.stream_port, bool) or not 1024 <= self.stream_port <= 65535:
-            raise ConfigError("stream.port debe ser un entero entre 1024 y 65535")
+            raise ConfigError(_("{key} debe ser un entero entre {low} y {high}", key="stream.port", low=1024, high=65535))
+        if self.interface_language not in INTERFACE_LANGUAGES:
+            raise ConfigError(_("{key} debe ser uno de: {values}", key="interface.language", values=", ".join(INTERFACE_LANGUAGES)))
         if self.stream_card_mode not in MODES:
-            raise ConfigError(f"stream.card_mode debe ser uno de: {', '.join(MODES)}")
+            raise ConfigError(_("{key} debe ser uno de: {values}", key="stream.card_mode", values=", ".join(MODES)))
         if self.language not in LANGUAGES:
-            raise ConfigError(f"overlay.language debe ser uno de: {', '.join(LANGUAGES)}")
+            raise ConfigError(_("{key} debe ser uno de: {values}", key="overlay.language", values=", ".join(LANGUAGES)))
         if not isinstance(self.updates_check, bool):
-            raise ConfigError("updates.check debe ser true o false")
+            raise ConfigError(_("{key} debe ser true o false", key="updates.check"))
         if not isinstance(self.debug, bool):
-            raise ConfigError("recognition.debug debe ser true o false")
+            raise ConfigError(_("{key} debe ser true o false", key="recognition.debug"))
         if not isinstance(self.auto_hide_seconds, (int, float)) or self.auto_hide_seconds < 0:
-            raise ConfigError("overlay.auto_hide_seconds debe ser un número >= 0")
+            raise ConfigError(_("{key} debe ser un número >= 0", key="overlay.auto_hide_seconds"))
         if not isinstance(self.detection_enabled, bool):
-            raise ConfigError("detection.enabled debe ser true o false")
+            raise ConfigError(_("{key} debe ser true o false", key="detection.enabled"))
         if not isinstance(self.detection_interval_ms, int) or not 200 <= self.detection_interval_ms <= 5000:
-            raise ConfigError("detection.interval_ms debe ser un entero entre 200 y 5000")
+            raise ConfigError(_("{key} debe ser un entero entre {low} y {high}", key="detection.interval_ms", low=200, high=5000))
         if not isinstance(self.detection_hide_after_seconds, (int, float)) or self.detection_hide_after_seconds < 0:
-            raise ConfigError("detection.hide_after_seconds debe ser un número >= 0")
+            raise ConfigError(_("{key} debe ser un número >= 0", key="detection.hide_after_seconds"))
 
 
 def render_config(cfg: Config) -> str:

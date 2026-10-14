@@ -41,6 +41,32 @@ def test_tarjeta_competitiva(dex):
     assert card["stats"]["total"] == 305 and len(card["stats"]["rows"]) == 6
 
 
+def test_tarjeta_en_ingles_con_datos_en_espanol(dex):
+    """Interfaz en inglés (add-english-ui D5): títulos y etiquetas de card.js traducidos; datos en español."""
+    import battlelens.i18n as i18n
+
+    moves = [Learnsets.get().move(i) for i in ("ember", "growl")]
+    try:
+        i18n.set_language("en")
+        (card,) = build_cards(dex, [dex.view(66, "sword-shield")], dex.view(813, "sword-shield"), [16], moves,
+                              mode="competitive")
+    finally:
+        i18n.set_language("es")
+    assert card["labels"] == {"you": "You", "them": "Them", "total": "Total"}
+    assert card["level"] == "Lv. 16" and card["capture"]["text"] == "Catch rate: 180 · Medium"
+    assert card["versus"]["title"] == "Against your Scorbunny"
+    assert card["versus"]["verdict"] == {"label": "Neutral", "key": "neutral"}
+    assert [(m["name"], m["mult"]) for m in card["moves"]["items"]] == [("Ascuas", "×1"), ("Gruñido", "Status")]
+    assert [g["title"] for g in card["groups"]] == ["Weaknesses", "Resistances"]
+    assert [t["label"] for t in card["groups"][0]["rows"][0]["types"]] == ["Volador", "Psíquico", "Hada"]
+    assert card["stats"]["title"] == "Base stats" and card["stats"]["rows"][0]["label"] == "HP"
+
+
+def test_etiquetas_de_card_js_en_espanol(dex):
+    (card,) = build_cards(dex, [dex.view(66, "sword-shield")], None, [None])
+    assert card["labels"] == {"you": "Tú", "them": "Él", "total": "Total"}
+
+
 def test_textos_de_habilidades_iguales_que_la_ficha(dex):
     (card,) = build_cards(dex, [dex.view(437, "platinum")], dex.view(445, "platinum"), [None])
     assert "Si tiene Levitación: Tierra ×0" in card["ability_lines"]

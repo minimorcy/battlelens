@@ -152,7 +152,16 @@ def test_sin_evolucion(dex):
 
 
 def test_condiciones_en_ingles(dex):
-    assert dex.evolution_stages(5, lang="en")[1] == (("Charmeleon", "Lv. 16"),)
+    import battlelens.i18n as i18n
+
+    # Las etiquetas siguen al idioma de la interfaz; los nombres (y objetos), al de los datos
+    assert dex.evolution_stages(5, lang="en")[1] == (("Charmeleon", "Nv. 16"),)
+    try:
+        i18n.set_language("en")
+        assert dex.evolution_stages(5, lang="es")[1] == (("Charmeleon", "Lv. 16"),)
+        assert dex.evolution_stages(25, 1, lang="es")[1] == (("Raichu", "Piedra Trueno"),)
+    finally:
+        i18n.set_language("es")
 
 
 @pytest.mark.parametrize(("rate", "label"), [(255, "Fácil"), (190, "Fácil"), (140, "Media"), (45, "Difícil"), (3, "Muy difícil")])

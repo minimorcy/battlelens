@@ -12,16 +12,19 @@ from winrt.windows.graphics.imaging import BitmapPixelFormat, SoftwareBitmap
 from winrt.windows.media.ocr import OcrEngine
 from winrt.windows.storage.streams import DataWriter
 
+from ..i18n import _
+
 
 class OcrLanguageError(RuntimeError):
     def __init__(self, requested: tuple[str, ...] | list[str], available: list[str]) -> None:
         first = requested[0] if requested else "es"
         tag = {"es": "es-ES", "en": "en-US", "fr": "fr-FR", "de": "de-DE", "it": "it-IT"}.get(first, first)
         super().__init__(
-            f"No hay OCR de Windows para los idiomas {list(requested)} (instalados: {available or 'ninguno'}). "
-            "Instala el paquete en Configuración > Hora e idioma > Idioma y región > añadir idioma, "
-            "o en PowerShell como administrador: "
-            f'Add-WindowsCapability -Online -Name "Language.OCR~~~{tag}~0.0.1.0"'
+            _("No hay OCR de Windows para los idiomas {requested} (instalados: {installed}). "
+              "Instala el paquete en Configuración > Hora e idioma > Idioma y región > añadir idioma, "
+              "o en PowerShell como administrador: "
+              'Add-WindowsCapability -Online -Name "Language.OCR~~~{tag}~0.0.1.0"',
+              requested=list(requested), installed=available or _("ninguno"), tag=tag)
         )
 
 

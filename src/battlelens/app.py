@@ -38,6 +38,7 @@ from .core.moves import MoveMatcher, MoveMemory
 from .core.pokedex import DatasetMissingError, Pokedex
 from .core.profiles import Profile, ProfileStore
 from .core.storage import app_data_dir
+from .i18n import N_, _, resolve_language, set_language
 from .pipeline import (
     RecognitionPipeline,
     RecognitionResult,
@@ -212,23 +213,25 @@ class Controller(QObject):
     def _startup_notices(self, failed: list[str], bindings: dict[str, Hotkey]) -> None:
         notices = []
         if failed:
-            labels = {"recognize": "reconocer", "calibrate": "calibrar", "hide": "ocultar", "toggle_mode": "cambiar de modo",
-                      "cycle_form": "cambiar de forma", "toggle_stream": "ficha del stream"}
+            labels = {"recognize": _("reconocer"), "calibrate": _("calibrar"), "hide": _("ocultar"),
+                      "toggle_mode": _("cambiar de modo"), "cycle_form": _("cambiar de forma"),
+                      "toggle_stream": _("ficha del stream")}
+            invalid = _("inválido")
             detail = ", ".join(
-                f"{labels[n]} ({bindings[n].text})" if n in bindings else f"{labels[n]} (inválido)" for n in failed
+                f"{labels[n]} ({bindings[n].text})" if n in bindings else f"{labels[n]} ({invalid})" for n in failed
             )
-            notices.append(f"No se pudieron registrar los atajos: {detail}. Cámbialos en config.toml.")
+            notices.append(_("No se pudieron registrar los atajos: {detail}. Cámbialos en config.toml.", detail=detail))
         if not self.ocr_available():
             self.tray.set_ocr_missing(True)
-            notices.append("Falta el OCR de Windows. Instálalo desde el menú de la bandeja: «Instalar OCR de Windows…».")
+            notices.append(_("Falta el OCR de Windows. Instálalo desde el menú de la bandeja: «Instalar OCR de Windows…»."))
         if self.target is None:
-            notices.append("Selecciona la ventana del emulador en el menú de la bandeja.")
+            notices.append(_("Selecciona la ventana del emulador en el menú de la bandeja."))
         elif self.profiles.active is None:
-            notices.append("Calibra un perfil para este juego (menú de la bandeja o atajo de calibrar).")
+            notices.append(_("Calibra un perfil para este juego (menú de la bandeja o atajo de calibrar)."))
         if notices:
             self.tray.notify("\n".join(notices), warning=bool(failed))
         else:
-            self.tray.notify(f"Listo. Pulsa {self.config.hotkey_recognize} en un combate.")
+            self.tray.notify(_("Listo. Pulsa {hotkey} en un combate.", hotkey=self.config.hotkey_recognize))
 
     @staticmethod
     def ocr_available() -> bool:
@@ -244,13 +247,13 @@ class Controller(QObject):
         tag = proposed_ocr_tag(ui_language_tag())
         answer = QMessageBox.question(
             None,
-            "Instalar OCR de Windows",
-            f"Se instalará el reconocimiento de texto de Windows ({tag}).\n\n"
-            "Windows pedirá permiso de administrador y la descarga puede tardar unos minutos.",
+            _("Instalar OCR de Windows"),
+            _("Se instalará el reconocimiento de texto de Windows ({tag}).\n\n"
+              "Windows pedirá permiso de administrador y la descarga puede tardar unos minutos.", tag=tag),
         )
         if answer != QMessageBox.StandardButton.Yes:
             return
-        self.tray.notify("Instalando el OCR de Windows… Te aviso al terminar.")
+        self.tray.notify(_("Instalando el OCR de Windows… Te aviso al terminar."))
         task = _Task(install_ocr, tag)
         task.signals.finished.connect(self._on_ocr_installed)
         task.signals.failed.connect(
@@ -260,17 +263,19 @@ class Controller(QObject):
 
     def _on_ocr_installed(self, result: InstallResult) -> None:
         if result.outcome is InstallOutcome.CANCELLED:
-            self.tray.notify("Instalación cancelada.")
+            self.tray.notify(_("Instalación cancelada."))
         elif result.outcome is InstallOutcome.FAILED:
             log.warning("Fallo al instalar el OCR %s (código %s)", result.tag, result.exit_code)
             QMessageBox.warning(
-                None, "OCR de Windows", f"No se pudo instalar el OCR ({result.tag}).\n\n{MANUAL_INSTRUCTIONS}"
+                None, _("OCR de Windows"),
+                _("No se pudo instalar el OCR ({tag}).\n\n{instructions}", tag=result.tag,
+                  instructions=_(MANUAL_INSTRUCTIONS)),
             )
         elif self.ocr_available():
             self.tray.set_ocr_missing(False)
-            self.tray.notify(f"OCR instalado. Ya puedes reconocer con {self.config.hotkey_recognize}.")
+            self.tray.notify(_("OCR instalado. Ya puedes reconocer con {hotkey}.", hotkey=self.config.hotkey_recognize))
         else:
-            self.tray.notify("OCR instalado. Reinicia BattleLens para empezar a usarlo.")
+            self.tray.notify(_("OCR instalado. Reinicia BattleLens para empezar a usarlo."))
 
     # ---- ajustes (spec app-settings) ----------------------------------------------
 
@@ -301,7 +306,7 @@ class Controller(QObject):
             failed = self.hotkeys.start() + invalid
             self.tray.set_hotkey_hints({name: hk.text for name, hk in bindings.items()})
             if failed:
-                self.tray.notify(f"No se pudieron registrar los atajos: {', '.join(failed)}.", warning=True)
+                self.tray.notify(_("No se pudieron registrar los atajos: {names}.", names=", ".join(failed)), warning=True)
         self.pipeline.matcher.threshold = new.threshold
         self.pipeline.debug_dir = self.data_dir / "debug" if new.debug else None
         self.overlay.language = new.language
@@ -314,12 +319,17 @@ class Controller(QObject):
         self.battle.hide_after_seconds = new.detection_hide_after_seconds
         if new.detection_enabled != old.detection_enabled:
             self.set_auto_detect(new.detection_enabled)
+        if new.interface_language != old.interface_language:
+            set_language(resolve_language(new.interface_language, _windows_language()))
+            self._redraw_last_battle()
+            self._publish_stream(keep_visibility=True)
+            self.tray.notify(_("Los menús cambiarán de idioma al reiniciar BattleLens."))
         if (new.stream_enabled, new.stream_port) != (old.stream_enabled, old.stream_port):
             self._apply_stream(new)
         if new.stream_card_mode != old.stream_card_mode:
             self.stream_state.mode = new.stream_card_mode
             self._publish_stream(keep_visibility=True)
-        self.tray.notify("Ajustes guardados.")
+        self.tray.notify(_("Ajustes guardados."))
 
     # ---- modo stream (spec stream-mode) -------------------------------------------
 
@@ -329,7 +339,8 @@ class Controller(QObject):
             self.stream_server.stop()
         elif not self.stream_server.running or self.stream_server.port != config.stream_port:
             if not self.stream_server.start(config.stream_port):
-                self.tray.notify(f"El puerto {config.stream_port} está ocupado: cámbialo en Ajustes.", warning=True)
+                self.tray.notify(_("El puerto {port} está ocupado: cámbialo en Ajustes.", port=config.stream_port),
+                                 warning=True)
         self.tray.set_stream(config.stream_enabled, self.stream_server.url)
 
     def set_stream_enabled(self, enabled: bool) -> None:
@@ -339,13 +350,14 @@ class Controller(QObject):
             self.config = new
         self._apply_stream(self.config)
         if enabled and self.stream_server.running:
-            self.tray.notify(f"Modo stream activo. Añade en OBS una fuente de navegador con {self.stream_server.url}")
+            self.tray.notify(_("Modo stream activo. Añade en OBS una fuente de navegador con {url}",
+                               url=self.stream_server.url))
 
     def copy_stream_url(self) -> None:
         url = self.stream_server.url
         if url:
             QGuiApplication.clipboard().setText(url)
-            self.tray.notify(f"URL copiada: {url}")
+            self.tray.notify(_("URL copiada: {url}", url=url))
 
     def _publish_stream(self, keep_visibility: bool = False) -> None:
         """Publica la última ficha en la fuente para OBS, en el modo de ficha del stream."""
@@ -378,7 +390,8 @@ class Controller(QObject):
         if release is not None:
             self.release = release
             self.tray.show_update(release.version)
-            self.tray.notify(f"BattleLens {release.version} disponible. Descárgala desde el menú de la bandeja.")
+            self.tray.notify(_("BattleLens {version} disponible. Descárgala desde el menú de la bandeja.",
+                               version=release.version))
 
     def open_update(self) -> None:
         if self.release is not None:
@@ -414,7 +427,7 @@ class Controller(QObject):
     def toggle_mode(self) -> None:
         mode = "normal" if self.config.overlay_mode == "competitive" else "competitive"
         self.set_mode(mode)
-        self.tray.notify("Ficha: " + ("Competitivo" if mode == "competitive" else "Normal"))
+        self.tray.notify(_("Ficha: Competitivo") if mode == "competitive" else _("Ficha: Normal"))
 
     def _redraw_last_battle(self) -> None:
         if self._last_battle is not None and self.overlay.isVisible():
@@ -598,12 +611,12 @@ class Controller(QObject):
             log.info("Reconocimiento en curso; pulsación ignorada")
             return
         if self.target is None:
-            self.tray.notify("Selecciona primero la ventana del emulador.", warning=True)
+            self.tray.notify(_("Selecciona primero la ventana del emulador."), warning=True)
             return
         self._auto_select_profile()
         profile = self.profiles.active
         if profile is None:
-            self.tray.notify("No hay perfiles: calibra primero la región del nombre.", warning=True)
+            self.tray.notify(_("No hay perfiles: calibra primero la región del nombre."), warning=True)
             return
         if profile.moves_region is not None:
             self.pipeline.move_matcher = self.move_matcher()
@@ -633,7 +646,7 @@ class Controller(QObject):
             self.tray.notify(str(exc), warning=True)
         else:
             log.error("Error inesperado en el reconocimiento", exc_info=exc)
-            self.tray.notify(f"Error inesperado: {exc}", warning=True)
+            self.tray.notify(_("Error inesperado: {error}", error=exc), warning=True)
 
     def _target_rect(self) -> tuple[int, int, int, int] | None:
         if self.target is None or not windows.is_window(self.target.hwnd):
@@ -664,7 +677,7 @@ class Controller(QObject):
         self._save_state()
         self.tray.refresh_tooltip()
         game = self.pokedex.get_game(game_id)
-        self.tray.notify(f"Perfil «{profile.name}» activado ({game.name(self.config.language)}).")
+        self.tray.notify(_("Perfil «{name}» activado ({game}).", name=profile.name, game=game.name(self.config.language)))
 
     def set_profile_game(self, game_id: str | None) -> None:
         profile = self.profiles.active
@@ -672,8 +685,8 @@ class Controller(QObject):
             return
         self.profiles.save(profile.with_game(game_id), activate=True)
         game = self.pokedex.get_game(game_id)
-        label = game.name(self.config.language) if game else "sin especificar"
-        self.tray.notify(f"Juego de «{profile.name}»: {label}.")
+        label = game.name(self.config.language) if game else _("sin especificar")
+        self.tray.notify(_("Juego de «{name}»: {game}.", name=profile.name, game=label))
 
     def _set_target(self, info: windows.WindowInfo | None) -> None:
         self.target = info
@@ -689,7 +702,7 @@ class Controller(QObject):
 
     def _capture_for_calibration(self):
         if self.target is None:
-            self.tray.notify("Selecciona primero la ventana del emulador.", warning=True)
+            self.tray.notify(_("Selecciona primero la ventana del emulador."), warning=True)
             return None
         try:
             return capture_client(self.target.hwnd)
@@ -710,7 +723,7 @@ class Controller(QObject):
             self._modal_open = False
 
     def _calibrate_new_with(self, image) -> None:
-        dialog = CalibrationDialog(image, "Calibrar nuevo perfil")
+        dialog = CalibrationDialog(image, _("Calibrar nuevo perfil"))
         if not dialog.exec() or dialog.region is None:
             return
         detection = self.detector.detect_version(self._current_title())
@@ -718,7 +731,7 @@ class Controller(QObject):
         if detection is not None:
             default_name = f"Pokémon {detection.version_name(lang)}"
         else:
-            default_name = self.target.title if self.target else "Mi juego"
+            default_name = self.target.title if self.target else _("Mi juego")
         answer = ask_profile(default_name, self.pokedex.games, detection.game_id if detection else None, lang)
         if answer is None:
             return
@@ -727,13 +740,13 @@ class Controller(QObject):
         self.profiles.save(profile, activate=True)
         self._save_state()
         self.tray.refresh_tooltip()
-        self.tray.notify(f"Perfil «{name}» creado y activo.")
+        self.tray.notify(_("Perfil «{name}» creado y activo.", name=name))
 
     REGION_TARGETS = {
-        "rival": "nombre del Pokémon rival",
-        "rival2": "nombre del 2.º Pokémon rival",
-        "own": "nombre de tu Pokémon",
-        "moves": "menú de ataques (los 4 movimientos)",
+        "rival": N_("nombre del Pokémon rival"),
+        "rival2": N_("nombre del 2.º Pokémon rival"),
+        "own": N_("nombre de tu Pokémon"),
+        "moves": N_("menú de ataques (los 4 movimientos)"),
     }
 
     def recalibrate(self) -> None:
@@ -746,8 +759,8 @@ class Controller(QObject):
         image = self._capture_for_calibration()
         if image is None:
             return
-        target = self.REGION_TARGETS[role]
-        dialog = CalibrationDialog(image, f"«{profile.name}»: {target}", target)
+        target = _(self.REGION_TARGETS[role])
+        dialog = CalibrationDialog(image, _("«{name}»: {target}", name=profile.name, target=target), target)
         self._modal_open = True
         try:
             accepted = dialog.exec()
@@ -760,7 +773,8 @@ class Controller(QObject):
         self.profiles.save(profile.with_role_region(role, region), activate=True)
         self.battle.reset()  # la huella cambia de forma al cambiar las regiones
         self.moves_watcher.reset()
-        self.tray.notify(f"«{profile.name}»: región del {self.REGION_TARGETS[role]} guardada.")
+        self.tray.notify(_("«{name}»: región del {target} guardada.", name=profile.name,
+                           target=_(self.REGION_TARGETS[role])))
 
     def remove_region(self, role: str) -> None:
         profile = self.profiles.active
@@ -768,13 +782,14 @@ class Controller(QObject):
             return
         self.profiles.save(profile.with_role_region(role, None), activate=True)
         self.battle.reset()
-        self.tray.notify(f"«{profile.name}»: región del {self.REGION_TARGETS[role]} quitada.")
+        self.tray.notify(_("«{name}»: región del {target} quitada.", name=profile.name,
+                           target=_(self.REGION_TARGETS[role])))
 
     def delete_profile(self) -> None:
         profile = self.profiles.active
         if profile is None:
             return
-        answer = QMessageBox.question(None, "Eliminar perfil", f"¿Eliminar el perfil «{profile.name}»?")
+        answer = QMessageBox.question(None, _("Eliminar perfil"), _("¿Eliminar el perfil «{name}»?", name=profile.name))
         if answer == QMessageBox.StandardButton.Yes:
             self.profiles.delete(profile.id)
             self._save_state()
@@ -826,6 +841,13 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     return args
 
 
+def _windows_language() -> str | None:
+    try:
+        return ui_language_tag()
+    except (OSError, AttributeError):  # fuera de Windows o sin la API
+        return None
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(sys.argv[1:] if argv is None else argv)
     if args.self_test:
@@ -842,14 +864,16 @@ def main(argv: list[str] | None = None) -> int:
         app.installTranslator(translator)
     app.setApplicationName(APP_NAME)
     app.setQuitOnLastWindowClosed(False)
+    set_language(resolve_language("auto", _windows_language()))  # hasta leer config.toml
 
     instance = SingleInstance()
     if instance.already_running:
-        QMessageBox.information(None, APP_NAME, "La aplicación ya se está ejecutando (mira la bandeja).")
+        QMessageBox.information(None, APP_NAME, _("La aplicación ya se está ejecutando (mira la bandeja)."))
         return 0
 
     try:
         config = load_config(app_data_dir() / "config.toml")
+        set_language(resolve_language(config.interface_language, _windows_language()))
         pokedex = Pokedex.load()
     except (ConfigError, DatasetMissingError) as exc:
         return _fatal(str(exc))

@@ -1,5 +1,7 @@
 """Colores y textos compartidos por la interfaz."""
 
+from ..i18n import N_
+
 TYPE_COLORS = {
     "normal": "#A8A77A",
     "fire": "#EE8130",
@@ -24,14 +26,15 @@ TYPE_COLORS = {
 DARK_TEXT_TYPES = {"electric", "ice", "ground", "steel"}
 
 STAT_LABELS = {
-    "hp": "PS",
-    "attack": "Ataque",
-    "defense": "Defensa",
-    "special": "Especial",
-    "special_attack": "At. Esp.",
-    "special_defense": "Def. Esp.",
-    "speed": "Velocidad",
+    "hp": N_("PS"),
+    "attack": N_("Ataque"),
+    "defense": N_("Defensa"),
+    "special": N_("Especial"),
+    "special_attack": N_("At. Esp."),
+    "special_defense": N_("Def. Esp."),
+    "speed": N_("Velocidad"),
 }
+# Claves: dificultad de captura en español (clave interna; se traduce al mostrarla)
 CAPTURE_COLORS = {"Fácil": "#3ddc97", "Media": "#ffcb05", "Difícil": "#ff8c42", "Muy difícil": "#e5484d"}
 MULTIPLIER_LABELS = {4.0: "×4", 2.0: "×2", 0.5: "×½", 0.25: "×¼", 0.0: "×0"}
 

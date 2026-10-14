@@ -8,12 +8,14 @@ from ctypes import wintypes
 from dataclasses import dataclass
 from enum import Enum
 
+from ..i18n import N_
+
 # Idiomas soportados por la app → etiqueta del paquete de OCR de Windows
 SUPPORTED_OCR_TAGS = {"es": "es-ES", "en": "en-US", "fr": "fr-FR", "de": "de-DE", "it": "it-IT"}
 FALLBACK_TAG = "en-US"
 ERROR_CANCELLED = 1223
 
-MANUAL_INSTRUCTIONS = (
+MANUAL_INSTRUCTIONS = N_(
     "Instálalo a mano en Configuración > Hora e idioma > Idioma y región: añade (o abre las opciones de) "
     "tu idioma y marca «Reconocimiento óptico de caracteres»."
 )

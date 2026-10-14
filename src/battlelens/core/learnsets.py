@@ -7,6 +7,8 @@ import threading
 from dataclasses import dataclass
 from importlib import resources
 
+from ..i18n import _
+
 PROBABLE_MOVES = 4
 
 
@@ -51,7 +53,7 @@ class Learnsets:
             if cls._instance is None:
                 resource = resources.files("battlelens") / "data" / "learnsets.json"
                 if not resource.is_file():
-                    raise LearnsetsMissingError("Falta learnsets.json: genera los datos con tools/build_dataset.py")
+                    raise LearnsetsMissingError(_("Falta learnsets.json: genera los datos con tools/build_dataset.py"))
                 cls._instance = cls(json.loads(resource.read_text(encoding="utf-8")))
             return cls._instance
 

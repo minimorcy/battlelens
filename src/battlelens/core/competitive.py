@@ -6,6 +6,7 @@ from __future__ import annotations
 import math
 from enum import Enum
 
+from ..i18n import N_
 from .abilities import ABILITY_NOTES, ABILITY_TYPE_EFFECTS, ability_effects  # noqa: F401 (reexportadas)
 from .pokedex import STAT_DISPLAY_ORDER, SpeciesView
 
@@ -92,9 +93,9 @@ def view_ranges(view: SpeciesView, level: int, own: bool = False) -> dict[str, t
 
 
 class SpeedVerdict(Enum):
-    FASTER = "Eres más rápido"
-    SLOWER = "Es más rápido"
-    DEPENDS = "Depende de IVs/EVs"
+    FASTER = N_("Eres más rápido")
+    SLOWER = N_("Es más rápido")
+    DEPENDS = N_("Depende de IVs/EVs")
 
 
 def compare_speed(own: tuple[int, int], rival: tuple[int, int]) -> SpeedVerdict:
@@ -121,14 +122,14 @@ def stat_profile(stats: dict[str, int]) -> list[str]:
     spa = stats.get("special_attack", stats.get("special", 0))
     spd = stats.get("special_defense", stats.get("special", 0))
     if atk - spa >= 20:
-        profile.append("Atacante físico")
+        profile.append(N_("Atacante físico"))
     elif spa - atk >= 20:
-        profile.append("Atacante especial")
+        profile.append(N_("Atacante especial"))
     else:
-        profile.append("Atacante mixto")
+        profile.append(N_("Atacante mixto"))
     bulk = stats["hp"] + stats["defense"] + spd
     if bulk - (atk + spa + stats["speed"]) >= 40:
-        profile.append("defensivo")
+        profile.append(N_("defensivo"))
     if stats["speed"] >= 100:
-        profile.append("rápido")
+        profile.append(N_("rápido"))
     return profile

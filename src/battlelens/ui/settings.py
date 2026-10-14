@@ -19,19 +19,23 @@ from PyQt6.QtWidgets import (
 )
 
 from ..core.config import LANGUAGES, MODES, Config
+from ..i18n import N_, _
 from ..platform.hotkeys import HotkeyParseError, parse_hotkey
 from .icons import app_icon
 
+# Nombres de idioma en su propio idioma: no se traducen.
 LANGUAGE_LABELS = {"es": "Español", "en": "English", "fr": "Français", "de": "Deutsch", "it": "Italiano"}
 HOTKEY_FIELDS = (
-    ("hotkey_recognize", "Reconocer"),
-    ("hotkey_calibrate", "Calibrar"),
-    ("hotkey_hide", "Ocultar ficha"),
-    ("hotkey_toggle_mode", "Cambiar de modo"),
-    ("hotkey_cycle_form", "Cambiar de forma"),
-    ("hotkey_toggle_stream", "Ficha del stream"),
+    ("hotkey_recognize", N_("Reconocer")),
+    ("hotkey_calibrate", N_("Calibrar")),
+    ("hotkey_hide", N_("Ocultar ficha")),
+    ("hotkey_toggle_mode", N_("Cambiar de modo")),
+    ("hotkey_cycle_form", N_("Cambiar de forma")),
+    ("hotkey_toggle_stream", N_("Ficha del stream")),
 )
-MODE_LABELS = {"normal": "Normal (aventura y captura)", "competitive": "Competitivo (combate)"}
+MODE_LABELS = {"normal": N_("Normal (aventura y captura)"), "competitive": N_("Competitivo (combate)")}
+# Idioma de la interfaz: «Español» y «English» son nombres de idioma y no se traducen.
+INTERFACE_LANGUAGE_LABELS = (("auto", N_("Automático (idioma de Windows)")), ("es", "Español"), ("en", "English"))
 
 
 def _spin(minimum: float, maximum: float, value: float, step: float = 1, decimals: int = 0, suffix: str = ""):
@@ -48,7 +52,7 @@ def _spin(minimum: float, maximum: float, value: float, step: float = 1, decimal
 class SettingsDialog(QDialog):
     def __init__(self, config: Config) -> None:
         super().__init__(None, Qt.WindowType.WindowStaysOnTopHint)
-        self.setWindowTitle("Ajustes de BattleLens")
+        self.setWindowTitle(_("Ajustes de BattleLens"))
         self.setWindowIcon(app_icon())
         self.setMinimumWidth(440)
         self.result_config: Config | None = None
@@ -59,7 +63,7 @@ class SettingsDialog(QDialog):
         hotkeys = QFormLayout()
         for field, label in HOTKEY_FIELDS:
             edit = QLineEdit(getattr(config, field))
-            edit.setPlaceholderText("p. ej. Ctrl+Alt+P")
+            edit.setPlaceholderText(_("p. ej. Ctrl+Alt+P"))
             error = QLabel()
             error.setStyleSheet("color:#e5484d;")
             error.setWordWrap(True)
@@ -71,32 +75,37 @@ class SettingsDialog(QDialog):
             holder = QWidget()
             holder.setLayout(column)
             column.setContentsMargins(0, 0, 0, 0)
-            hotkeys.addRow(f"{label}:", holder)
+            hotkeys.addRow(_(label) + ":", holder)
             self.hotkey_edits[field] = edit
             self.hotkey_errors[field] = error
 
         # Ficha y reconocimiento
+        self.interface_language = QComboBox()
+        for code, label in INTERFACE_LANGUAGE_LABELS:
+            self.interface_language.addItem(_(label) if code == "auto" else label, code)
+        self.interface_language.setCurrentIndex(max(self.interface_language.findData(config.interface_language), 0))
         self.language = QComboBox()
         for code in LANGUAGES:
             self.language.addItem(LANGUAGE_LABELS[code], code)
         self.language.setCurrentIndex(max(self.language.findData(config.language), 0))
         self.mode = QComboBox()
         for code in MODES:
-            self.mode.addItem(MODE_LABELS[code], code)
+            self.mode.addItem(_(MODE_LABELS[code]), code)
         self.mode.setCurrentIndex(max(self.mode.findData(config.overlay_mode), 0))
         self.threshold = _spin(0, 100, config.threshold, 1, 0)
         self.auto_hide = _spin(0, 600, config.auto_hide_seconds, 1, 0, " s")
-        self.debug = QCheckBox("Guardar recortes de depuración")
+        self.debug = QCheckBox(_("Guardar recortes de depuración"))
         self.debug.setChecked(config.debug)
         card = QFormLayout()
-        card.addRow("Modo de la ficha:", self.mode)
-        card.addRow("Idioma de la ficha:", self.language)
-        card.addRow("Umbral de reconocimiento:", self.threshold)
-        card.addRow("Ocultar la ficha tras (0 = nunca):", self.auto_hide)
+        card.addRow(_("Idioma de la interfaz:"), self.interface_language)
+        card.addRow(_("Modo de la ficha:"), self.mode)
+        card.addRow(_("Idioma de los datos Pokémon:"), self.language)
+        card.addRow(_("Umbral de reconocimiento:"), self.threshold)
+        card.addRow(_("Ocultar la ficha tras (0 = nunca):"), self.auto_hide)
         card.addRow("", self.debug)
 
         # Detección automática
-        self.detection_enabled = QCheckBox("Reconocer al rival automáticamente")
+        self.detection_enabled = QCheckBox(_("Reconocer al rival automáticamente"))
         self.detection_enabled.setChecked(config.detection_enabled)
         self.interval = QSpinBox()
         self.interval.setRange(200, 5000)
@@ -106,30 +115,30 @@ class SettingsDialog(QDialog):
         self.hide_after = _spin(0, 600, config.detection_hide_after_seconds, 1, 0, " s")
         detection = QFormLayout()
         detection.addRow("", self.detection_enabled)
-        detection.addRow("Intervalo de vigilancia:", self.interval)
-        detection.addRow("Ocultar al terminar el combate tras:", self.hide_after)
+        detection.addRow(_("Intervalo de vigilancia:"), self.interval)
+        detection.addRow(_("Ocultar al terminar el combate tras:"), self.hide_after)
 
         # Modo stream (spec stream-mode)
-        self.stream_enabled = QCheckBox("Fuente de navegador para OBS")
+        self.stream_enabled = QCheckBox(_("Fuente de navegador para OBS"))
         self.stream_enabled.setChecked(config.stream_enabled)
         self.stream_port = QSpinBox()
         self.stream_port.setRange(1024, 65535)
         self.stream_port.setValue(config.stream_port)
         self.stream_mode = QComboBox()
         for code in MODES:
-            self.stream_mode.addItem(MODE_LABELS[code], code)
+            self.stream_mode.addItem(_(MODE_LABELS[code]), code)
         self.stream_mode.setCurrentIndex(max(self.stream_mode.findData(config.stream_card_mode), 0))
         stream = QFormLayout()
         stream.addRow("", self.stream_enabled)
-        stream.addRow("Puerto (http://localhost:…/):", self.stream_port)
-        stream.addRow("Ficha del stream:", self.stream_mode)
+        stream.addRow(_("Puerto (http://localhost:…/):"), self.stream_port)
+        stream.addRow(_("Ficha del stream:"), self.stream_mode)
 
         # Actualizaciones
-        self.updates = QCheckBox("Comprobar una vez al día si hay versión nueva")
+        self.updates = QCheckBox(_("Comprobar una vez al día si hay versión nueva"))
         self.updates.setChecked(config.updates_check)
 
-        note = QLabel("Guardar reescribe config.toml con sus comentarios explicativos; "
-                      "los comentarios que hayas añadido a mano se perderán.")
+        note = QLabel(_("Guardar reescribe config.toml con sus comentarios explicativos; "
+                        "los comentarios que hayas añadido a mano se perderán."))
         note.setWordWrap(True)
         note.setStyleSheet("color:#888; font-size:11px;")
 
@@ -138,8 +147,8 @@ class SettingsDialog(QDialog):
         buttons.rejected.connect(self.reject)
 
         layout = QVBoxLayout(self)
-        for title, form in (("Atajos de teclado", hotkeys), ("Ficha y reconocimiento", card),
-                            ("Detección automática", detection), ("Modo stream", stream)):
+        for title, form in ((_("Atajos de teclado"), hotkeys), (_("Ficha y reconocimiento"), card),
+                            (_("Detección automática"), detection), (_("Modo stream"), stream)):
             group = QGroupBox(title)
             group.setLayout(form)
             layout.addWidget(group)
@@ -151,7 +160,7 @@ class SettingsDialog(QDialog):
         """Configuración del formulario y errores por campo (vacío si todo es válido)."""
         errors: dict[str, str] = {}
         parsed = {}
-        for field, _ in HOTKEY_FIELDS:
+        for field, _label in HOTKEY_FIELDS:
             text = self.hotkey_edits[field].text().strip()
             try:
                 parsed[field] = parse_hotkey(text)
@@ -160,7 +169,7 @@ class SettingsDialog(QDialog):
         combos = [(hk.modifiers, hk.vk) for hk in parsed.values()]
         if len(parsed) == len(HOTKEY_FIELDS) and len(set(combos)) < len(combos):
             for field in parsed:
-                errors.setdefault(field, "Hay dos acciones con el mismo atajo.")
+                errors.setdefault(field, _("Hay dos acciones con el mismo atajo."))
         if errors:
             return None, errors
         config = Config(
@@ -177,6 +186,7 @@ class SettingsDialog(QDialog):
             threshold=float(self.threshold.value()),
             debug=self.debug.isChecked(),
             language=self.language.currentData(),
+            interface_language=self.interface_language.currentData(),
             auto_hide_seconds=float(self.auto_hide.value()),
             detection_enabled=self.detection_enabled.isChecked(),
             detection_interval_ms=int(self.interval.value()),

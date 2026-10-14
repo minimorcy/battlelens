@@ -8,6 +8,7 @@ from functools import lru_cache
 from importlib import resources
 from pathlib import Path
 
+from ..i18n import get_language, N_, _
 from .abilities import AbilityEffect, affects_typing, resolve
 
 STAT_ORDER = ("hp", "attack", "defense", "special_attack", "special_defense", "speed")
@@ -28,7 +29,7 @@ HIDDEN_ABILITIES_FROM_GENERATION = 5
 class DatasetMissingError(RuntimeError):
     def __init__(self, path: Path | str) -> None:
         super().__init__(
-            f"No se encuentra el dataset ({path}). Genéralo con: uv run python tools/build_dataset.py"
+            _("No se encuentra el dataset ({path}). Genéralo con: uv run python tools/build_dataset.py", path=path)
         )
 
 
@@ -65,12 +66,12 @@ def capture_difficulty(rate: int | None) -> str | None:
     if rate is None:
         return None
     if rate >= 190:
-        return "Fácil"
+        return N_("Fácil")
     if rate >= 75:
-        return "Media"
+        return N_("Media")
     if rate >= 25:
-        return "Difícil"
-    return "Muy difícil"
+        return N_("Difícil")
+    return N_("Muy difícil")
 
 
 @dataclass(frozen=True)
@@ -438,7 +439,7 @@ class Pokedex:
     def evolution_condition(self, evolution: Evolution | None, lang: str) -> str | None:
         if evolution is None:
             return None
-        labels = _EVOLUTION_LABELS.get(lang, _EVOLUTION_LABELS["en"])
+        labels = _EVOLUTION_LABELS[get_language()]  # etiquetas de la interfaz; los objetos, en el idioma de los datos
 
         def item(identifier: str) -> str:
             return _localized(self.item_names.get(identifier, {}), lang, identifier)

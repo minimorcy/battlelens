@@ -49,7 +49,7 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
    - Con el 2.º rival, en los combates dobles aparecen dos fichas una al lado de la otra.
    - **Tus movimientos:** calibra también el **menú de ataques** con el menú de «Luchar» abierto, sobre los 4 movimientos. Cada vez que lo abres, BattleLens lee los movimientos de tu Pokémon y los recuerda por especie; cada ficha muestra entonces **«Tus movimientos»** con cuánto le hace cada uno a ese rival. Mientras no se han leído, muestra los movimientos probables de tu Pokémon según su nivel.
 
-La interfaz de la app está en español; el contenido de la ficha (Pokémon, tipos, habilidades, movimientos) está disponible en español, inglés, francés, alemán e italiano (`overlay.language`).
+La interfaz está en **español o inglés**: sigue el idioma de Windows, o elígelo en *Ajustes → Idioma de la interfaz* (`interface.language`). Los datos Pokémon (nombres, tipos, habilidades, movimientos) son un ajuste aparte, disponible en español, inglés, francés, alemán e italiano (`overlay.language`).
 
 ### Directo con OBS (opcional)
 
@@ -80,7 +80,8 @@ Todo se puede cambiar desde bandeja → **Ajustes…** (los cambios se aplican a
 | `stream.enabled` | `false` | Modo stream: fuente de navegador para OBS |
 | `stream.port` | `17320` | Puerto local de la fuente para OBS (`http://localhost:17320/`) |
 | `stream.card_mode` | `normal` | Ficha del stream: `normal` o `competitive`, independiente de la tuya |
-| `overlay.language` | `es` | Idioma de la ficha: `es`, `en`, `fr`, `de`, `it` |
+| `interface.language` | `auto` | Menús, avisos y textos de la ficha: `auto` (idioma de Windows), `es` o `en` |
+| `overlay.language` | `es` | Idioma de los datos Pokémon: `es`, `en`, `fr`, `de`, `it` |
 | `overlay.auto_hide_seconds` | `0` | Ocultar la ficha tras N segundos (0 = nunca) |
 | `updates.check` | `true` | Avisar una vez al día si hay versión nueva en GitHub (única conexión saliente de la app) |
 

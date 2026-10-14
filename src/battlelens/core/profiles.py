@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 
+from ..i18n import _
 from .storage import write_json_atomic
 
 log = logging.getLogger(__name__)
@@ -25,7 +26,8 @@ class ProfileError(ValueError):
 class RegionTooSmallError(ProfileError):
     def __init__(self, width: int, height: int) -> None:
         super().__init__(
-            f"La región mide {width}×{height} px; el mínimo es {MIN_REGION_PX} px de ancho y de alto."
+            _("La región mide {width}×{height} px; el mínimo es {min} px de ancho y de alto.",
+              width=width, height=height, min=MIN_REGION_PX)
         )
 
 
@@ -41,13 +43,13 @@ class Region:
     def __post_init__(self) -> None:
         values = (self.x, self.y, self.width, self.height)
         if not all(isinstance(v, (int, float)) for v in values):
-            raise ProfileError("La región debe contener números")
+            raise ProfileError(_("La región debe contener números"))
         if not all(-_EPS <= v <= 1 + _EPS for v in values):
-            raise ProfileError("Las coordenadas de la región deben estar en [0, 1]")
+            raise ProfileError(_("Las coordenadas de la región deben estar en [0, 1]"))
         if self.width <= 0 or self.height <= 0:
-            raise ProfileError("La región debe tener ancho y alto positivos")
+            raise ProfileError(_("La región debe tener ancho y alto positivos"))
         if self.x + self.width > 1 + _EPS or self.y + self.height > 1 + _EPS:
-            raise ProfileError("La región se sale del área cliente")
+            raise ProfileError(_("La región se sale del área cliente"))
 
     @classmethod
     def from_pixels(cls, x: int, y: int, width: int, height: int, client_w: int, client_h: int) -> Region:
@@ -82,9 +84,9 @@ class Profile:
 
     def __post_init__(self) -> None:
         if not isinstance(self.name, str) or not self.name.strip():
-            raise ProfileError("El perfil necesita un nombre")
+            raise ProfileError(_("El perfil necesita un nombre"))
         if not self.ocr_languages or not all(isinstance(lang, str) for lang in self.ocr_languages):
-            raise ProfileError("El perfil necesita al menos un idioma de OCR")
+            raise ProfileError(_("El perfil necesita al menos un idioma de OCR"))
 
     def with_region(self, region: Region) -> Profile:
         return replace(self, region=region)
@@ -96,7 +98,7 @@ class Profile:
         """Cambia la región de un rol: "rival", "rival2", "own" o "moves" (None la quita, salvo "rival")."""
         if role == "rival":
             if region is None:
-                raise ProfileError("La región del rival es obligatoria")
+                raise ProfileError(_("La región del rival es obligatoria"))
             return replace(self, region=region)
         if role == "rival2":
             return replace(self, rival2_region=region)
@@ -132,7 +134,7 @@ class Profile:
                 moves_region=Region(**data["moves_region"]) if data.get("moves_region") else None,
             )
         except (KeyError, TypeError) as exc:
-            raise ProfileError(f"Perfil con formato inválido: {exc}") from exc
+            raise ProfileError(_("Perfil con formato inválido: {error}", error=exc)) from exc
 
 
 class ProfileStore:

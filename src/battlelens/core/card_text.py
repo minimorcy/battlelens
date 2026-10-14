@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Callable
 
+from ..i18n import _
 from .abilities import ABILITY_NOTES, AbilityEffect, multiplier_text
 from .pokedex import SpeciesView
 
@@ -16,8 +17,11 @@ def ability_names(effect: AbilityEffect, lang: str) -> str:
 
 def matchup_note(effect: AbilityEffect, type_name: TypeName, lang: str) -> str:
     """«Tierra: ×0 por Levitación» (seguro) o «Tierra: ×0 si tiene Levitación» (posible)."""
-    link = "por" if effect.certain else "si tiene"
-    return f"{type_name(effect.type)}: {multiplier_text(effect.factor)} {link} {ability_names(effect, lang)}"
+    fields = {"type": type_name(effect.type), "mult": multiplier_text(effect.factor),
+              "abilities": ability_names(effect, lang)}
+    if effect.certain:
+        return _("{type}: {mult} por {abilities}", **fields)
+    return _("{type}: {mult} si tiene {abilities}", **fields)
 
 
 def ability_effect_lines(view: SpeciesView, type_name: TypeName, lang: str) -> list[str]:
@@ -30,6 +34,9 @@ def ability_effect_lines(view: SpeciesView, type_name: TypeName, lang: str) -> l
     for (certain, identifiers), effects in grouped.items():
         names = ability_names(effects[0], lang)
         note = next((ABILITY_NOTES[i] for i in identifiers if i in ABILITY_NOTES), None)
-        detail = note or ", ".join(f"{type_name(e.type)} {multiplier_text(e.factor)}" for e in effects)
-        lines.append(f"{names}: {detail}" if certain else f"Si tiene {names}: {detail}")
+        detail = _(note) if note else ", ".join(f"{type_name(e.type)} {multiplier_text(e.factor)}" for e in effects)
+        if certain:
+            lines.append(_("{abilities}: {detail}", abilities=names, detail=detail))
+        else:
+            lines.append(_("Si tiene {abilities}: {detail}", abilities=names, detail=detail))
     return lines

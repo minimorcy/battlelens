@@ -567,3 +567,26 @@ def test_ajustes_del_modo_stream(qapp):
     d.stream_port.setValue(18001)
     config, errors = d.collect()
     assert not errors and config.stream_port == 18001 and config.stream_enabled
+
+
+# ---- idioma de la interfaz (add-english-ui) ------------------------------------------------
+
+def test_ajustes_idioma_de_la_interfaz(qapp):
+    from battlelens.core.config import Config
+    from battlelens.ui.settings import SettingsDialog
+
+    d = SettingsDialog(Config())
+    assert d.interface_language.currentData() == "auto"
+    assert d.interface_language.currentText() == "Automático (idioma de Windows)"
+    d.interface_language.setCurrentIndex(d.interface_language.findData("en"))
+    config, errors = d.collect()
+    assert not errors and config.interface_language == "en"
+    assert SettingsDialog(Config(interface_language="es")).interface_language.currentData() == "es"
+
+
+def test_acerca_de_usa_los_textos_legales(qapp):
+    from battlelens import DATA_ATTRIBUTION, DISCLAIMER
+    from battlelens.ui import about
+
+    assert about.DISCLAIMER_TEXT == DISCLAIMER and about.ATTRIBUTION_TEXT == DATA_ATTRIBUTION
+    assert DISCLAIMER in about.AboutDialog().text()

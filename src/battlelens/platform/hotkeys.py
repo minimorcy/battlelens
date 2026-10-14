@@ -10,6 +10,8 @@ from dataclasses import dataclass
 
 from PyQt6.QtCore import QObject, pyqtSignal
 
+from ..i18n import _
+
 log = logging.getLogger(__name__)
 
 MOD_ALT = 0x0001
@@ -51,12 +53,12 @@ def parse_hotkey(text: str) -> Hotkey:
     """Convierte "Ctrl+Alt+P" en modificadores y código de tecla virtual."""
     parts = [p.strip().upper() for p in text.split("+") if p.strip()]
     if not parts:
-        raise HotkeyParseError("Atajo vacío")
+        raise HotkeyParseError(_("Atajo vacío"))
     *mod_parts, key = parts
     modifiers = 0
     for m in mod_parts:
         if m not in _MODIFIERS:
-            raise HotkeyParseError(f"Modificador desconocido «{m}» en «{text}»")
+            raise HotkeyParseError(_("Modificador desconocido «{modifier}» en «{shortcut}»", modifier=m, shortcut=text))
         modifiers |= _MODIFIERS[m]
 
     if len(key) == 1 and ("A" <= key <= "Z" or "0" <= key <= "9"):
@@ -66,12 +68,12 @@ def parse_hotkey(text: str) -> Hotkey:
     elif key in _NAMED_KEYS:
         vk = _NAMED_KEYS[key]
     else:
-        raise HotkeyParseError(f"Tecla desconocida «{key}» en «{text}»")
+        raise HotkeyParseError(_("Tecla desconocida «{key}» en «{shortcut}»", key=key, shortcut=text))
 
     if not modifiers:
         raise HotkeyParseError(
-            f"«{text}» necesita al menos un modificador (Ctrl, Alt, Shift o Win); "
-            "las teclas solas, como las F, las usa el emulador."
+            _("«{shortcut}» necesita al menos un modificador (Ctrl, Alt, Shift o Win); "
+              "las teclas solas, como las F, las usa el emulador.", shortcut=text)
         )
     return Hotkey(text, modifiers, vk)
 

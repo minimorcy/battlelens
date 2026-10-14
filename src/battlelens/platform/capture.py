@@ -14,6 +14,7 @@ from ctypes import wintypes
 import mss
 import numpy as np
 
+from ..i18n import _
 from . import windows
 
 log = logging.getLogger(__name__)
@@ -29,12 +30,12 @@ class CaptureError(RuntimeError):
 
 class WindowUnavailable(CaptureError):
     def __init__(self) -> None:
-        super().__init__("La ventana del emulador ya no está disponible. Selecciónala de nuevo.")
+        super().__init__(_("La ventana del emulador ya no está disponible. Selecciónala de nuevo."))
 
 
 class WindowMinimized(CaptureError):
     def __init__(self) -> None:
-        super().__init__("La ventana del emulador está minimizada.")
+        super().__init__(_("La ventana del emulador está minimizada."))
 
 
 class _BITMAPINFOHEADER(ctypes.Structure):

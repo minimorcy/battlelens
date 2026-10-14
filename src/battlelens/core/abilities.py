@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from ..i18n import get_language, N_, _
+
 if TYPE_CHECKING:
     from .pokedex import Ability
 
@@ -31,23 +33,24 @@ WONDER_GUARD = "wonder-guard"
 SUPER_EFFECTIVE_REDUCERS = frozenset({"filter", "solid-rock", "prism-armor"})
 SUPER_EFFECTIVE_REDUCTION = 0.75
 ABILITY_NOTES: dict[str, str] = {
-    WONDER_GUARD: "Solo le afectan los ataques supereficaces",
-    "filter": "Los supereficaces le hacen ×0,75",
-    "solid-rock": "Los supereficaces le hacen ×0,75",
-    "prism-armor": "Los supereficaces le hacen ×0,75",
+    WONDER_GUARD: N_("Solo le afectan los ataques supereficaces"),
+    "filter": N_("Los supereficaces le hacen ×0,75"),
+    "solid-rock": N_("Los supereficaces le hacen ×0,75"),
+    "prism-armor": N_("Los supereficaces le hacen ×0,75"),
 }
 _MULTIPLIER_TEXT = {0.0: "×0", 0.25: "×¼", 0.5: "×½", 1.0: "×1", 2.0: "×2", 4.0: "×4"}
 
 
 def multiplier_text(factor: float) -> str:
-    return _MULTIPLIER_TEXT.get(factor) or f"×{factor:g}".replace(".", ",")
+    text = _MULTIPLIER_TEXT.get(factor) or f"×{factor:g}"
+    return text.replace(".", ",") if get_language() == "es" else text
 
 
 def ability_effects(identifier: str, type_name) -> list[str]:
     """Textos como «Tierra ×0» para una habilidad; `type_name(tipo)` traduce el tipo."""
     effects = [f"{type_name(t)} {multiplier_text(m)}" for t, m in ABILITY_TYPE_EFFECTS.get(identifier, {}).items()]
     if identifier in ABILITY_NOTES:
-        effects.append(ABILITY_NOTES[identifier])
+        effects.append(_(ABILITY_NOTES[identifier]))
     return effects
 
 

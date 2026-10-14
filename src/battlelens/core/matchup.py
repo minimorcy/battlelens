@@ -5,14 +5,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 
+from ..i18n import N_
 from .abilities import AbilityEffect
 from .pokedex import SpeciesView
 
 
 class Verdict(Enum):
-    ADVANTAGE = "Ventaja"
-    NEUTRAL = "Neutral"
-    DISADVANTAGE = "Desventaja"
+    ADVANTAGE = N_("Ventaja")
+    NEUTRAL = N_("Neutral")
+    DISADVANTAGE = N_("Desventaja")
 
 
 @dataclass(frozen=True)
