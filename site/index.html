@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BattleLens</title>
+  <title>BattleLens — Know your opponent before you make a move</title>
   <meta name="description" content="Instant info card for your opponent in Pokémon games, on any PC emulator. Free and open source for Windows."
         data-en-content="Instant info card for your opponent in Pokémon games, on any PC emulator. Free and open source for Windows."
         data-es-content="Ficha instantánea del Pokémon rival para juegos de Pokémon en cualquier emulador de PC. Gratis y de código abierto para Windows.">
-  <meta name="theme-color" content="#1f2430">
-  <meta property="og:title" content="BattleLens">
-  <meta property="og:description" content="Instant info card for your opponent in Pokémon games, on any PC emulator.">
+  <meta name="theme-color" content="#0f1218">
+  <meta property="og:title" content="BattleLens — Know your opponent before you make a move">
+  <meta property="og:description" content="Instant info card for your opponent in Pokémon games, on any PC emulator. Free and open source for Windows.">
   <meta property="og:image" content="assets/gameplay.jpg">
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/icon.png" type="image/png">
@@ -17,76 +17,150 @@
   <!-- umami -->
 </head>
 <body>
+  <a class="skip" href="#main" data-en="Skip to content" data-es="Saltar al contenido">Skip to content</a>
+
   <header class="topbar">
     <a class="brand" href="#top" aria-label="BattleLens">
-      <img src="assets/icon.png" alt="" width="32" height="32">
+      <img src="assets/icon.png" alt="" width="30" height="30">
       <span>BattleLens</span>
     </a>
-    <nav class="topnav">
-      <a href="#how" data-en="How it works" data-es="Cómo funciona">How it works</a>
-      <a href="#modes" data-en="Modes" data-es="Modos">Modes</a>
-      <a data-umami-event="github" data-umami-event-place="nav" href="https://github.com/minimorcy/battlelens">GitHub</a>
+    <nav class="topnav" aria-label="Main">
+      <a class="hide-sm" href="#how" data-en="How it works" data-es="Cómo funciona">How it works</a>
+      <a class="hide-sm" href="#modes" data-en="Modes" data-es="Modos">Modes</a>
+      <a class="hide-sm" href="#stream" data-en="Streaming" data-es="Streaming">Streaming</a>
+      <a class="hide-sm" href="#faq" data-en="FAQ" data-es="Preguntas">FAQ</a>
+      <a class="nav-gh" data-umami-event="github" data-umami-event-place="nav" href="https://github.com/minimorcy/battlelens" aria-label="GitHub">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.75.11 3.04.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      </a>
       <button class="lang" type="button" id="lang-toggle" aria-label="Cambiar a español"
               data-en-aria-label="Cambiar a español" data-es-aria-label="Switch to English"
               data-en="ES" data-es="EN">ES</button>
+      <a class="button primary small" data-umami-event="download" data-umami-event-place="nav" href="https://github.com/minimorcy/battlelens/releases/latest"
+         data-en="Download" data-es="Descargar">Download</a>
     </nav>
   </header>
 
-  <main id="top">
-    <section class="hero">
+  <main id="main">
+    <!-- ================= portada ================= -->
+    <section class="hero" id="top">
+      <div class="hero-glow" aria-hidden="true"></div>
       <div class="hero-text">
-        <p class="eyebrow" data-en="For Pokémon games on PC emulators" data-es="Para juegos de Pokémon en emuladores de PC">For Pokémon games on PC emulators</p>
-        <h1 data-en="Know your opponent<br>before you make a move." data-es="Conoce a tu rival<br>antes de mover ficha.">Know your opponent<br>before you make a move.</h1>
-        <p class="lead" data-en="BattleLens reads the opponent's name on screen and shows its types, weaknesses, stats, abilities and catch rate right next to your emulator. Any emulator, any generation."
-           data-es="BattleLens lee el nombre del rival en pantalla y muestra sus tipos, debilidades, estadísticas, habilidades y ratio de captura justo al lado de tu emulador. Cualquier emulador, cualquier generación.">BattleLens reads the opponent's name on screen and shows its types, weaknesses, stats, abilities and catch rate right next to your emulator. Any emulator, any generation.</p>
+        <a class="badge" href="https://github.com/minimorcy/battlelens/releases/latest">
+          <span class="badge-tag" data-en="New in 0.3" data-es="Novedades 0.3">New in 0.3</span>
+          <span data-en="Game presets, OBS stream mode and English interface →" data-es="Presets por juego, modo stream para OBS e interfaz en inglés →">Game presets, OBS stream mode and English interface →</span>
+        </a>
+        <h1 data-en="Know your opponent<br><span class=&quot;hl&quot;>before you make a move.</span>"
+            data-es="Conoce a tu rival<br><span class=&quot;hl&quot;>antes de mover ficha.</span>">Know your opponent<br><span class="hl">before you make a move.</span></h1>
+        <p class="lead" data-en="The moment a battle starts, BattleLens shows the opponent's types, weaknesses, stats, abilities and catch rate right next to your emulator. No alt-tabbing, no wiki, no guessing."
+           data-es="En cuanto empieza un combate, BattleLens muestra los tipos, debilidades, estadísticas, habilidades y ratio de captura del rival justo al lado de tu emulador. Sin cambiar de ventana, sin wikis, sin adivinar.">The moment a battle starts, BattleLens shows the opponent's types, weaknesses, stats, abilities and catch rate right next to your emulator. No alt-tabbing, no wiki, no guessing.</p>
         <div class="cta">
-          <a class="button primary" id="download" data-umami-event="download" data-umami-event-place="hero" href="https://github.com/minimorcy/battlelens/releases/latest"
-             data-en="Download for Windows" data-es="Descargar para Windows">Download for Windows</a>
-          <a class="button ghost" data-umami-event="github" data-umami-event-place="hero" href="https://github.com/minimorcy/battlelens"
-             data-en="View on GitHub" data-es="Ver en GitHub">View on GitHub</a>
+          <a class="button primary big" id="download" data-umami-event="download" data-umami-event-place="hero" href="https://github.com/minimorcy/battlelens/releases/latest">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M3 5.1 10.4 4v7.3H3V5.1Zm0 13.8 7.4 1.1v-7.2H3v6.1Zm8.2 1.2L21 21.5v-8.7h-9.8v7.3Zm0-16.2v7.4H21V2.5l-9.8 1.4Z"/></svg>
+            <span data-en="Download for Windows" data-es="Descargar para Windows">Download for Windows</span>
+          </a>
+          <a class="button ghost big" data-umami-event="github" data-umami-event-place="hero" href="https://github.com/minimorcy/battlelens">
+            <span data-en="View on GitHub" data-es="Ver en GitHub">View on GitHub</span>
+          </a>
         </div>
-        <p class="fine" data-en="Free and open source · Windows 10/11 (64-bit) · No admin rights needed"
-           data-es="Gratis y de código abierto · Windows 10/11 (64 bits) · Sin permisos de administrador">Free and open source · Windows 10/11 (64-bit) · No admin rights needed</p>
+        <ul class="trust">
+          <li data-en="Free &amp; open source" data-es="Gratis y de código abierto">Free &amp; open source</li>
+          <li data-en="Works offline" data-es="Funciona sin conexión">Works offline</li>
+          <li data-en="No admin rights" data-es="Sin permisos de administrador">No admin rights</li>
+          <li data-en="Windows 10/11" data-es="Windows 10/11">Windows 10/11</li>
+        </ul>
       </div>
-      <figure class="hero-shot">
-        <img src="assets/card-normal.png" width="300" height="318"
-             alt="BattleLens card for Stufful: types, catch rate, matchup against your Scorbunny, weaknesses and evolution"
-             data-en-alt="BattleLens card for Stufful: types, catch rate, matchup against your Scorbunny, weaknesses and evolution"
-             data-es-alt="Ficha de BattleLens de Stufful: tipos, ratio de captura, comparativa contra tu Scorbunny, debilidades y evolución">
-      </figure>
-    </section>
 
-    <section id="in-action" class="section">
-      <h2 data-en="What it looks like in a real game" data-es="Así se ve en una partida">What it looks like in a real game</h2>
-      <p class="section-lead" data-en="BattleLens recognised the wild Machop and your Scorbunny on its own and placed the card over a quiet corner of the screen."
-         data-es="BattleLens ha reconocido solo al Machop salvaje y a tu Scorbunny, y ha colocado la ficha en una zona libre de la pantalla.">BattleLens recognised the wild Machop and your Scorbunny on its own and placed the card over a quiet corner of the screen.</p>
-      <figure class="gameplay">
-        <img src="assets/gameplay.jpg" width="1600" height="900" loading="lazy"
-             alt="Pokémon Sword battle against a wild Machop with the BattleLens card showing its type, catch rate, matchup against Scorbunny, weaknesses and evolution"
-             data-en-alt="Pokémon Sword battle against a wild Machop with the BattleLens card showing its type, catch rate, matchup against Scorbunny, weaknesses and evolution"
-             data-es-alt="Combate de Pokémon Espada contra un Machop salvaje con la ficha de BattleLens: tipo, ratio de captura, comparativa con Scorbunny, debilidades y evolución">
+      <figure class="showcase reveal">
+        <div class="window">
+          <div class="window-bar" aria-hidden="true">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="window-title" data-en="Emulator · Pokémon Sword" data-es="Emulador · Pokémon Espada">Emulator · Pokémon Sword</span>
+          </div>
+          <div class="screen">
+            <img src="assets/gameplay.jpg" width="1600" height="900"
+                 alt="Pokémon Sword battle against a wild Machop with the BattleLens card showing its type, catch rate, matchup against Scorbunny, weaknesses and evolution"
+                 data-en-alt="Pokémon Sword battle against a wild Machop with the BattleLens card showing its type, catch rate, matchup against Scorbunny, weaknesses and evolution"
+                 data-es-alt="Combate de Pokémon Espada contra un Machop salvaje con la ficha de BattleLens: tipo, ratio de captura, comparativa con Scorbunny, debilidades y evolución">
+            <span class="scan scan-foe" aria-hidden="true"></span>
+            <span class="scan scan-you" aria-hidden="true"></span>
+            <span class="callout c-foe" aria-hidden="true" data-en="Reads the opponent's name" data-es="Lee el nombre del rival">Reads the opponent's name</span>
+            <span class="callout c-card" aria-hidden="true" data-en="The card appears on its own" data-es="La ficha aparece sola">The card appears on its own</span>
+            <span class="callout c-you" aria-hidden="true" data-en="…and knows your Pokémon" data-es="…y reconoce a tu Pokémon">…and knows your Pokémon</span>
+          </div>
+        </div>
         <figcaption id="gameplay-credit"
                     data-en="Real game screenshot. Pokémon Sword © 2019 Nintendo / Creatures Inc. / GAME FREAK inc. The card is drawn by BattleLens."
                     data-es="Captura de una partida real. Pokémon Espada © 2019 Nintendo / Creatures Inc. / GAME FREAK inc. La ficha la dibuja BattleLens.">Real game screenshot. Pokémon Sword © 2019 Nintendo / Creatures Inc. / GAME FREAK inc. The card is drawn by BattleLens.</figcaption>
       </figure>
     </section>
 
+    <!-- ================= cifras ================= -->
+    <section class="stats reveal">
+      <div class="stat"><b data-en="1,025" data-es="1025">1,025</b><span data-en="Pokémon, with forms and Megas" data-es="Pokémon, con formas y megas">Pokémon, with forms and Megas</span></div>
+      <div class="stat"><b data-en="Gen 1–9" data-es="Gen 1–9">Gen 1–9</b><span data-en="type chart of your game" data-es="tabla de tipos de tu juego">type chart of your game</span></div>
+      <div class="stat"><b>5</b><span data-en="languages for Pokémon data" data-es="idiomas para los datos">languages for Pokémon data</span></div>
+      <div class="stat"><b>0 €</b><span data-en="free, MIT licensed" data-es="gratis, licencia MIT">free, MIT licensed</span></div>
+    </section>
+
+    <!-- ================= antes / después ================= -->
+    <section class="section" id="why">
+      <div class="section-head reveal">
+        <p class="eyebrow" data-en="Why BattleLens" data-es="Por qué BattleLens">Why BattleLens</p>
+        <h2 data-en="Stop pausing the game to look things up." data-es="Deja de pausar la partida para consultar datos.">Stop pausing the game to look things up.</h2>
+      </div>
+      <div class="versus">
+        <div class="vs-col vs-before reveal">
+          <h3 data-en="Without BattleLens" data-es="Sin BattleLens">Without BattleLens</h3>
+          <ol>
+            <li data-en="Pause the game" data-es="Pausas la partida">Pause the game</li>
+            <li data-en="Alt-tab to the browser" data-es="Cambias al navegador">Alt-tab to the browser</li>
+            <li data-en="Search the Pokémon and scroll to its types" data-es="Buscas el Pokémon y bajas hasta sus tipos">Search the Pokémon and scroll to its types</li>
+            <li data-en="Work out the type chart in your head" data-es="Calculas la tabla de tipos de cabeza">Work out the type chart in your head</li>
+            <li data-en="Back to the game… and again next battle" data-es="Vuelves al juego… y otra vez en el siguiente combate">Back to the game… and again next battle</li>
+          </ol>
+        </div>
+        <div class="vs-col vs-after reveal">
+          <h3 data-en="With BattleLens" data-es="Con BattleLens">With BattleLens</h3>
+          <p class="vs-big" data-en="The card is already there when the battle starts." data-es="La ficha ya está ahí cuando empieza el combate.">The card is already there when the battle starts.</p>
+          <ul class="checks">
+            <li data-en="Weaknesses ×2 and ×4, resistances and immunities" data-es="Debilidades ×2 y ×4, resistencias e inmunidades">Weaknesses ×2 and ×4, resistances and immunities</li>
+            <li data-en="Advantage, neutral or disadvantage against your Pokémon" data-es="Ventaja, neutral o desventaja contra tu Pokémon">Advantage, neutral or disadvantage against your Pokémon</li>
+            <li data-en="Catch difficulty before you throw a single ball" data-es="Dificultad de captura antes de lanzar una sola Ball">Catch difficulty before you throw a single ball</li>
+            <li data-en="Hides by itself when the battle ends" data-es="Se oculta sola al terminar el combate">Hides by itself when the battle ends</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= cómo funciona ================= -->
     <section id="how" class="section">
-      <h2 data-en="How it works" data-es="Cómo funciona">How it works</h2>
+      <div class="section-head reveal">
+        <p class="eyebrow" data-en="How it works" data-es="Cómo funciona">How it works</p>
+        <h2 data-en="Set up once. Then just play." data-es="Configúralo una vez. Después, solo juega.">Set up once. Then just play.</h2>
+      </div>
       <ol class="steps">
-        <li>
+        <li class="reveal">
+          <span class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </span>
           <span class="step-n">1</span>
           <h3 data-en="Pick your emulator" data-es="Elige tu emulador">Pick your emulator</h3>
-          <p data-en="mGBA, DeSmuME, melonDS, Citra, Switch emulators… BattleLens doesn't touch the game: it only looks at the window."
-             data-es="mGBA, DeSmuME, melonDS, Citra, emuladores de Switch… BattleLens no toca el juego: solo mira la ventana.">mGBA, DeSmuME, melonDS, Citra, Switch emulators… BattleLens doesn't touch the game: it only looks at the window.</p>
+          <p data-en="mGBA, DeSmuME, melonDS, Citra, Switch emulators… BattleLens doesn't touch the game or its memory: it only looks at the window."
+             data-es="mGBA, DeSmuME, melonDS, Citra, emuladores de Switch… BattleLens no toca el juego ni su memoria: solo mira la ventana.">mGBA, DeSmuME, melonDS, Citra, Switch emulators… BattleLens doesn't touch the game or its memory: it only looks at the window.</p>
         </li>
-        <li>
+        <li class="reveal">
+          <span class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 12h8"/></svg>
+          </span>
           <span class="step-n">2</span>
           <h3 data-en="Calibrate once per game" data-es="Calibra una vez por juego">Calibrate once per game</h3>
-          <p data-en="In a battle, draw a box around the opponent's name. BattleLens detects the game from the window title and remembers it."
-             data-es="En un combate, dibuja un recuadro sobre el nombre del rival. BattleLens detecta el juego por el título de la ventana y lo recuerda.">In a battle, draw a box around the opponent's name. BattleLens detects the game from the window title and remembers it.</p>
+          <p data-en="Pick a ready-made preset for your game, or draw a box around the opponent's name. BattleLens recognises the game from the window title and remembers it."
+             data-es="Elige un preset ya preparado para tu juego o dibuja un recuadro sobre el nombre del rival. BattleLens reconoce el juego por el título de la ventana y lo recuerda.">Pick a ready-made preset for your game, or draw a box around the opponent's name. BattleLens recognises the game from the window title and remembers it.</p>
         </li>
-        <li>
+        <li class="reveal">
+          <span class="step-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M7 7h10a4 4 0 0 1 4 4v3a3 3 0 0 1-5.4 1.8L14 14h-4l-1.6 1.8A3 3 0 0 1 3 14v-3a4 4 0 0 1 4-4Z"/><path d="M8 10v3M6.5 11.5h3M15.5 11h.01M17.5 12.5h.01"/></svg>
+          </span>
           <span class="step-n">3</span>
           <h3 data-en="Just play" data-es="Juega">Just play</h3>
           <p data-en="Every time a battle starts, the card pops up by itself and hides when the battle ends. No keys to press."
@@ -95,44 +169,68 @@
       </ol>
     </section>
 
+    <!-- ================= modos ================= -->
     <section id="modes" class="section">
-      <h2 data-en="Two modes, one shortcut" data-es="Dos modos, un atajo">Two modes, one shortcut</h2>
-      <p class="section-lead" data-en="Switch anytime with <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd>."
-         data-es="Cambia cuando quieras con <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd>.">Switch anytime with <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd>.</p>
+      <div class="section-head reveal">
+        <p class="eyebrow" data-en="Two modes" data-es="Dos modos">Two modes</p>
+        <h2 data-en="Casual run or Nuzlocke? You choose the detail." data-es="¿Partida tranquila o Nuzlocke? Tú eliges el detalle.">Casual run or Nuzlocke? You choose the detail.</h2>
+        <p class="section-lead" data-en="Switch anytime with <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd>."
+           data-es="Cambia cuando quieras con <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd>.">Switch anytime with <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd>.</p>
+      </div>
       <div class="modes">
-        <article class="mode">
-          <h3 data-en="Normal — adventure &amp; catching" data-es="Normal — aventura y captura">Normal — adventure &amp; catching</h3>
-          <ul>
-            <li data-en="Compact card that barely covers the game" data-es="Ficha compacta que apenas tapa el juego">Compact card that barely covers the game</li>
-            <li data-en="Catch difficulty front and center" data-es="Dificultad de captura bien a la vista">Catch difficulty front and center</li>
-            <li data-en="Weaknesses, immunities and evolution" data-es="Debilidades, inmunidades y evolución">Weaknesses, immunities and evolution</li>
-            <li data-en="Advantage / disadvantage against your Pokémon" data-es="Ventaja o desventaja contra tu Pokémon">Advantage / disadvantage against your Pokémon</li>
-          </ul>
-          <img src="assets/card-normal.png" width="300" height="318" loading="lazy"
-               alt="Normal mode card" data-en-alt="Normal mode card" data-es-alt="Ficha en modo Normal">
+        <article class="mode reveal">
+          <div class="mode-text">
+            <span class="pill pill-normal" data-en="Normal" data-es="Normal">Normal</span>
+            <h3 data-en="For adventuring and catching" data-es="Para la aventura y la captura">For adventuring and catching</h3>
+            <ul class="checks">
+              <li data-en="Compact card that barely covers the game" data-es="Ficha compacta que apenas tapa el juego">Compact card that barely covers the game</li>
+              <li data-en="Catch difficulty front and center" data-es="Dificultad de captura bien a la vista">Catch difficulty front and center</li>
+              <li data-en="Weaknesses, immunities and evolution" data-es="Debilidades, inmunidades y evolución">Weaknesses, immunities and evolution</li>
+              <li data-en="Advantage / disadvantage against your Pokémon" data-es="Ventaja o desventaja contra tu Pokémon">Advantage / disadvantage against your Pokémon</li>
+            </ul>
+          </div>
+          <div class="mode-shot">
+            <img src="assets/card-normal.png" width="300" height="318" loading="lazy"
+                 alt="Normal mode card" data-en-alt="Normal mode card" data-es-alt="Ficha en modo Normal">
+          </div>
         </article>
-        <article class="mode">
-          <h3 data-en="Competitive — battle data" data-es="Competitivo — datos de combate">Competitive — battle data</h3>
-          <ul>
-            <li data-en="Level and actual stats at that level (min–max)" data-es="Nivel y estadísticas reales a ese nivel (mín.–máx.)">Level and actual stats at that level (min–max)</li>
-            <li data-en="Likely moves, flagged when they hit you hard" data-es="Movimientos probables, marcados si te hacen mucho daño">Likely moves, flagged when they hit you hard</li>
-            <li data-en="Who's faster, you or them" data-es="Quién es más rápido, tú o él">Who's faster, you or them</li>
-            <li data-en="Abilities that change matchups (Levitate → Ground ×0)" data-es="Habilidades que cambian la eficacia (Levitación → Tierra ×0)">Abilities that change matchups (Levitate → Ground ×0)</li>
-            <li data-en="EV yield, weight for Low Kick, stat profile" data-es="EVs que da, peso para Patada Baja, perfil de estadísticas">EV yield, weight for Low Kick, stat profile</li>
-          </ul>
-          <img src="assets/card-competitive.png" width="360" height="863" loading="lazy" class="tall"
-               alt="Competitive mode card with level, stat ranges, abilities, likely moves and training data"
-               data-en-alt="Competitive mode card with level, stat ranges, abilities, likely moves and training data"
-               data-es-alt="Ficha en modo Competitivo con nivel, rangos de estadísticas, habilidades, movimientos probables y entrenamiento">
+        <article class="mode mode-pro reveal">
+          <div class="mode-text">
+            <span class="pill pill-pro" data-en="Competitive" data-es="Competitivo">Competitive</span>
+            <h3 data-en="For hard battles and challenge runs" data-es="Para combates duros y retos">For hard battles and challenge runs</h3>
+            <ul class="checks">
+              <li data-en="Level and actual stats at that level (min–max)" data-es="Nivel y estadísticas reales a ese nivel (mín.–máx.)">Level and actual stats at that level (min–max)</li>
+              <li data-en="Likely moves, flagged when they hit you hard" data-es="Movimientos probables, marcados si te hacen mucho daño">Likely moves, flagged when they hit you hard</li>
+              <li data-en="Who's faster, you or them" data-es="Quién es más rápido, tú o él">Who's faster, you or them</li>
+              <li data-en="Abilities that change matchups (Levitate → Ground ×0)" data-es="Habilidades que cambian la eficacia (Levitación → Tierra ×0)">Abilities that change matchups (Levitate → Ground ×0)</li>
+              <li data-en="EV yield, weight for Low Kick, stat profile" data-es="EVs que da, peso para Patada Baja, perfil de estadísticas">EV yield, weight for Low Kick, stat profile</li>
+            </ul>
+          </div>
+          <div class="mode-shot clip" id="pro-shot">
+            <img src="assets/card-competitive.png" width="360" height="863" loading="lazy"
+                 alt="Competitive mode card with level, stat ranges, abilities, likely moves and training data"
+                 data-en-alt="Competitive mode card with level, stat ranges, abilities, likely moves and training data"
+                 data-es-alt="Ficha en modo Competitivo con nivel, rangos de estadísticas, habilidades, movimientos probables y entrenamiento">
+            <button class="expand" type="button" id="pro-expand" data-en="Show the full card" data-es="Ver la ficha completa">Show the full card</button>
+          </div>
         </article>
       </div>
     </section>
 
-    <section class="section">
-      <h2 data-en="Double battles and your own Pokémon" data-es="Combates dobles y tu propio Pokémon">Double battles and your own Pokémon</h2>
-      <p class="section-lead" data-en="Calibrate your Pokémon's name and the second opponent too: you get one card per opponent and an instant verdict for every turn."
-         data-es="Calibra también el nombre de tu Pokémon y el del segundo rival: verás una ficha por rival y un veredicto inmediato en cada turno.">Calibrate your Pokémon's name and the second opponent too: you get one card per opponent and an instant verdict for every turn.</p>
-      <figure class="wide-shot">
+    <!-- ================= dobles ================= -->
+    <section class="section split" id="doubles">
+      <div class="split-text reveal">
+        <p class="eyebrow" data-en="Your team, too" data-es="También tu equipo">Your team, too</p>
+        <h2 data-en="Double battles and your own Pokémon" data-es="Combates dobles y tu propio Pokémon">Double battles and your own Pokémon</h2>
+        <p class="section-lead" data-en="Calibrate your Pokémon's name and the second opponent too: you get one card per opponent and an instant verdict for every turn."
+           data-es="Calibra también el nombre de tu Pokémon y el del segundo rival: verás una ficha por rival y un veredicto inmediato en cada turno.">Calibrate your Pokémon's name and the second opponent too: you get one card per opponent and an instant verdict for every turn.</p>
+        <ul class="checks">
+          <li data-en="<b>Against your X:</b> what your types do to it and what its types do to you" data-es="<b>Contra tu X:</b> lo que tus tipos le hacen y lo que los suyos te hacen a ti"><b>Against your X:</b> what your types do to it and what its types do to you</li>
+          <li data-en="<b>Your moves:</b> read from the Fight menu, with how much each one hurts" data-es="<b>Tus movimientos:</b> leídos del menú de ataques, con cuánto daño hace cada uno"><b>Your moves:</b> read from the Fight menu, with how much each one hurts</li>
+          <li data-en="<b>Doubles:</b> two cards side by side, one per opponent" data-es="<b>Dobles:</b> dos fichas una al lado de la otra, una por rival"><b>Doubles:</b> two cards side by side, one per opponent</li>
+        </ul>
+      </div>
+      <figure class="split-shot reveal">
         <img src="assets/card-double.png" width="586" height="401" loading="lazy"
              alt="Double battle: Galarian Zigzagoon and Stufful cards side by side, each compared with your Scorbunny"
              data-en-alt="Double battle: Galarian Zigzagoon and Stufful cards side by side, each compared with your Scorbunny"
@@ -140,54 +238,190 @@
       </figure>
     </section>
 
-    <section class="section">
-      <h2 data-en="Built for every Pokémon game" data-es="Pensado para todos los juegos de Pokémon">Built for every Pokémon game</h2>
-      <div class="features">
-        <div class="feature">
-          <h3 data-en="Any emulator" data-es="Cualquier emulador">Any emulator</h3>
-          <p data-en="Reads the screen with Windows' own OCR, even when other windows cover the emulator."
-             data-es="Lee la pantalla con el OCR de Windows, incluso si otras ventanas tapan el emulador.">Reads the screen with Windows' own OCR, even when other windows cover the emulator.</p>
+    <!-- ================= streaming ================= -->
+    <section class="section split reverse" id="stream">
+      <div class="split-text reveal">
+        <p class="eyebrow" data-en="For streamers" data-es="Para streamers">For streamers</p>
+        <h2 data-en="Your viewers see the card too." data-es="Tus espectadores también ven la ficha.">Your viewers see the card too.</h2>
+        <p class="section-lead" data-en="Turn on stream mode and add BattleLens to OBS as a browser source. The card shows up on a transparent background with every new opponent and hides when the battle ends."
+           data-es="Activa el modo stream y añade BattleLens a OBS como fuente de navegador. La ficha aparece sobre fondo transparente con cada rival y se oculta al terminar el combate.">Turn on stream mode and add BattleLens to OBS as a browser source. The card shows up on a transparent background with every new opponent and hides when the battle ends.</p>
+        <ul class="checks">
+          <li data-en="<b>Copy URL for OBS</b> right from the tray menu" data-es="<b>Copiar URL para OBS</b> directamente desde la bandeja"><b>Copy URL for OBS</b> right from the tray menu</li>
+          <li data-en="Show or hide it live with <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd>" data-es="Muéstrala u ocúltala en directo con <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd>">Show or hide it live with <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd></li>
+          <li data-en="Optional: turned off, nothing changes" data-es="Opcional: desactivado, no cambia nada">Optional: turned off, nothing changes</li>
+        </ul>
+      </div>
+      <div class="obs reveal" aria-hidden="true">
+        <div class="obs-bar">
+          <span class="obs-label" data-en="Browser source" data-es="Fuente de navegador">Browser source</span>
+          <code>http://localhost:17320/</code>
         </div>
-        <div class="feature">
-          <h3 data-en="Right for each generation" data-es="Correcto en cada generación">Right for each generation</h3>
-          <p data-en="Regional forms (Alola, Galar, Hisui, Paldea), past types and the type chart of the game you're playing."
-             data-es="Formas regionales (Alola, Galar, Hisui, Paldea), tipos antiguos y la tabla de tipos del juego al que juegas.">Regional forms (Alola, Galar, Hisui, Paldea), past types and the type chart of the game you're playing.</p>
-        </div>
-        <div class="feature">
-          <h3 data-en="1,025 Pokémon, 5 languages" data-es="1025 Pokémon, 5 idiomas">1,025 Pokémon, 5 languages</h3>
-          <p data-en="Names, types, abilities and moves in English, Spanish, French, German and Italian."
-             data-es="Nombres, tipos, habilidades y movimientos en inglés, español, francés, alemán e italiano.">Names, types, abilities and moves in English, Spanish, French, German and Italian.</p>
-        </div>
-        <div class="feature">
-          <h3 data-en="Private and offline" data-es="Privado y sin conexión">Private and offline</h3>
-          <p data-en="All data ships with the app. The only connection is an optional daily update check."
-             data-es="Todos los datos van incluidos. La única conexión es una comprobación diaria de actualizaciones, opcional.">All data ships with the app. The only connection is an optional daily update check.</p>
+        <div class="obs-canvas">
+          <span class="live">LIVE</span>
+          <img src="assets/card-normal.png" width="300" height="318" loading="lazy" alt="">
         </div>
       </div>
     </section>
 
-    <section id="download-info" class="section install">
-      <h2 data-en="Install in a minute" data-es="Instálalo en un minuto">Install in a minute</h2>
-      <ol>
-        <li data-en="Download <b>BattleLens-Setup</b> from the latest release (or the portable ZIP)."
-            data-es="Descarga <b>BattleLens-Setup</b> de la última versión (o el ZIP portable).">Download <b>BattleLens-Setup</b> from the latest release (or the portable ZIP).</li>
-        <li data-en="Run it — no administrator rights needed. If SmartScreen appears, choose <i>More info → Run anyway</i> (the app isn't signed with a paid certificate)."
-            data-es="Ejecútalo, sin permisos de administrador. Si aparece SmartScreen, elige <i>Más información → Ejecutar de todas formas</i> (la app no está firmada con un certificado de pago).">Run it — no administrator rights needed. If SmartScreen appears, choose <i>More info → Run anyway</i> (the app isn't signed with a paid certificate).</li>
-        <li data-en="Find the icon in the system tray, pick your emulator window and calibrate. The interface is in Spanish for now; the card data comes in 5 languages."
-            data-es="Busca el icono en la bandeja del sistema, elige la ventana de tu emulador y calibra. La interfaz está en español; los datos de la ficha, en 5 idiomas.">Find the icon in the system tray, pick your emulator window and calibrate. The interface is in Spanish for now; the card data comes in 5 languages.</li>
-      </ol>
-      <div class="cta">
-        <a class="button primary" data-umami-event="download" data-umami-event-place="install" href="https://github.com/minimorcy/battlelens/releases/latest"
-           data-en="Download for Windows" data-es="Descargar para Windows">Download for Windows</a>
-        <a class="button ghost" href="https://github.com/minimorcy/battlelens#readme"
-           data-en="Read the guide" data-es="Leer la guía">Read the guide</a>
+    <!-- ================= características ================= -->
+    <section class="section" id="features">
+      <div class="section-head reveal">
+        <p class="eyebrow" data-en="Everything included" data-es="Todo incluido">Everything included</p>
+        <h2 data-en="Built for every Pokémon game" data-es="Pensado para todos los juegos de Pokémon">Built for every Pokémon game</h2>
+      </div>
+      <div class="features">
+        <div class="feature reveal">
+          <svg class="f-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg>
+          <h3 data-en="Any emulator" data-es="Cualquier emulador">Any emulator</h3>
+          <p data-en="Reads the screen with Windows' own OCR, even when other windows cover the emulator."
+             data-es="Lee la pantalla con el OCR de Windows, incluso si otras ventanas tapan el emulador.">Reads the screen with Windows' own OCR, even when other windows cover the emulator.</p>
+        </div>
+        <div class="feature reveal">
+          <svg class="f-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>
+          <h3 data-en="Ready-made presets" data-es="Presets listos">Ready-made presets</h3>
+          <p data-en="GB, GBA, DS and Sword/Shield: BattleLens finds the game image and shows what it reads before you save."
+             data-es="GB, GBA, DS y Espada/Escudo: BattleLens localiza la imagen del juego y te enseña lo que lee antes de guardar.">GB, GBA, DS and Sword/Shield: BattleLens finds the game image and shows what it reads before you save.</p>
+        </div>
+        <div class="feature reveal">
+          <svg class="f-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+          <h3 data-en="Right for each generation" data-es="Correcto en cada generación">Right for each generation</h3>
+          <p data-en="Regional forms (Alola, Galar, Hisui, Paldea), past types, stats and the type chart of the game you're playing."
+             data-es="Formas regionales (Alola, Galar, Hisui, Paldea), tipos y estadísticas antiguos y la tabla de tipos del juego al que juegas.">Regional forms (Alola, Galar, Hisui, Paldea), past types, stats and the type chart of the game you're playing.</p>
+        </div>
+        <div class="feature reveal">
+          <svg class="f-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg>
+          <h3 data-en="Megas and alternate forms" data-es="Megas y formas alternativas">Megas and alternate forms</h3>
+          <p data-en="Rotom, Deoxys, Giratina, Mega Evolutions… cycle through the forms with <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>."
+             data-es="Rotom, Deoxys, Giratina, megaevoluciones… cambia de forma con <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>.">Rotom, Deoxys, Giratina, Mega Evolutions… cycle through the forms with <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>.</p>
+        </div>
+        <div class="feature reveal">
+          <svg class="f-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+          <h3 data-en="Your language" data-es="Tu idioma">Your language</h3>
+          <p data-en="Interface in English or Spanish. Names, types, abilities and moves in English, Spanish, French, German and Italian."
+             data-es="Interfaz en inglés o español. Nombres, tipos, habilidades y movimientos en inglés, español, francés, alemán e italiano.">Interface in English or Spanish. Names, types, abilities and moves in English, Spanish, French, German and Italian.</p>
+        </div>
+        <div class="feature reveal">
+          <svg class="f-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <h3 data-en="Private and offline" data-es="Privado y sin conexión">Private and offline</h3>
+          <p data-en="All data ships with the app. The only connection is an optional daily update check."
+             data-es="Todos los datos van incluidos. La única conexión es una comprobación diaria de actualizaciones, opcional.">All data ships with the app. The only connection is an optional daily update check.</p>
+        </div>
+        <div class="feature reveal">
+          <svg class="f-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          <h3 data-en="Install in a minute" data-es="Instalación en un minuto">Install in a minute</h3>
+          <p data-en="Installer without admin rights, or a portable ZIP. It lives quietly in the system tray."
+             data-es="Instalador sin permisos de administrador o ZIP portable. Vive discretamente en la bandeja del sistema.">Installer without admin rights, or a portable ZIP. It lives quietly in the system tray.</p>
+        </div>
+        <div class="feature reveal">
+          <svg class="f-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          <h3 data-en="One-click bug reports" data-es="Fallos en un clic">One-click bug reports</h3>
+          <p data-en="«Report a problem…» packs what BattleLens sees into a ZIP and opens a pre-filled GitHub form. Nothing is sent for you."
+             data-es="«Informar de un problema…» empaqueta lo que ve BattleLens en un ZIP y abre un formulario de GitHub ya rellenado. No se envía nada por ti.">«Report a problem…» packs what BattleLens sees into a ZIP and opens a pre-filled GitHub form. Nothing is sent for you.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= compatibilidad ================= -->
+    <section class="section compat reveal" id="compat">
+      <div class="compat-row">
+        <h3 data-en="Works with" data-es="Funciona con">Works with</h3>
+        <ul class="chips">
+          <li>mGBA</li><li>DeSmuME</li><li>melonDS</li><li>Citra</li>
+          <li data-en="Switch emulators" data-es="Emuladores de Switch">Switch emulators</li>
+          <li data-en="…any windowed emulator" data-es="…cualquier emulador en ventana">…any windowed emulator</li>
+        </ul>
+      </div>
+      <div class="compat-row">
+        <h3 data-en="Presets for" data-es="Presets para">Presets for</h3>
+        <ul class="chips chips-games">
+          <li data-en="Red / Blue / Yellow" data-es="Rojo / Azul / Amarillo">Red / Blue / Yellow</li>
+          <li data-en="Gold / Silver / Crystal" data-es="Oro / Plata / Cristal">Gold / Silver / Crystal</li>
+          <li data-en="Ruby / Sapphire / Emerald" data-es="Rubí / Zafiro / Esmeralda">Ruby / Sapphire / Emerald</li>
+          <li data-en="FireRed / LeafGreen" data-es="Rojo Fuego / Verde Hoja">FireRed / LeafGreen</li>
+          <li data-en="Diamond / Pearl / Platinum" data-es="Diamante / Perla / Platino">Diamond / Pearl / Platinum</li>
+          <li data-en="HeartGold / SoulSilver" data-es="Oro HeartGold / Plata SoulSilver">HeartGold / SoulSilver</li>
+          <li data-en="Black / White (2)" data-es="Negro / Blanco (2)">Black / White (2)</li>
+          <li data-en="Sword / Shield" data-es="Espada / Escudo">Sword / Shield</li>
+        </ul>
+      </div>
+      <p class="compat-note" data-en="Other games work too: calibrate them manually in a few seconds."
+         data-es="Los demás juegos también funcionan: se calibran a mano en unos segundos.">Other games work too: calibrate them manually in a few seconds.</p>
+    </section>
+
+    <!-- ================= preguntas ================= -->
+    <section class="section" id="faq">
+      <div class="section-head reveal">
+        <p class="eyebrow" data-en="FAQ" data-es="Preguntas frecuentes">FAQ</p>
+        <h2 data-en="Questions, answered" data-es="Dudas resueltas">Questions, answered</h2>
+      </div>
+      <div class="faq reveal">
+        <details>
+          <summary data-en="Does it modify the game or read the emulator's memory?" data-es="¿Modifica el juego o lee la memoria del emulador?">Does it modify the game or read the emulator's memory?</summary>
+          <p data-en="No. BattleLens only looks at the emulator window and reads the opponent's name with Windows' built-in OCR. That's why it works with any emulator and any generation."
+             data-es="No. BattleLens solo mira la ventana del emulador y lee el nombre del rival con el OCR que trae Windows. Por eso funciona con cualquier emulador y cualquier generación.">No. BattleLens only looks at the emulator window and reads the opponent's name with Windows' built-in OCR. That's why it works with any emulator and any generation.</p>
+        </details>
+        <details>
+          <summary data-en="Is it really free?" data-es="¿De verdad es gratis?">Is it really free?</summary>
+          <p data-en="Yes. It's open source under the MIT license, with no ads, accounts or paid tiers."
+             data-es="Sí. Es de código abierto con licencia MIT, sin anuncios, cuentas ni versiones de pago.">Yes. It's open source under the MIT license, with no ads, accounts or paid tiers.</p>
+        </details>
+        <details>
+          <summary data-en="Why does Windows show a SmartScreen warning?" data-es="¿Por qué Windows muestra un aviso de SmartScreen?">Why does Windows show a SmartScreen warning?</summary>
+          <p data-en="The executable isn't signed with a paid certificate. Click <i>More info → Run anyway</i>. You can verify the download against <code>SHA256SUMS.txt</code> from the release."
+             data-es="El ejecutable no está firmado con un certificado de pago. Pulsa <i>Más información → Ejecutar de todas formas</i>. Puedes verificar la descarga con el <code>SHA256SUMS.txt</code> de la versión.">The executable isn't signed with a paid certificate. Click <i>More info → Run anyway</i>. You can verify the download against <code>SHA256SUMS.txt</code> from the release.</p>
+        </details>
+        <details>
+          <summary data-en="Do I need an internet connection?" data-es="¿Necesito conexión a internet?">Do I need an internet connection?</summary>
+          <p data-en="No. All Pokémon data ships with the app. The only connection is an optional daily check for new versions."
+             data-es="No. Todos los datos de Pokémon van incluidos. La única conexión es una comprobación diaria de versiones nuevas, opcional.">No. All Pokémon data ships with the app. The only connection is an optional daily check for new versions.</p>
+        </details>
+        <details>
+          <summary data-en="What if Windows OCR is missing on my PC?" data-es="¿Y si a mi PC le falta el OCR de Windows?">What if Windows OCR is missing on my PC?</summary>
+          <p data-en="Almost every PC already has it for its language. If not, BattleLens tells you on startup and offers <i>Install Windows OCR…</i> from its menu."
+             data-es="Casi todos los PC ya lo tienen para su idioma. Si no, BattleLens te avisa al arrancar y ofrece <i>Instalar OCR de Windows…</i> en su menú.">Almost every PC already has it for its language. If not, BattleLens tells you on startup and offers <i>Install Windows OCR…</i> from its menu.</p>
+        </details>
+        <details>
+          <summary data-en="Does it work with nicknamed Pokémon?" data-es="¿Funciona con Pokémon con mote?">Does it work with nicknamed Pokémon?</summary>
+          <p data-en="Opponents are read by their species name, so yes. Your own Pokémon can't be recognised if it has a nickname; the opponent's card still works."
+             data-es="Los rivales se leen por el nombre de la especie, así que sí. Tu propio Pokémon no se puede reconocer si tiene mote; la ficha del rival sigue funcionando.">Opponents are read by their species name, so yes. Your own Pokémon can't be recognised if it has a nickname; the opponent's card still works.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ================= descarga ================= -->
+    <section id="download-info" class="final reveal">
+      <div class="final-inner">
+        <img src="assets/icon.png" alt="" width="72" height="72" class="final-icon">
+        <h2 data-en="Your next battle is one download away." data-es="Tu próximo combate está a una descarga.">Your next battle is one download away.</h2>
+        <ol class="install">
+          <li data-en="Download <b>BattleLens-Setup</b> from the latest release (or the portable ZIP)."
+              data-es="Descarga <b>BattleLens-Setup</b> de la última versión (o el ZIP portable).">Download <b>BattleLens-Setup</b> from the latest release (or the portable ZIP).</li>
+          <li data-en="Run it — no administrator rights needed."
+              data-es="Ejecútalo, sin permisos de administrador.">Run it — no administrator rights needed.</li>
+          <li data-en="Find the icon in the system tray, pick your emulator window and choose a preset."
+              data-es="Busca el icono en la bandeja del sistema, elige la ventana de tu emulador y escoge un preset.">Find the icon in the system tray, pick your emulator window and choose a preset.</li>
+        </ol>
+        <div class="cta center">
+          <a class="button primary big" data-umami-event="download" data-umami-event-place="install" href="https://github.com/minimorcy/battlelens/releases/latest"
+             data-en="Download for Windows" data-es="Descargar para Windows">Download for Windows</a>
+          <a class="button ghost big" href="https://github.com/minimorcy/battlelens#readme"
+             data-en="Read the guide" data-es="Leer la guía">Read the guide</a>
+        </div>
+        <p class="fine" data-en="Windows 10 (2004 or later) or 11, 64-bit · Uses the OCR built into Windows"
+           data-es="Windows 10 (2004 o posterior) u 11, 64 bits · Usa el OCR integrado en Windows">Windows 10 (2004 or later) or 11, 64-bit · Uses the OCR built into Windows</p>
       </div>
     </section>
   </main>
 
   <footer class="footer">
-    <p data-en="BattleLens is free software under the <a href=&quot;https://github.com/minimorcy/battlelens/blob/main/LICENSE&quot;>MIT license</a>. Pokémon data from <a href=&quot;https://pokeapi.co/&quot;>PokéAPI</a>."
-       data-es="BattleLens es software libre con <a href=&quot;https://github.com/minimorcy/battlelens/blob/main/LICENSE&quot;>licencia MIT</a>. Datos de Pokémon de <a href=&quot;https://pokeapi.co/&quot;>PokéAPI</a>.">BattleLens is free software under the <a href="https://github.com/minimorcy/battlelens/blob/main/LICENSE">MIT license</a>. Pokémon data from <a href="https://pokeapi.co/">PokéAPI</a>.</p>
+    <div class="footer-top">
+      <a class="brand" href="#top" aria-label="BattleLens">
+        <img src="assets/icon.png" alt="" width="26" height="26">
+        <span>BattleLens</span>
+      </a>
+      <p data-en="BattleLens is free software under the <a href=&quot;https://github.com/minimorcy/battlelens/blob/main/LICENSE&quot;>MIT license</a>. Pokémon data from <a href=&quot;https://pokeapi.co/&quot;>PokéAPI</a>."
+         data-es="BattleLens es software libre con <a href=&quot;https://github.com/minimorcy/battlelens/blob/main/LICENSE&quot;>licencia MIT</a>. Datos de Pokémon de <a href=&quot;https://pokeapi.co/&quot;>PokéAPI</a>.">BattleLens is free software under the <a href="https://github.com/minimorcy/battlelens/blob/main/LICENSE">MIT license</a>. Pokémon data from <a href="https://pokeapi.co/">PokéAPI</a>.</p>
+    </div>
     <p class="disclaimer" id="disclaimer"
        data-en="BattleLens is an unofficial fan project. It is not affiliated with, endorsed, sponsored or approved by Nintendo, The Pokémon Company, Creatures Inc. or GAME FREAK inc. Pokémon and Pokémon character names are trademarks of their respective owners."
        data-es="BattleLens es un proyecto de fans no oficial. No está afiliado ni respaldado por Nintendo, The Pokémon Company, Creatures Inc. ni GAME FREAK inc. Pokémon y los nombres de los Pokémon son marcas registradas de sus respectivos titulares.">BattleLens is an unofficial fan project. It is not affiliated with, endorsed, sponsored or approved by Nintendo, The Pokémon Company, Creatures Inc. or GAME FREAK inc. Pokémon and Pokémon character names are trademarks of their respective owners.</p>

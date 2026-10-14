@@ -53,4 +53,33 @@
       remember(current);
     });
   }
+
+  // Ficha competitiva recortada: el botón la despliega entera
+  var expand = document.getElementById("pro-expand");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      document.getElementById("pro-shot").classList.add("open");
+    });
+  }
+
+  // Aparición al hacer scroll. Lo que ya está a la vista se muestra sin animar
+  // (antes de activar la clase .js) para que no parpadee al cargar.
+  var items = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: "0px 0px -8% 0px" });
+    items.forEach(function (el) {
+      if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("in");
+      else observer.observe(el);
+    });
+  } else {
+    items.forEach(function (el) { el.classList.add("in"); });
+  }
+  html.classList.add("js");
 })();
