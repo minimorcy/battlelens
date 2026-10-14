@@ -92,4 +92,12 @@ EN: dict[str, str] = {
         "BattleLens is an unofficial fan project. It is not affiliated with or endorsed by Nintendo, "
         "The Pokémon Company, Creatures Inc. or GAME FREAK inc. Pokémon and Pokémon character names "
         "are trademarks of their respective owners.",
+    'Informar de un problema…': 'Report a problem…',
+    'Informar de un problema': 'Report a problem',
+    'Se creará un ZIP con tu configuración, tus perfiles, el registro de la app y, si lo marcas, una captura del emulador con lo que lee BattleLens en cada región. No se envía nada: tú decides si lo adjuntas. En los textos se ocultan tu carpeta de usuario y tu nombre de usuario; la captura y el título de la ventana del emulador sí se incluyen.': 'A ZIP will be created with your settings, your profiles, the app log and, if you tick it, a capture of the emulator with what BattleLens reads in each region. Nothing is sent: you decide whether to attach it. Your user folder and user name are hidden in the text files; the capture and the emulator window title are included.',
+    '¿Qué ha pasado? (opcional) p. ej. «No reconoce a Pidgey en Esmeralda»': 'What happened? (optional) e.g. "Pidgey is not recognized in Emerald"',
+    'Incluir una captura del emulador': 'Include a capture of the emulator',
+    'Selecciona antes la ventana del emulador en la bandeja.': 'Select the emulator window in the tray first.',
+    'Abrir el formulario de GitHub al terminar': 'Open the GitHub form when done',
+    'Crear informe': 'Create report',
 }

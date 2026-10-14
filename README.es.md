@@ -88,8 +88,8 @@ Todo se puede cambiar desde bandeja → **Ajustes…** (los cambios se aplican a
 ### Si no reconoce bien
 
 1. Pon `recognition.debug = true`, reinicia BattleLens y reconoce varios rivales.
-2. En `%APPDATA%\BattleLens\debug\`, el archivo `*-recorte.png` debe contener solo el nombre. Si no, usa **Recalibrar perfil activo**.
-3. Si el recorte es correcto y aun así falla, abre un [issue de tipo «Fallo»](https://github.com/minimorcy/battlelens/issues/new/choose): el formulario te pide la versión, el emulador y el juego, y te indica qué archivos adjuntar.
+2. En `%APPDATA%\BattleLens\debug\`, el archivo `*-recorte.png` debe contener solo el nombre. Si no, usa *Regiones del perfil → Recalibrar rival*.
+3. Si el recorte es correcto y aun así falla, usa en la bandeja **Informar de un problema…**: crea un ZIP con tu configuración, el registro y una captura del emulador con lo que lee BattleLens en cada región (se ocultan tu carpeta y tu nombre de usuario; no se envía nada). Después abre el [formulario de «Fallo»](https://github.com/minimorcy/battlelens/issues/new/choose) con la versión, el emulador y el juego ya rellenados, y solo tienes que adjuntar el ZIP.
 
 ### Actualizaciones
 

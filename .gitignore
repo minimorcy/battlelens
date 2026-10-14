@@ -7,3 +7,4 @@ dist/
 *.egg-info/
 debug/
 tools/.cache/
+/capturas-presets/

@@ -1,57 +1,63 @@
-name: Fallo
-description: Algo no funciona como debería (reconocimiento, ficha, instalación…)
+name: Fallo / Bug
+description: Algo no funciona como debería · Something doesn't work as expected (recognition, card, install…)
 title: "[Fallo] "
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        ¡Gracias por avisar! Cuanta más información, antes se arregla.
+        ¡Gracias por avisar! · Thanks for reporting!
 
-        **Si BattleLens no reconoce a un Pokémon o lo confunde:** activa `debug = true` en `%APPDATA%\BattleLens\config.toml` (o en **Ajustes… → Guardar recortes de depuración**), repite el combate y adjunta aquí los archivos de `%APPDATA%\BattleLens\debug\` (`*-recorte.png` y `*.json`).
+        **Lo más útil · Most useful:** en la bandeja, **Informar de un problema…** crea un ZIP con tu configuración, el registro y una captura del emulador con lo que lee BattleLens. Adjúntalo abajo.
+        In the tray, **Report a problem…** creates a ZIP with your settings, the log and a capture of the emulator with what BattleLens reads. Attach it below.
+
+        **Si no reconoce a un Pokémon · If a Pokémon isn't recognized:** activa **Ajustes → Guardar recortes de depuración** (`recognition.debug = true`), repite el combate y crea el informe después.
+        Turn on **Settings → Save debug crops** (`recognition.debug = true`), repeat the battle and then create the report.
   - type: input
     id: version
     attributes:
-      label: Versión de BattleLens
-      description: Bandeja → Acerca de…
-      placeholder: "0.2.0"
+      label: Versión de BattleLens · BattleLens version
+      description: Bandeja → Acerca de… · Tray → About…
+      placeholder: "0.3.0"
     validations:
       required: true
   - type: input
     id: emulator
     attributes:
-      label: Emulador y versión
+      label: Emulador y versión · Emulator and version
       placeholder: "mGBA 0.10.3, melonDS 0.9.5, Eden…"
     validations:
       required: true
   - type: input
     id: game
     attributes:
-      label: Juego e idioma
-      placeholder: "Pokémon Esmeralda (español)"
+      label: Juego e idioma · Game and language
+      placeholder: "Pokémon Esmeralda (español) · Pokémon Emerald (English)"
     validations:
       required: true
   - type: textarea
     id: what
     attributes:
-      label: ¿Qué ocurrió?
+      label: ¿Qué ocurrió? · What happened?
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: ¿Qué esperabas?
+      label: ¿Qué esperabas? · What did you expect?
     validations:
       required: true
   - type: textarea
     id: steps
     attributes:
-      label: Pasos para reproducirlo
+      label: Pasos para reproducirlo · Steps to reproduce
       placeholder: |
         1. …
         2. …
   - type: textarea
     id: files
     attributes:
-      label: Archivos de depuración y app.log
-      description: Arrastra aquí los archivos de `%APPDATA%\BattleLens\debug\` y, si hubo un error, `%APPDATA%\BattleLens\app.log`.
+      label: Informe (ZIP) · Report (ZIP)
+      description: |
+        Arrastra aquí el ZIP de **Informar de un problema…** (se guarda en `%APPDATA%\BattleLens\informes\`).
+        Drag here the ZIP from **Report a problem…** (saved in `%APPDATA%\BattleLens\informes\`).

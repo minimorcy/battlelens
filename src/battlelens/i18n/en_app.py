@@ -104,4 +104,7 @@ EN: dict[str, str] = {
         "Install it manually in Settings > Time & language > Language & region: add (or open the options of) "
         'your language and check "Optical character recognition".',
     "Los menús cambiarán de idioma al reiniciar BattleLens.": "Menus will switch language when BattleLens restarts.",
+    'Creando el informe…': 'Creating the report…',
+    'No se pudo crear el informe: {error}': 'Could not create the report: {error}',
+    'Informe creado: {path}': 'Report created: {path}',
 }

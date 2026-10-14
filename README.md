@@ -89,7 +89,7 @@ Everything can be changed from tray → **Settings…** (*Ajustes…*) (changes 
 
 1. Set `recognition.debug = true`, restart BattleLens and recognise a few opponents.
 2. In `%APPDATA%\BattleLens\debug\`, the `*-recorte.png` file should contain only the name. If not, use **Recalibrate opponent** (*Regiones del perfil → Recalibrar rival*).
-3. If the crop looks right and it still fails, open a ["Bug" issue](https://github.com/minimorcy/battlelens/issues/new/choose): the form asks for the version, emulator and game, and tells you which files to attach.
+3. If the crop looks right and it still fails, use tray → **Report a problem…** (*Informar de un problema…*): it creates a ZIP with your settings, the log and a capture of the emulator with what BattleLens reads in each region (your user folder and name are hidden; nothing is sent). It then opens the ["Bug" form](https://github.com/minimorcy/battlelens/issues/new/choose) with the version, emulator and game filled in, so you only have to attach the ZIP.
 
 ### Updates
 

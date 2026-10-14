@@ -6,6 +6,7 @@ import argparse
 from dataclasses import replace
 import logging
 import os
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -37,6 +38,7 @@ from .core.matcher import NameMatcher
 from .core.moves import MoveMatcher, MoveMemory
 from .core.pokedex import DatasetMissingError, Pokedex
 from .core.profiles import Profile, ProfileStore
+from .core.report import ReportInputs, issue_form_url, write_report
 from .core.storage import app_data_dir
 from .i18n import N_, _, resolve_language, set_language
 from .pipeline import (
@@ -45,13 +47,14 @@ from .pipeline import (
     combined_fingerprint,
     crop_regions,
     levels_of,
+    read_crop,
     read_moves,
     read_regions,
 )
 from .platform import windows
 from .platform.capture import CaptureError, WindowMinimized, WindowUnavailable, capture_client
 from .platform.hotkeys import Hotkey, HotkeyManager, HotkeyParseError, parse_hotkey
-from .platform.ocr import OcrLanguageError, recognize, resolve_languages
+from .platform.ocr import OcrLanguageError, available_languages, recognize, resolve_languages
 from .platform.ocr_setup import (
     MANUAL_INSTRUCTIONS,
     InstallOutcome,
@@ -66,6 +69,7 @@ from .ui.settings import SettingsDialog
 from .ui.calibrator import CalibrationDialog, ask_profile
 from .ui.icons import app_icon
 from .ui.overlay import Overlay
+from .ui.report import ReportDialog
 from .ui.tray import Tray
 from .stream.payload import build_cards
 from .stream.server import StreamServer, StreamState
@@ -167,6 +171,7 @@ class Controller(QObject):
         self.tray.open_data_requested.connect(lambda: os.startfile(self.data_dir))
         self.tray.install_ocr_requested.connect(self.install_ocr)
         self.tray.about_requested.connect(self.show_about)
+        self.tray.report_requested.connect(self.show_report)
         self.tray.settings_requested.connect(self.show_settings)
         self.tray.update_requested.connect(self.open_update)
         self.tray.stream_toggled.connect(self.set_stream_enabled)
@@ -396,6 +401,107 @@ class Controller(QObject):
     def open_update(self) -> None:
         if self.release is not None:
             QDesktopServices.openUrl(QUrl(self.release.url))
+
+    # ---- informe de un problema (spec problem-report) ------------------------------
+
+    def show_report(self) -> None:
+        dialog = ReportDialog(self.target is not None)
+        self._modal_open = True
+        try:
+            accepted = dialog.exec()
+        finally:
+            self._modal_open = False
+        if accepted:
+            self.create_report(*dialog.values())
+
+    def create_report(self, description: str, include_capture: bool, open_form: bool) -> None:
+        self.tray.notify(_("Creando el informe…"))
+        target = self.target if include_capture else None
+        task = _Task(self._build_report, description, target, self.profiles.active)
+        task.signals.finished.connect(lambda result: self._on_report_ready(result, open_form))
+        task.signals.failed.connect(
+            lambda exc: self.tray.notify(_("No se pudo crear el informe: {error}", error=exc), warning=True))
+        self._pool.start(task)
+
+    def _report_summary(self, profile: Profile | None, target) -> dict:
+        import platform
+
+        from . import i18n
+
+        try:
+            ocr_languages = available_languages()
+        except Exception as exc:  # noqa: BLE001 - el informe se crea aunque falle el OCR
+            ocr_languages = f"error: {exc}"
+        game = self.pokedex.get_game(profile.game) if profile else None
+        return {
+            "version": __version__,
+            "windows": platform.platform(),
+            "ocr_idiomas": ocr_languages,
+            "idioma_interfaz": i18n.get_language(),
+            "idioma_datos": self.config.language,
+            "modo_ficha": self.config.overlay_mode,
+            "deteccion_automatica": self.auto_detect,
+            "modo_stream": self.config.stream_enabled,
+            "emulador": {"exe": target.exe, "titulo": target.title} if target else None,
+            "perfil": None if profile is None else {
+                "nombre": profile.name,
+                "juego": profile.game,
+                "nombre_juego": game.name("en") if game else None,
+                "regiones": {role: vars(region) for role, region in profile.regions().items()},
+                "menu_ataques": vars(profile.moves_region) if profile.moves_region else None,
+                "idiomas_ocr": list(profile.ocr_languages),
+            },
+        }
+
+    def _build_report(self, description: str, target, profile: Profile | None):
+        """En el pool: captura, recortes, lecturas y ZIP; la captura puede fallar sin impedir el informe."""
+        inputs = ReportInputs(self.data_dir, self._report_summary(profile, target), description)
+        if target is not None:
+            try:
+                frame = capture_client(target.hwnd)
+                inputs.emulator_image = frame
+                if profile is not None:
+                    inputs.region_crops = crop_regions(frame, profile)
+                    if profile.moves_region is not None:
+                        inputs.region_crops["moves"] = crop_region(frame, profile.moves_region)
+                    inputs.readings = self._report_readings(inputs.region_crops, profile)
+            except CaptureError as exc:
+                inputs.capture_error = f"{type(exc).__name__}: {exc}"
+        path = write_report(inputs)
+        game = self.pokedex.get_game(profile.game) if profile else None
+        url = issue_form_url(__version__, target.exe if target else None, game.name("en") if game else None)
+        return path, url
+
+    def _report_readings(self, crops: dict, profile: Profile) -> dict:
+        readings: dict[str, dict] = {}
+        for role, crop in crops.items():
+            try:
+                if role == "moves":
+                    moves = read_moves(crop, recognize, self.move_matcher(), profile.ocr_languages)
+                    readings[role] = {"movimientos": [m.identifier for m in moves]}
+                    continue
+                reading = read_crop(crop, recognize, self.pipeline.matcher, profile.ocr_languages)
+                species = reading.match.species_id
+                readings[role] = {
+                    "texto": reading.match.raw_text,
+                    "especie": self.pokedex.get_species(species).identifier if species else None,
+                    "puntuacion": round(reading.match.score, 1),
+                    "nivel": reading.level,
+                    "lecturas": list(reading.readings),
+                }
+            except Exception as exc:  # noqa: BLE001 - una región ilegible no impide el informe
+                readings[role] = {"error": f"{type(exc).__name__}: {exc}"}
+        return readings
+
+    def _on_report_ready(self, result, open_form: bool) -> None:
+        path, url = result
+        self.tray.notify(_("Informe creado: {path}", path=path))
+        try:
+            subprocess.Popen(["explorer", f"/select,{path}"])
+        except OSError as exc:
+            log.warning("No se pudo abrir el Explorador: %s", exc)
+        if open_form:
+            QDesktopServices.openUrl(QUrl(url))
 
     def show_about(self) -> None:
         self._about = AboutDialog()
