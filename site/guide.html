@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-en="User guide — BattleLens" data-es="Guía de uso — BattleLens">User guide — BattleLens</title>
+  <meta name="description" content="Step-by-step guide to BattleLens: install it, set up your game with a preset, read the opponent card, use Competitive mode, double battles and OBS stream mode."
+        data-en-content="Step-by-step guide to BattleLens: install it, set up your game with a preset, read the opponent card, use Competitive mode, double battles and OBS stream mode."
+        data-es-content="Guía paso a paso de BattleLens: instálalo, configura tu juego con un preset, entiende la ficha del rival y usa el modo Competitivo, los combates dobles y el modo stream para OBS.">
+  <link rel="canonical" href="https://battlelens.minim-labs.app/guide.html">
+  <meta name="theme-color" content="#0f1218">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="BattleLens">
+  <meta property="og:url" content="https://battlelens.minim-labs.app/guide.html">
+  <meta property="og:title" content="BattleLens user guide">
+  <meta property="og:description" content="Install BattleLens, set up your game and get the opponent's card in every Pokémon battle on your PC emulator.">
+  <meta property="og:image" content="https://battlelens.minim-labs.app/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="BattleLens info card for Stufful next to the headline “Know your opponent before you make a move”">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <!-- umami -->
+</head>
+<body class="guide-page">
+  <a class="skip" href="#main" data-en="Skip to content" data-es="Saltar al contenido">Skip to content</a>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="BattleLens">
+      <img src="assets/icon.png" alt="" width="30" height="30">
+      <span>BattleLens</span>
+    </a>
+    <nav class="topnav" aria-label="Main">
+      <a class="hide-sm" href="index.html" data-en="Home" data-es="Inicio">Home</a>
+      <a class="nav-gh" data-umami-event="github" data-umami-event-place="guide-nav" href="https://github.com/minimorcy/battlelens" aria-label="GitHub" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.75.11 3.04.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      </a>
+      <button class="lang" type="button" id="lang-toggle" aria-label="Cambiar a español"
+              data-en-aria-label="Cambiar a español" data-es-aria-label="Switch to English"
+              data-en="ES" data-es="EN">ES</button>
+      <a class="button primary small" data-umami-event="download" data-umami-event-place="guide-nav" href="https://github.com/minimorcy/battlelens/releases/latest"
+         data-en="Download" data-es="Descargar" target="_blank" rel="noopener">Download</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="guide-hero">
+      <p class="eyebrow" data-en="User guide" data-es="Guía de uso">User guide</p>
+      <h1 data-en="Everything BattleLens does, <span class=&quot;hl&quot;>step by step.</span>"
+          data-es="Todo lo que hace BattleLens, <span class=&quot;hl&quot;>paso a paso.</span>">Everything BattleLens does, <span class="hl">step by step.</span></h1>
+      <p class="lead" data-en="From installing it to streaming with OBS. Every screenshot comes from the real app."
+         data-es="Desde instalarlo hasta usarlo en directo con OBS. Todas las capturas son de la app real.">From installing it to streaming with OBS. Every screenshot comes from the real app.</p>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- ============================== ESPAÑOL ============================== -->
+    <!-- ===================================================================== -->
+    <div class="guide" data-lang="es" lang="es">
+      <nav class="toc" aria-label="Índice de la guía">
+        <p class="toc-title">En esta guía</p>
+        <ol>
+          <li><a href="#rapido">Empieza en 3 minutos</a></li>
+          <li><a href="#instalar">Instalar</a></li>
+          <li><a href="#bandeja">El menú de la bandeja</a></li>
+          <li><a href="#perfil">Configurar tu juego con un preset</a></li>
+          <li><a href="#calibrar">Calibrar a mano</a></li>
+          <li><a href="#ficha">La ficha en combate</a></li>
+          <li><a href="#modos">Normal y Competitivo</a></li>
+          <li><a href="#equipo">Tu Pokémon, tus movimientos y dobles</a></li>
+          <li><a href="#formas">Megas y otras formas</a></li>
+          <li><a href="#a-medida">Tu ficha a medida</a></li>
+          <li><a href="#ajustes">Resto de ajustes</a></li>
+          <li><a href="#directo">Directo con OBS</a></li>
+          <li><a href="#problemas">Si algo no va bien</a></li>
+          <li><a href="#limites">Limitaciones</a></li>
+          <li><a href="#desinstalar">Actualizar y desinstalar</a></li>
+        </ol>
+      </nav>
+
+      <article class="guide-body">
+        <section class="g-section" id="rapido">
+          <h2>Empieza en 3 minutos</h2>
+          <ol class="quick">
+            <li><b>Instala</b> BattleLens y ábrelo: aparece un icono junto al reloj.</li>
+            <li><b>Abre tu emulador</b> y entra en un combate, con los nombres en pantalla.</li>
+            <li>Bandeja → <b>Ventana del emulador</b> → elige tu emulador.</li>
+            <li>Bandeja → <b>Nuevo perfil con un preset…</b> → comprueba que los recuadros caen sobre los nombres → <b>Guardar perfil</b>.</li>
+            <li><b>Juega.</b> En cada combate la ficha del rival aparece sola y se oculta al terminar.</li>
+          </ol>
+          <p class="note">¿Tu juego no tiene preset? Usa <a href="#calibrar">Calibrar a mano</a>: es dibujar un recuadro sobre el nombre del rival.</p>
+        </section>
+
+        <section class="g-section" id="instalar">
+          <h2>Instalar</h2>
+          <ol class="steps-list">
+            <li>Descarga <code>BattleLens-Setup-x.y.z.exe</code> de la <a href="https://github.com/minimorcy/battlelens/releases/latest" target="_blank" rel="noopener">última versión</a>. Si prefieres no instalar nada, descarga <code>BattleLens-x.y.z-portable.zip</code>, descomprímelo y ejecuta <code>BattleLens.exe</code>.</li>
+            <li>Ejecuta el instalador. <b>No pide permisos de administrador.</b></li>
+            <li>Si Windows muestra «Windows protegió su PC», pulsa <i>Más información → Ejecutar de todas formas</i>. Sale porque el ejecutable no está firmado con un certificado de pago. Puedes comprobar la descarga con el <code>SHA256SUMS.txt</code> de la versión.</li>
+          </ol>
+          <p><b>Requisitos:</b> Windows 10 (2004 o posterior) u 11, de 64 bits.</p>
+          <p><b>OCR de Windows.</b> BattleLens lee los nombres con el reconocimiento de texto que trae Windows. Casi todos los equipos lo tienen en su idioma. Si falta, la app avisa al arrancar y aparece <b>Instalar OCR de Windows…</b> en la bandeja y en <i>Ajustes › General</i>.</p>
+        </section>
+
+        <section class="g-section" id="bandeja">
+          <h2>El menú de la bandeja</h2>
+          <p>BattleLens no tiene ventana principal: vive en la bandeja del sistema, junto al reloj (si no lo ves, mira en la flecha <b>^</b>). Haz clic en el icono para abrir el menú; con <b>doble clic</b> se abren los Ajustes.</p>
+          <figure class="shot">
+            <img src="assets/guide/es/tray.png" width="350" height="268" loading="lazy" alt="Menú de BattleLens en la bandeja del sistema">
+          </figure>
+          <dl class="defs">
+            <dt>Reconocer ahora</dt><dd>Lee el nombre del rival en ese momento. Útil si tienes la detección automática apagada.</dd>
+            <dt>Detección automática</dt><dd>Vigila el combate y muestra la ficha sola. Activada por defecto.</dd>
+            <dt>Modo de la ficha</dt><dd>Normal (aventura y captura) o Competitivo (combate). Ver <a href="#modos">Normal y Competitivo</a>.</dd>
+            <dt>Modo stream (OBS) · Copiar URL para OBS</dt><dd>Ficha para tu directo. Ver <a href="#directo">Directo con OBS</a>.</dd>
+            <dt>Ventana del emulador</dt><dd>La ventana que BattleLens mira. Puede estar tapada por otras ventanas.</dd>
+            <dt>Perfil activo</dt><dd>Cambia de perfil o abre <i>Gestionar perfiles…</i>. Al cambiar de juego, su perfil se activa solo.</dd>
+            <dt>Nuevo perfil con un preset…</dt><dd>La forma más rápida de configurar un juego.</dd>
+            <dt>Informar de un problema…</dt><dd>Prepara un ZIP para adjuntarlo en GitHub. Ver <a href="#problemas">Si algo no va bien</a>.</dd>
+          </dl>
+        </section>
+
+        <section class="g-section" id="perfil">
+          <h2>Configurar tu juego con un preset</h2>
+          <p>Un <b>perfil</b> le dice a BattleLens dónde está cada nombre en la pantalla de tu juego. Se crea <b>una vez por juego</b> y se guarda.</p>
+          <ol class="steps-list">
+            <li>Entra en un combate en el emulador, con el nombre del rival y el de tu Pokémon a la vista.</li>
+            <li>Bandeja → <b>Nuevo perfil con un preset…</b></li>
+            <li>Comprueba el <b>Juego</b> de arriba. BattleLens lo propone a partir del título de la ventana.</li>
+            <li>Mira la imagen: la línea discontinua blanca marca dónde ha encontrado la imagen del juego y los recuadros de colores, dónde leerá cada cosa. Debajo tienes lo que lee en cada uno.</li>
+            <li>Si los recuadros caen sobre los nombres, pulsa <b>Guardar perfil</b>, ponle nombre y listo.</li>
+          </ol>
+          <figure class="shot">
+            <img src="assets/guide/es/preset-wizard.jpg" width="922" height="717" loading="lazy" alt="Asistente de presets con los recuadros del rival, de tu Pokémon y del menú de ataques sobre una captura de Pokémon Espada">
+            <figcaption><span class="sw sw-red"></span>Rival · <span class="sw sw-green"></span>Tu Pokémon · <span class="sw sw-yellow"></span>Menú de ataques</figcaption>
+          </figure>
+          <ul class="checks">
+            <li><b>¿Los recuadros están desplazados?</b> Pulsa <b>Ajustar la imagen del juego…</b> y dibuja un rectángulo sobre toda la pantalla del juego, sin las barras del emulador.</li>
+            <li><b>¿El menú de ataques dice «(no leo nada)»?</b> Es normal si no tienes abierto el menú de <i>Luchar</i>: se lee cuando eliges ataque.</li>
+            <li><b>¿Nada encaja?</b> Pulsa <b>Calibrar a mano…</b>.</li>
+          </ul>
+          <p><b>Juegos con preset:</b> Rojo/Azul/Amarillo, Oro/Plata/Cristal, Rubí/Zafiro/Esmeralda, Rojo Fuego/Verde Hoja, Diamante/Perla/Platino, HeartGold/SoulSilver, Negro/Blanco (y 2) y Espada/Escudo.</p>
+          <p class="tip">El <b>juego</b> del perfil importa: decide las formas regionales (Alola, Galar, Hisui, Paldea), los tipos de esa generación y su tabla de eficacias. Puedes cambiarlo en <i>Ajustes › Perfiles → Juego</i>.</p>
+        </section>
+
+        <section class="g-section" id="calibrar">
+          <h2>Calibrar a mano</h2>
+          <p>Para juegos sin preset, o si el preset no encaja:</p>
+          <ol class="steps-list">
+            <li>En un combate, pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> (o <i>Ajustes › Perfiles → Calibrar a mano…</i>).</li>
+            <li>Dibuja con el ratón un rectángulo que cubra el <b>nombre del rival</b>. Cuanto más ajustado, mejor; no pasa nada si incluye el nivel.</li>
+            <li>Pulsa <kbd>Enter</kbd> para confirmar (<kbd>Esc</kbd> cancela), revisa el nombre y el juego propuestos y acepta.</li>
+          </ol>
+          <figure class="shot">
+            <img src="assets/guide/es/calibrate.jpg" width="836" height="505" loading="lazy" alt="Calibración a mano con un recuadro amarillo sobre el nombre del rival">
+          </figure>
+          <p class="tip">Si vas a usar el modo <b>Competitivo</b>, incluye el <b>nivel</b> en el recuadro: BattleLens lo necesita para calcular las estadísticas reales y los movimientos probables.</p>
+        </section>
+
+        <section class="g-section" id="ficha">
+          <h2>La ficha en combate</h2>
+          <p>Con la <b>detección automática</b> activada no tienes que pulsar nada: en cuanto se ve el nombre del rival, la ficha aparece junto al emulador. Se oculta unos segundos después de terminar el combate (4 s por defecto).</p>
+          <div class="pair">
+            <figure class="shot shot-card">
+              <img src="assets/guide/es/card-default.png" width="300" height="221" loading="lazy" alt="Ficha de Machop en modo Normal con los ajustes de fábrica">
+              <figcaption>Así sale de fábrica: lo esencial.</figcaption>
+            </figure>
+            <dl class="defs">
+              <dt>Cabecera</dt><dd>Nombre, número de la Pokédex y tipos del rival en el color de cada tipo.</dd>
+              <dt>Captura</dt><dd>Ratio de captura con su dificultad y un medidor: cuanto más lleno, más fácil.</dd>
+              <dt>Eficacias</dt><dd>Debilidades (×2, ×4), resistencias e inmunidades según la tabla de tipos de tu juego.</dd>
+            </dl>
+          </div>
+          <ul class="checks">
+            <li><b>Ciérrala</b> con la <b>✕</b> de la esquina o con <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>H</kbd>.</li>
+            <li><b>Muévela</b> arrastrándola; recuerda dónde la dejaste.</li>
+            <li><b>Pliega una sección</b> con un clic en su título (▾). Lo plegado se recuerda en cada modo.</li>
+            <li>Si la ficha no cabe en la pantalla, se desplaza con la rueda del ratón.</li>
+            <li>¿Prefieres ir a mano? Apaga la <i>Detección automática</i> en la bandeja y pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> en cada combate.</li>
+          </ul>
+          <p class="tip">Tu ficha <b>no sale en las capturas de pantalla ni en OBS</b>: está oculta a propósito. Para el público está el <a href="#directo">modo stream</a>.</p>
+        </section>
+
+        <section class="g-section" id="modos">
+          <h2>Normal y Competitivo</h2>
+          <p>Cambia de modo con <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd>, desde la bandeja (<i>Modo de la ficha</i>) o en <i>Ajustes › Ficha</i>.</p>
+          <div class="pair pair-top">
+            <figure class="shot shot-card">
+              <img src="assets/guide/es/card-normal.png" width="300" height="386" loading="lazy" alt="Ficha Normal con todas las secciones">
+              <figcaption><span class="pill pill-normal">Normal</span> Para la aventura y la captura.</figcaption>
+            </figure>
+            <figure class="shot shot-card">
+              <img src="assets/guide/es/card-competitive.png" width="360" height="1135" loading="lazy" alt="Ficha Competitiva con nivel, estadísticas a su nivel, habilidades, movimientos probables y entrenamiento">
+              <figcaption><span class="pill pill-pro">Competitivo</span> Para combates duros y retos.</figcaption>
+            </figure>
+          </div>
+          <p>El modo <b>Competitivo</b> añade:</p>
+          <ul class="checks">
+            <li><b>Nivel</b> del rival y sus <b>estadísticas reales a ese nivel</b> (mínimo–máximo), con la fórmula de cada generación.</li>
+            <li><b>Habilidades</b> con su descripción y su efecto en las eficacias (por ejemplo, «Levitación → Tierra ×0»).</li>
+            <li><b>Movimientos probables:</b> los 4 últimos que aprende hasta su nivel en ese juego.</li>
+            <li><b>Quién es más rápido</b>, tú o él, en la sección «Contra tu…».</li>
+            <li><b>Entrenamiento:</b> EVs que da, peso (para Patada Baja) y perfil de estadísticas.</li>
+          </ul>
+          <p class="note">Las secciones que ves en cada modo se eligen en <a href="#a-medida">Tu ficha a medida</a>. Las capturas de arriba las muestran todas.</p>
+        </section>
+
+        <section class="g-section" id="equipo">
+          <h2>Tu Pokémon, tus movimientos y dobles</h2>
+          <p>Además del rival, cada perfil puede leer tres cosas más. Configúralas en <i>Ajustes › Perfiles</i> (o bandeja → <i>Perfil activo → Gestionar perfiles…</i>), en la tarjeta <b>Perfil activo</b>:</p>
+          <figure class="shot">
+            <img src="assets/guide/es/settings-profiles.png" width="880" height="855" loading="lazy" alt="Ajustes, sección Perfiles, con las regiones del perfil activo">
+          </figure>
+          <dl class="defs">
+            <dt>Tu Pokémon</dt><dd>Con su nombre calibrado, la ficha muestra <b>«Contra tu X»</b>: lo que le hacen tus tipos, lo que te hacen los suyos y un veredicto (<b>Ventaja / Neutral / Desventaja</b>). Si tu Pokémon tiene mote, no se puede reconocer.</dd>
+            <dt>Menú de ataques</dt><dd>Calíbralo con el menú de <i>Luchar</i> abierto, sobre los 4 movimientos. Cada vez que lo abres, BattleLens lee tus ataques y los recuerda por especie; la sección <b>Tus movimientos</b> dice cuánto le hace cada uno a ese rival. Mientras no los haya leído, muestra los probables de tu Pokémon a su nivel.</dd>
+            <dt>2.º rival (combates dobles)</dt><dd>En los combates dobles aparecen dos fichas, una al lado de la otra.</dd>
+          </dl>
+          <figure class="shot shot-card">
+            <img src="assets/guide/es/card-double.png" width="586" height="412" loading="lazy" alt="Combate doble: fichas de Zigzagoon de Galar y Stufful comparadas con tu Scorbunny">
+            <figcaption>Combate doble con tu Pokémon calibrado.</figcaption>
+          </figure>
+          <p class="note">«Contra tu Pokémon» y «Tus movimientos» vienen ocultas de fábrica. Actívalas en <a href="#a-medida">Ajustes › Ficha</a> después de calibrar.</p>
+        </section>
+
+        <section class="g-section" id="formas">
+          <h2>Megas y otras formas</h2>
+          <div class="pair">
+            <figure class="shot shot-card">
+              <img src="assets/guide/es/card-form.png" width="300" height="453" loading="lazy" alt="Ficha de Rotom Lavado con la lista de sus otras formas">
+            </figure>
+            <div>
+              <p>Las <b>formas regionales</b> (Alola, Galar, Hisui, Paldea) se eligen solas según el juego del perfil.</p>
+              <p>Las <b>megaevoluciones y otras formas</b> (Rotom, Deoxys, Giratina…) muestran el mismo nombre en pantalla, así que BattleLens no puede distinguirlas. Pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> para pasar por las formas disponibles en ese juego: la ficha se recalcula y mantiene esa forma mientras el Pokémon siga en combate.</p>
+              <p>La sección <b>Otras formas</b> (oculta de fábrica) las lista con sus tipos.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="g-section" id="a-medida">
+          <h2>Tu ficha a medida</h2>
+          <p>En <i>Ajustes › Ficha</i> eliges qué secciones ves en cada modo. De fábrica la ficha es mínima: <b>Normal</b> solo con las eficacias y <b>Competitivo</b> con eficacias y estadísticas. El nombre, los tipos y la captura se ven siempre. La ficha del stream sigue la misma elección.</p>
+          <figure class="shot">
+            <img src="assets/guide/es/settings-card.png" width="880" height="1211" loading="lazy" alt="Ajustes, sección Ficha, con los interruptores de cada sección para Normal y Competitivo">
+          </figure>
+          <ul class="checks">
+            <li><b>Mostrar todas</b> activa todas las secciones de golpe.</li>
+            <li><b>Desplegar todas las secciones</b> abre las que hayas plegado con un clic en su título.</li>
+            <li><b>Idioma de los datos Pokémon:</b> nombres, tipos, habilidades y movimientos en español, inglés, francés, alemán o italiano. Es independiente del idioma de los menús.</li>
+            <li><b>Ocultar la ficha tras:</b> segundos hasta ocultarla aunque siga el combate (0 = nunca).</li>
+          </ul>
+          <p class="tip">Los cambios de esta página se aplican al pulsar <b>Guardar</b>. «Guardar» solo se activa si has cambiado algo, y la ventana avisa si la cierras con cambios pendientes. La ventana no bloquea nada: la detección sigue funcionando mientras está abierta.</p>
+        </section>
+
+        <section class="g-section" id="ajustes">
+          <h2>Resto de ajustes</h2>
+          <h3>General</h3>
+          <figure class="shot">
+            <img src="assets/guide/es/settings-general.png" width="880" height="600" loading="lazy" alt="Ajustes, sección General">
+          </figure>
+          <p><b>Idioma de la interfaz</b> (menús, avisos y textos de la ficha): automático según Windows, español o inglés. <b>Buscar actualizaciones</b> una vez al día. <b>Abrir carpeta</b> de datos (configuración, perfiles, registro) y <b>Crear informe…</b> si algo falla.</p>
+
+          <h3>Reconocimiento</h3>
+          <figure class="shot">
+            <img src="assets/guide/es/settings-recognition.png" width="880" height="600" loading="lazy" alt="Ajustes, sección Reconocimiento">
+          </figure>
+          <dl class="defs">
+            <dt>Umbral de reconocimiento</dt><dd>Lo seguro que debe estar BattleLens para dar un nombre por bueno (80 por defecto). Bájalo si no reconoce nombres que se leen bien; súbelo si confunde Pokémon.</dd>
+            <dt>Guardar recortes de depuración</dt><dd>Guarda cada recorte y lo que leyó el OCR. Útil para <a href="#problemas">diagnosticar</a>.</dd>
+            <dt>Intervalo de vigilancia</dt><dd>Cada cuánto se mira la región del nombre (500 ms).</dd>
+            <dt>Ocultar al terminar el combate tras</dt><dd>Segundos sin ver al rival hasta ocultar la ficha (4 s; 0 = nunca).</dd>
+          </dl>
+
+          <h3>Atajos</h3>
+          <figure class="shot">
+            <img src="assets/guide/es/settings-hotkeys.png" width="880" height="600" loading="lazy" alt="Ajustes, sección Atajos">
+          </figure>
+          <table class="keys">
+            <thead><tr><th>Atajo</th><th>Qué hace</th></tr></thead>
+            <tbody>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd></td><td>Reconocer al rival ahora</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd></td><td>Calibrar un perfil nuevo a mano</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>H</kbd></td><td>Ocultar la ficha</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd></td><td>Cambiar entre Normal y Competitivo</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd></td><td>Cambiar la forma del rival</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd></td><td>Mostrar u ocultar la ficha del stream</td></tr>
+            </tbody>
+          </table>
+          <p class="note">Todos necesitan un modificador (Ctrl, Alt, Shift o Win): las teclas F solas las usan los emuladores para los estados guardados.</p>
+        </section>
+
+        <section class="g-section" id="directo">
+          <h2>Directo con OBS</h2>
+          <p>El modo stream es opcional: desactivado, no cambia nada. Como tu ficha no sale en la captura, el público tiene la suya a través de OBS.</p>
+          <ol class="steps-list">
+            <li>Bandeja → <b>Modo stream (OBS)</b>.</li>
+            <li>Bandeja → <b>Copiar URL para OBS</b> (por defecto <code>http://localhost:17320/</code>).</li>
+            <li>En OBS, añade una <b>Fuente de navegador</b> con esa URL (por ejemplo, de 800×900) y colócala en tu escena. El fondo es transparente.</li>
+          </ol>
+          <figure class="shot">
+            <img src="assets/guide/es/settings-stream.png" width="880" height="600" loading="lazy" alt="Ajustes, sección Modo stream, con la URL para OBS">
+          </figure>
+          <ul class="checks">
+            <li>La ficha del stream entra y sale con una animación con cada rival y se oculta al terminar el combate.</li>
+            <li>Cerrar tu ficha no la oculta; <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd> sí.</li>
+            <li>Añade <code>?scale=1.5</code> al final de la URL para verla más grande.</li>
+            <li>Tiene su propio modo (Normal o Competitivo) en <i>Ajustes › Modo stream</i>.</li>
+            <li>Solo escucha en tu propio PC (<code>127.0.0.1</code>): nadie de fuera puede abrirla.</li>
+          </ul>
+        </section>
+
+        <section class="g-section" id="problemas">
+          <h2>Si algo no va bien</h2>
+          <details class="faq-item" open>
+            <summary>La ficha no aparece</summary>
+            <ul>
+              <li>Comprueba en la bandeja que la <i>Ventana del emulador</i> es la correcta y que hay un <i>Perfil activo</i>.</li>
+              <li>Comprueba que la <i>Detección automática</i> está activada, o pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>.</li>
+              <li>¿Has minimizado el emulador? BattleLens lee la ventana aunque esté tapada, pero no si está minimizada.</li>
+            </ul>
+          </details>
+          <details class="faq-item">
+            <summary>Sale «No reconocido» o un Pokémon equivocado</summary>
+            <ol>
+              <li>Activa <i>Ajustes › Reconocimiento → Guardar recortes de depuración</i> y reconoce varios rivales.</li>
+              <li>Abre la carpeta de datos (<i>Ajustes › General → Abrir carpeta</i>) y mira en <code>debug\</code>: cada <code>*-recorte.png</code> debe contener solo el nombre.</li>
+              <li>Si no es así, pulsa <b>Recalibrar…</b> junto a <b>Rival</b> en <i>Ajustes › Perfiles</i>.</li>
+            </ol>
+          </details>
+          <details class="faq-item">
+            <summary>El modo Competitivo no muestra el nivel</summary>
+            <p>La región del rival debe incluir el nivel. Recalíbrala con el nivel dentro. Sin nivel, la ficha sale sin movimientos probables ni estadísticas a su nivel.</p>
+          </details>
+          <details class="faq-item">
+            <summary>No reconoce a mi Pokémon</summary>
+            <p>Si tiene mote, no se puede reconocer: BattleLens busca nombres de especie. La ficha del rival sigue funcionando.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Sigue fallando: informar del problema</summary>
+            <p>Bandeja → <b>Informar de un problema…</b> crea un ZIP con tu configuración, el registro y una captura del emulador con lo que lee BattleLens en cada región. Se ocultan tu carpeta y tu nombre de usuario, y no se envía nada solo. Después se abre el formulario de fallo de GitHub con la versión, el emulador y el juego ya rellenados: solo tienes que adjuntar el ZIP.</p>
+          </details>
+        </section>
+
+        <section class="g-section" id="limites">
+          <h2>Limitaciones</h2>
+          <ul class="checks muted">
+            <li>Las megaevoluciones y formas no regionales no se distinguen por el nombre: elígelas con <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>. Gigamax no aparece porque no cambia tipos ni estadísticas.</li>
+            <li>Los <b>movimientos probables</b> son los de un Pokémon salvaje o de un entrenador corriente; líderes, rivales y equipos competitivos pueden llevar otros.</li>
+            <li>La comparativa es <b>por tipos</b> (ataques con STAB) y tiene en cuenta las habilidades que cambian la eficacia; si solo alguna de sus habilidades lo hace, la ficha avisa («si tiene Levitación»). No cuenta objetos ni habilidades como Rompemoldes.</li>
+            <li><b>Tus movimientos</b> usan su tipo y potencia del juego; los de tipo variable (Poder Oculto, Meteorobola…) muestran su tipo base.</li>
+          </ul>
+        </section>
+
+        <section class="g-section" id="desinstalar">
+          <h2>Actualizar y desinstalar</h2>
+          <p><b>Actualizar.</b> BattleLens comprueba una vez al día si hay versión nueva (es su única conexión a internet, y se puede desactivar). Si la hay, te avisa y aparece <b>Descargar BattleLens X.Y.Z…</b> en la bandeja. Ejecuta el instalador nuevo: tus perfiles y ajustes se conservan.</p>
+          <p><b>Desinstalar.</b> Desde <i>Configuración → Aplicaciones → Aplicaciones instaladas → BattleLens</i>. Te preguntará si quieres borrar también tus perfiles.</p>
+          <p><b>Tus datos</b> están en <code>%APPDATA%\BattleLens\</code>: <code>config.toml</code> (los mismos valores que en Ajustes), los perfiles y el registro.</p>
+        </section>
+      </article>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- ============================== ENGLISH ============================== -->
+    <!-- ===================================================================== -->
+    <div class="guide" data-lang="en" lang="en">
+      <nav class="toc" aria-label="Guide contents">
+        <p class="toc-title">In this guide</p>
+        <ol>
+          <li><a href="#quick-start">Get started in 3 minutes</a></li>
+          <li><a href="#install">Install</a></li>
+          <li><a href="#tray">The tray menu</a></li>
+          <li><a href="#profile">Set up your game with a preset</a></li>
+          <li><a href="#calibrate">Calibrate manually</a></li>
+          <li><a href="#card">The card in battle</a></li>
+          <li><a href="#modes">Normal and Competitive</a></li>
+          <li><a href="#team">Your Pokémon, your moves and doubles</a></li>
+          <li><a href="#forms">Megas and other forms</a></li>
+          <li><a href="#customize">Make the card yours</a></li>
+          <li><a href="#settings">Other settings</a></li>
+          <li><a href="#stream">Streaming with OBS</a></li>
+          <li><a href="#troubleshooting">Troubleshooting</a></li>
+          <li><a href="#limitations">Limitations</a></li>
+          <li><a href="#uninstall">Update and uninstall</a></li>
+        </ol>
+      </nav>
+
+      <article class="guide-body">
+        <section class="g-section" id="quick-start">
+          <h2>Get started in 3 minutes</h2>
+          <ol class="quick">
+            <li><b>Install</b> BattleLens and open it: an icon appears next to the clock.</li>
+            <li><b>Open your emulator</b> and start a battle, with the names on screen.</li>
+            <li>Tray → <b>Emulator window</b> → pick your emulator.</li>
+            <li>Tray → <b>New profile from a preset…</b> → check the boxes sit on the names → <b>Save profile</b>.</li>
+            <li><b>Play.</b> In every battle the opponent card pops up by itself and hides when the battle ends.</li>
+          </ol>
+          <p class="note">No preset for your game? Use <a href="#calibrate">Calibrate manually</a>: you just draw a box around the opponent's name.</p>
+        </section>
+
+        <section class="g-section" id="install">
+          <h2>Install</h2>
+          <ol class="steps-list">
+            <li>Download <code>BattleLens-Setup-x.y.z.exe</code> from the <a href="https://github.com/minimorcy/battlelens/releases/latest" target="_blank" rel="noopener">latest release</a>. If you'd rather not install anything, download <code>BattleLens-x.y.z-portable.zip</code>, unzip it and run <code>BattleLens.exe</code>.</li>
+            <li>Run the installer. <b>It doesn't need administrator rights.</b></li>
+            <li>If Windows shows "Windows protected your PC", click <i>More info → Run anyway</i>. It appears because the executable isn't signed with a paid certificate. You can verify the download against the release's <code>SHA256SUMS.txt</code>.</li>
+          </ol>
+          <p><b>Requirements:</b> Windows 10 (2004 or later) or 11, 64-bit.</p>
+          <p><b>Windows OCR.</b> BattleLens reads names with the text recognition built into Windows. Almost every PC has it for its language. If it's missing, the app tells you on startup and shows <b>Install Windows OCR…</b> in the tray and in <i>Settings › General</i>.</p>
+        </section>
+
+        <section class="g-section" id="tray">
+          <h2>The tray menu</h2>
+          <p>BattleLens has no main window: it lives in the system tray, next to the clock (if you can't see it, look under the <b>^</b> arrow). Click the icon to open the menu; <b>double-click</b> it to open Settings.</p>
+          <figure class="shot">
+            <img src="assets/guide/en/tray.png" width="334" height="268" loading="lazy" alt="BattleLens menu in the system tray">
+          </figure>
+          <dl class="defs">
+            <dt>Recognize now</dt><dd>Reads the opponent's name right now. Handy if automatic detection is off.</dd>
+            <dt>Automatic detection</dt><dd>Watches the battle and shows the card by itself. On by default.</dd>
+            <dt>Card mode</dt><dd>Normal (adventure and catching) or Competitive (battle). See <a href="#modes">Normal and Competitive</a>.</dd>
+            <dt>Stream mode (OBS) · Copy URL for OBS</dt><dd>A card for your stream. See <a href="#stream">Streaming with OBS</a>.</dd>
+            <dt>Emulator window</dt><dd>The window BattleLens watches. Other windows can cover it.</dd>
+            <dt>Active profile</dt><dd>Switch profiles or open <i>Manage profiles…</i>. When you change games, its profile activates by itself.</dd>
+            <dt>New profile from a preset…</dt><dd>The quickest way to set up a game.</dd>
+            <dt>Report a problem…</dt><dd>Prepares a ZIP to attach on GitHub. See <a href="#troubleshooting">Troubleshooting</a>.</dd>
+          </dl>
+        </section>
+
+        <section class="g-section" id="profile">
+          <h2>Set up your game with a preset</h2>
+          <p>A <b>profile</b> tells BattleLens where each name is on your game's screen. You create it <b>once per game</b> and it's saved.</p>
+          <ol class="steps-list">
+            <li>Start a battle in the emulator, with the opponent's name and your Pokémon's name visible.</li>
+            <li>Tray → <b>New profile from a preset…</b></li>
+            <li>Check the <b>Game</b> at the top. BattleLens suggests it from the window title.</li>
+            <li>Look at the picture: the dashed white line shows where it found the game image, and the colored boxes show where it will read each thing. What it reads in each box is listed below.</li>
+            <li>If the boxes sit on the names, click <b>Save profile</b>, name it and you're done.</li>
+          </ol>
+          <figure class="shot">
+            <img src="assets/guide/en/preset-wizard.jpg" width="922" height="717" loading="lazy" alt="Preset wizard with the opponent, your Pokémon and Fight menu boxes over a Pokémon Sword screenshot">
+            <figcaption><span class="sw sw-red"></span>Opponent · <span class="sw sw-green"></span>Your Pokémon · <span class="sw sw-yellow"></span>Moves menu</figcaption>
+          </figure>
+          <ul class="checks">
+            <li><b>Boxes off target?</b> Click <b>Adjust the game image…</b> and draw a rectangle over the whole game screen, without the emulator's bars.</li>
+            <li><b>Moves menu says "(nothing read)"?</b> That's normal unless the <i>Fight</i> menu is open: it's read when you pick a move.</li>
+            <li><b>Nothing fits?</b> Click <b>Calibrate manually…</b>.</li>
+          </ul>
+          <p><b>Games with a preset:</b> Red/Blue/Yellow, Gold/Silver/Crystal, Ruby/Sapphire/Emerald, FireRed/LeafGreen, Diamond/Pearl/Platinum, HeartGold/SoulSilver, Black/White (and 2) and Sword/Shield.</p>
+          <p class="tip">The profile's <b>game</b> matters: it decides regional forms (Alola, Galar, Hisui, Paldea), that generation's types and its type chart. You can change it in <i>Settings › Profiles → Game</i>.</p>
+        </section>
+
+        <section class="g-section" id="calibrate">
+          <h2>Calibrate manually</h2>
+          <p>For games without a preset, or if the preset doesn't fit:</p>
+          <ol class="steps-list">
+            <li>During a battle, press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> (or <i>Settings › Profiles → Calibrate manually…</i>).</li>
+            <li>Drag a rectangle over the <b>opponent's name</b>. The tighter, the better; it's fine if it includes the level.</li>
+            <li>Press <kbd>Enter</kbd> to confirm (<kbd>Esc</kbd> cancels), check the suggested name and game, and accept.</li>
+          </ol>
+          <figure class="shot">
+            <img src="assets/guide/en/calibrate.jpg" width="758" height="505" loading="lazy" alt="Manual calibration with a yellow box over the opponent's name">
+          </figure>
+          <p class="tip">If you'll use <b>Competitive</b> mode, include the <b>level</b> in the box: BattleLens needs it for the actual stats and the likely moves.</p>
+        </section>
+
+        <section class="g-section" id="card">
+          <h2>The card in battle</h2>
+          <p>With <b>automatic detection</b> on you don't press anything: as soon as the opponent's name is on screen, the card appears next to the emulator. It hides a few seconds after the battle ends (4 s by default).</p>
+          <div class="pair">
+            <figure class="shot shot-card">
+              <img src="assets/guide/en/card-default.png" width="300" height="221" loading="lazy" alt="Machop card in Normal mode with the default settings">
+              <figcaption>Out of the box: just the essentials.</figcaption>
+            </figure>
+            <dl class="defs">
+              <dt>Header</dt><dd>The opponent's name, Pokédex number and types, in each type's color.</dd>
+              <dt>Catch rate</dt><dd>Catch rate with its difficulty and a meter: the fuller, the easier.</dd>
+              <dt>Type matchups</dt><dd>Weaknesses (×2, ×4), resistances and immunities using your game's type chart.</dd>
+            </dl>
+          </div>
+          <ul class="checks">
+            <li><b>Close it</b> with the <b>✕</b> in the corner or with <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>H</kbd>.</li>
+            <li><b>Move it</b> by dragging; it remembers where you left it.</li>
+            <li><b>Collapse a section</b> by clicking its title (▾). Collapsed sections are remembered per mode.</li>
+            <li>If the card doesn't fit on screen, scroll it with the mouse wheel.</li>
+            <li>Prefer doing it by hand? Turn off <i>Automatic detection</i> in the tray and press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> in each battle.</li>
+          </ul>
+          <p class="tip">Your card <b>doesn't show up in screenshots or OBS</b>: it's hidden on purpose. Your viewers get <a href="#stream">stream mode</a>.</p>
+        </section>
+
+        <section class="g-section" id="modes">
+          <h2>Normal and Competitive</h2>
+          <p>Switch modes with <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd>, from the tray (<i>Card mode</i>) or in <i>Settings › Card</i>.</p>
+          <div class="pair pair-top">
+            <figure class="shot shot-card">
+              <img src="assets/guide/en/card-normal.png" width="300" height="386" loading="lazy" alt="Normal card with every section">
+              <figcaption><span class="pill pill-normal">Normal</span> For adventuring and catching.</figcaption>
+            </figure>
+            <figure class="shot shot-card">
+              <img src="assets/guide/en/card-competitive.png" width="360" height="1149" loading="lazy" alt="Competitive card with level, stats at that level, abilities, likely moves and training data">
+              <figcaption><span class="pill pill-pro">Competitive</span> For hard battles and challenge runs.</figcaption>
+            </figure>
+          </div>
+          <p><b>Competitive</b> mode adds:</p>
+          <ul class="checks">
+            <li>The opponent's <b>level</b> and its <b>actual stats at that level</b> (min–max), using each generation's formula.</li>
+            <li><b>Abilities</b> with their description and their effect on matchups (for example, "Levitate → Ground ×0").</li>
+            <li><b>Likely moves:</b> the last 4 it learns up to its level in that game.</li>
+            <li><b>Who's faster</b>, you or them, in the "Against your…" section.</li>
+            <li><b>Training:</b> EV yield, weight (for Low Kick) and stat profile.</li>
+          </ul>
+          <p class="note">You choose the sections each mode shows in <a href="#customize">Make the card yours</a>. The screenshots above show all of them.</p>
+        </section>
+
+        <section class="g-section" id="team">
+          <h2>Your Pokémon, your moves and doubles</h2>
+          <p>Besides the opponent, each profile can read three more things. Set them up in <i>Settings › Profiles</i> (or tray → <i>Active profile → Manage profiles…</i>), in the <b>Active profile</b> panel:</p>
+          <figure class="shot">
+            <img src="assets/guide/en/settings-profiles.png" width="880" height="855" loading="lazy" alt="Settings, Profiles section, with the active profile's regions">
+          </figure>
+          <dl class="defs">
+            <dt>Your Pokémon</dt><dd>With its name calibrated, the card shows <b>"Against your X"</b>: what your types do to it, what its types do to you and a verdict (<b>Advantage / Neutral / Disadvantage</b>). A nicknamed Pokémon can't be recognized.</dd>
+            <dt>Moves menu</dt><dd>Calibrate it with the <i>Fight</i> menu open, over the 4 moves. Every time you open it, BattleLens reads your moves and remembers them per species; the <b>Your moves</b> section shows how much each one does to that opponent. Until they've been read, it shows your Pokémon's likely moves at its level.</dd>
+            <dt>2nd opponent (double battles)</dt><dd>In double battles you get two cards side by side.</dd>
+          </dl>
+          <figure class="shot shot-card">
+            <img src="assets/guide/en/card-double.png" width="586" height="412" loading="lazy" alt="Double battle: Galarian Zigzagoon and Stufful cards compared with your Scorbunny">
+            <figcaption>A double battle with your Pokémon calibrated.</figcaption>
+          </figure>
+          <p class="note">"Against your Pokémon" and "Your moves" are hidden out of the box. Turn them on in <a href="#customize">Settings › Card</a> once you've calibrated.</p>
+        </section>
+
+        <section class="g-section" id="forms">
+          <h2>Megas and other forms</h2>
+          <div class="pair">
+            <figure class="shot shot-card">
+              <img src="assets/guide/en/card-form.png" width="300" height="453" loading="lazy" alt="Wash Rotom card listing its other forms">
+            </figure>
+            <div>
+              <p><b>Regional forms</b> (Alola, Galar, Hisui, Paldea) are picked automatically from the profile's game.</p>
+              <p><b>Mega Evolutions and other forms</b> (Rotom, Deoxys, Giratina…) show the same name on screen, so BattleLens can't tell them apart. Press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> to cycle through the forms available in that game: the card is recalculated and keeps that form while the Pokémon stays in battle.</p>
+              <p>The <b>Other forms</b> section (hidden out of the box) lists them with their types.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="g-section" id="customize">
+          <h2>Make the card yours</h2>
+          <p>In <i>Settings › Card</i> you choose which sections each mode shows. Out of the box the card is minimal: <b>Normal</b> shows only type matchups and <b>Competitive</b> shows matchups and stats. The name, types and catch rate are always shown. The stream card follows the same choice.</p>
+          <figure class="shot">
+            <img src="assets/guide/en/settings-card.png" width="880" height="1195" loading="lazy" alt="Settings, Card section, with a switch per section for Normal and Competitive">
+          </figure>
+          <ul class="checks">
+            <li><b>Show all</b> turns every section on at once.</li>
+            <li><b>Expand all sections</b> reopens the ones you collapsed by clicking their title.</li>
+            <li><b>Pokémon data language:</b> names, types, abilities and moves in English, Spanish, French, German or Italian. It's separate from the menu language.</li>
+            <li><b>Hide the card after:</b> seconds until it hides even if the battle goes on (0 = never).</li>
+          </ul>
+          <p class="tip">Changes on this page apply when you click <b>Save</b>. "Save" is only enabled when something changed, and the window asks before closing with pending changes. It doesn't block anything: detection keeps working while it's open.</p>
+        </section>
+
+        <section class="g-section" id="settings">
+          <h2>Other settings</h2>
+          <h3>General</h3>
+          <figure class="shot">
+            <img src="assets/guide/en/settings-general.png" width="880" height="600" loading="lazy" alt="Settings, General section">
+          </figure>
+          <p><b>Interface language</b> (menus, notices and card labels): automatic from Windows, English or Spanish. <b>Check for updates</b> once a day. <b>Open folder</b> with your data (settings, profiles, log) and <b>Create report…</b> if something goes wrong.</p>
+
+          <h3>Recognition</h3>
+          <figure class="shot">
+            <img src="assets/guide/en/settings-recognition.png" width="880" height="600" loading="lazy" alt="Settings, Recognition section">
+          </figure>
+          <dl class="defs">
+            <dt>Recognition threshold</dt><dd>How sure BattleLens must be to accept a name (80 by default). Lower it if names that read fine aren't recognized; raise it if it mixes up Pokémon.</dd>
+            <dt>Save debug crops</dt><dd>Saves every crop and what the OCR read. Useful for <a href="#troubleshooting">troubleshooting</a>.</dd>
+            <dt>Polling interval</dt><dd>How often the name region is checked (500 ms).</dd>
+            <dt>Hide when the battle ends, after</dt><dd>Seconds without seeing the opponent before hiding the card (4 s; 0 = never).</dd>
+          </dl>
+
+          <h3>Shortcuts</h3>
+          <figure class="shot">
+            <img src="assets/guide/en/settings-hotkeys.png" width="880" height="600" loading="lazy" alt="Settings, Shortcuts section">
+          </figure>
+          <table class="keys">
+            <thead><tr><th>Shortcut</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd></td><td>Recognize the opponent now</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd></td><td>Calibrate a new profile manually</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>H</kbd></td><td>Hide the card</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd></td><td>Switch between Normal and Competitive</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd></td><td>Switch the opponent's form</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd></td><td>Show or hide the stream card</td></tr>
+            </tbody>
+          </table>
+          <p class="note">They all need a modifier (Ctrl, Alt, Shift or Win): emulators use the plain F keys for save states.</p>
+        </section>
+
+        <section class="g-section" id="stream">
+          <h2>Streaming with OBS</h2>
+          <p>Stream mode is optional: turned off, nothing changes. Since your card doesn't show up in captures, your viewers get their own through OBS.</p>
+          <ol class="steps-list">
+            <li>Tray → <b>Stream mode (OBS)</b>.</li>
+            <li>Tray → <b>Copy URL for OBS</b> (by default <code>http://localhost:17320/</code>).</li>
+            <li>In OBS, add a <b>Browser source</b> with that URL (for example, 800×900) and place it in your scene. The background is transparent.</li>
+          </ol>
+          <figure class="shot">
+            <img src="assets/guide/en/settings-stream.png" width="880" height="600" loading="lazy" alt="Settings, Stream mode section, with the URL for OBS">
+          </figure>
+          <ul class="checks">
+            <li>The stream card animates in and out with every opponent and hides when the battle ends.</li>
+            <li>Closing your card doesn't hide it; <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd> does.</li>
+            <li>Add <code>?scale=1.5</code> to the end of the URL to make it bigger.</li>
+            <li>It has its own mode (Normal or Competitive) in <i>Settings › Stream mode</i>.</li>
+            <li>It only listens on your own PC (<code>127.0.0.1</code>): nobody outside can open it.</li>
+          </ul>
+        </section>
+
+        <section class="g-section" id="troubleshooting">
+          <h2>Troubleshooting</h2>
+          <details class="faq-item" open>
+            <summary>The card doesn't appear</summary>
+            <ul>
+              <li>Check in the tray that the <i>Emulator window</i> is the right one and that there's an <i>Active profile</i>.</li>
+              <li>Check that <i>Automatic detection</i> is on, or press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>.</li>
+              <li>Is the emulator minimized? BattleLens reads the window even when it's covered, but not when it's minimized.</li>
+            </ul>
+          </details>
+          <details class="faq-item">
+            <summary>It says "Not recognized" or shows the wrong Pokémon</summary>
+            <ol>
+              <li>Turn on <i>Settings › Recognition → Save debug crops</i> and recognize a few opponents.</li>
+              <li>Open the data folder (<i>Settings › General → Open folder</i>) and look in <code>debug\</code>: each <code>*-recorte.png</code> should contain only the name.</li>
+              <li>If it doesn't, click <b>Recalibrate…</b> next to <b>Opponent</b> in <i>Settings › Profiles</i>.</li>
+            </ol>
+          </details>
+          <details class="faq-item">
+            <summary>Competitive mode doesn't show the level</summary>
+            <p>The opponent region must include the level. Recalibrate it with the level inside. Without a level, the card shows no likely moves and no stats at its level.</p>
+          </details>
+          <details class="faq-item">
+            <summary>It doesn't recognize my Pokémon</summary>
+            <p>If it has a nickname, it can't be recognized: BattleLens looks for species names. The opponent card still works.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Still failing: report the problem</summary>
+            <p>Tray → <b>Report a problem…</b> creates a ZIP with your settings, the log and a capture of the emulator with what BattleLens reads in each region. Your folder and user name are hidden, and nothing is sent automatically. Then the GitHub bug form opens with the version, emulator and game already filled in: just attach the ZIP.</p>
+          </details>
+        </section>
+
+        <section class="g-section" id="limitations">
+          <h2>Limitations</h2>
+          <ul class="checks muted">
+            <li>Mega Evolutions and non-regional forms can't be told apart by name: pick them with <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>. Gigantamax isn't listed because it doesn't change types or stats.</li>
+            <li><b>Likely moves</b> are those of a wild Pokémon or a regular trainer; leaders, rivals and competitive teams may carry others.</li>
+            <li>The matchup is <b>type-based</b> (STAB attacks) and accounts for abilities that change effectiveness; if only some of its abilities do, the card warns you ("if it has Levitate"). Items and abilities like Mold Breaker aren't considered.</li>
+            <li><b>Your moves</b> use their type and power in your game; variable-type moves (Hidden Power, Weather Ball…) show their base type.</li>
+          </ul>
+        </section>
+
+        <section class="g-section" id="uninstall">
+          <h2>Update and uninstall</h2>
+          <p><b>Update.</b> BattleLens checks once a day for a new version (its only internet connection, and you can turn it off). If there is one, it tells you and <b>Download BattleLens X.Y.Z…</b> appears in the tray. Run the new installer: your profiles and settings are kept.</p>
+          <p><b>Uninstall.</b> From <i>Settings → Apps → Installed apps → BattleLens</i>. You'll be asked whether to delete your profiles too.</p>
+          <p><b>Your data</b> lives in <code>%APPDATA%\BattleLens\</code>: <code>config.toml</code> (the same values as in Settings), your profiles and the log.</p>
+        </section>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-top">
+      <a class="brand" href="index.html" aria-label="BattleLens">
+        <img src="assets/icon.png" alt="" width="26" height="26">
+        <span>BattleLens</span>
+      </a>
+      <p data-en="BattleLens is free software under the <a href=&quot;https://github.com/minimorcy/battlelens/blob/main/LICENSE&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;>MIT license</a>. Pokémon data from <a href=&quot;https://pokeapi.co/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;>PokéAPI</a>."
+         data-es="BattleLens es software libre con <a href=&quot;https://github.com/minimorcy/battlelens/blob/main/LICENSE&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;>licencia MIT</a>. Datos de Pokémon de <a href=&quot;https://pokeapi.co/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;>PokéAPI</a>.">BattleLens is free software under the <a href="https://github.com/minimorcy/battlelens/blob/main/LICENSE" target="_blank" rel="noopener">MIT license</a>. Pokémon data from <a href="https://pokeapi.co/" target="_blank" rel="noopener">PokéAPI</a>.</p>
+    </div>
+    <p class="disclaimer" id="guide-credit"
+       data-en="The game screenshot in the preset and calibration images is from Pokémon Sword © 2019 Nintendo / Creatures Inc. / GAME FREAK inc."
+       data-es="La captura del juego de las imágenes del asistente y de la calibración es de Pokémon Espada © 2019 Nintendo / Creatures Inc. / GAME FREAK inc.">The game screenshot in the preset and calibration images is from Pokémon Sword © 2019 Nintendo / Creatures Inc. / GAME FREAK inc.</p>
+    <p class="disclaimer" id="disclaimer"
+       data-en="BattleLens is an unofficial fan project. It is not affiliated with, endorsed, sponsored or approved by Nintendo, The Pokémon Company, Creatures Inc. or GAME FREAK inc. Pokémon and Pokémon character names are trademarks of their respective owners."
+       data-es="BattleLens es un proyecto de fans no oficial. No está afiliado ni respaldado por Nintendo, The Pokémon Company, Creatures Inc. ni GAME FREAK inc. Pokémon y los nombres de los Pokémon son marcas registradas de sus respectivos titulares.">BattleLens is an unofficial fan project. It is not affiliated with, endorsed, sponsored or approved by Nintendo, The Pokémon Company, Creatures Inc. or GAME FREAK inc. Pokémon and Pokémon character names are trademarks of their respective owners.</p>
+    <p class="analytics-note" id="analytics-note" hidden
+       data-en="This site uses anonymous, cookie-free analytics by Umami."
+       data-es="Esta web usa analítica anónima y sin cookies de Umami.">This site uses anonymous, cookie-free analytics by Umami.</p>
+    <p class="made">minim-labs</p>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>

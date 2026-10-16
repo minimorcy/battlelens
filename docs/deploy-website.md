@@ -62,7 +62,7 @@ La web puede usar tu Umami (sin cookies ni datos personales). El repositorio no 
 
 Qué registra:
 - Visitas y páginas, como cualquier sitio de Umami.
-- Eventos al pulsar los enlaces, con las propiedades `place` (`hero`, `install`, `nav`) y `lang` (`en` o `es`): `download` (botones de descarga), `github` (enlaces al repositorio), `release-notes` (etiqueta de novedades) y `guide` («Leer la guía»).
+- Eventos al pulsar los enlaces, con las propiedades `place` (`hero`, `install`, `nav`, y `guide-nav` en la guía) y `lang` (`en` o `es`): `download` (botones de descarga), `github` (enlaces al repositorio), `release-notes` (etiqueta de novedades) y `guide` («Leer la guía» y el enlace «Guía» de la barra superior). El script se inserta en la portada y en la guía.
 - Las descargas reales del instalador las cuenta GitHub, no Umami: `gh api repos/minimorcy/battlelens/releases --jq '.[] | {tag_name, assets: [.assets[] | {name, download_count}]}'`.
 - Con Umami activo, el pie de la web avisa de que hay analítica anónima sin cookies.
 
@@ -77,7 +77,7 @@ Pulsa **Deploy**. Cuando termine:
 
 ## Actualizar la web
 
-- **Textos o diseño:** edita `site/index.html` o `site/styles.css`, haz commit y push.
+- **Textos o diseño:** edita `site/index.html`, `site/guide.html` o `site/styles.css`, haz commit y push. Las capturas de la guía se regeneran con `uv run python tools/make_guide_screenshots.py`.
 - **Capturas** (cuando cambie la ficha de la app): `uv run python tools/make_site_screenshots.py`, comprueba las imágenes de `site/assets/` y súbelas.
 - El botón **Descargar** apunta siempre a la última Release (`releases/latest`), así que publicar una versión nueva no requiere tocar la web. Hasta la primera Release, ese enlace muestra la página de Releases vacía.
 

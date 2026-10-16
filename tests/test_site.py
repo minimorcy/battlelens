@@ -239,3 +239,108 @@ def test_captura_de_partida_con_credito(page):
     (credit,) = [a for _, a in page if a.get("id") == "gameplay-credit"]
     for lang in ("data-en", "data-es"):
         assert "Nintendo" in credit[lang] and "GAME FREAK" in credit[lang]
+
+
+# ---- guía de uso (add-user-guide) ------------------------------------------------------
+
+GUIDE = SITE / "guide.html"
+
+
+def _parse(html: str) -> list[tuple[str, dict]]:
+    parser = _Collector()
+    parser.feed(html)
+    return parser.elements
+
+
+@pytest.fixture(scope="module")
+def guide():
+    return _parse(GUIDE.read_text(encoding="utf-8"))
+
+
+def _guide_blocks() -> dict[str, list[tuple[str, dict]]]:
+    """Elementos del bloque de cada idioma (<div class="guide" data-lang="…">)."""
+    html = GUIDE.read_text(encoding="utf-8")
+    es_start = html.index('<div class="guide" data-lang="es"')
+    en_start = html.index('<div class="guide" data-lang="en"')
+    end = html.index("</main>")
+    return {"es": _parse(html[es_start:en_start]), "en": _parse(html[en_start:end])}
+
+
+def test_guia_enlazada_desde_la_portada(page):
+    links = [a for t, a in page if t == "a" and a.get("href") == "guide.html"]
+    assert any(a.get("data-umami-event") == "guide" for a in links)
+    dockerfile = (SITE / "Dockerfile").read_text(encoding="utf-8")
+    assert "guide.html" in dockerfile
+    assert f"<loc>https://{SITE_HOST}/guide.html</loc>" in (SITE / "sitemap.xml").read_text(encoding="utf-8")
+
+
+def test_guia_recursos_locales_y_paridad(guide):
+    for tag, attrs in guide:
+        for key in ("src", "href"):
+            url = attrs.get(key)
+            if not url or url.startswith("#"):
+                continue
+            parsed = urlparse(url)
+            if parsed.scheme:
+                assert (tag == "a" and parsed.netloc in ALLOWED_EXTERNAL_HOSTS) or (
+                    tag == "link" and attrs.get("rel") == "canonical" and parsed.netloc == SITE_HOST), url
+            else:
+                assert (SITE / parsed.path).is_file(), f"falta {url}"
+        for suffix in ("", "-alt", "-content", "-aria-label"):
+            assert (f"data-en{suffix}" in attrs) == (f"data-es{suffix}" in attrs), (tag, attrs)
+    assert "<!-- umami -->" in GUIDE.read_text(encoding="utf-8")
+    (attrs,) = [a for _, a in guide if a.get("id") == "disclaimer"]
+    assert "unofficial fan project" in attrs["data-en"] and "proyecto de fans no oficial" in attrs["data-es"]
+
+
+def test_guia_mismo_contenido_en_los_dos_idiomas():
+    blocks = _guide_blocks()
+
+    def shape(elements):
+        return [t for t, a in elements if t in ("section", "h2", "h3", "figure", "img", "table", "details", "kbd")]
+
+    assert shape(blocks["es"]) == shape(blocks["en"])
+    images = {lang: [a["src"] for t, a in els if t == "img"] for lang, els in blocks.items()}
+    assert images["es"] == [src.replace("/en/", "/es/") for src in images["en"]]
+    assert all(src.startswith("assets/guide/es/") for src in images["es"])
+
+
+def test_guia_indice_apunta_a_secciones_de_su_idioma():
+    all_ids = []
+    for elements in _guide_blocks().values():
+        ids = {a["id"] for _, a in elements if "id" in a}
+        all_ids += [a["id"] for _, a in elements if "id" in a]
+        targets = [a["href"][1:] for t, a in elements if t == "a" and a.get("href", "").startswith("#")]
+        assert targets and all(t in ids for t in targets), set(targets) - ids
+    assert len(all_ids) == len(set(all_ids)), "ids repetidos entre idiomas"
+
+
+def test_guia_capturas_con_alt_y_tamano_correcto(guide):
+    imgs = [a for t, a in guide if t == "img" and a["src"].startswith("assets/guide/")]
+    assert len(imgs) >= 28
+    for attrs in imgs:
+        assert attrs.get("alt", "").strip(), attrs["src"]
+        width, height = Image.open(SITE / attrs["src"]).size
+        assert (int(attrs["width"]), int(attrs["height"])) == (width // 2, height // 2), attrs["src"]
+    (credit,) = [a for _, a in guide if a.get("id") == "guide-credit"]
+    for lang in ("data-en", "data-es"):
+        assert "Nintendo" in credit[lang] and "GAME FREAK" in credit[lang]
+
+
+@needs_sh
+def test_umami_en_portada_y_guia(tmp_path):
+    pages = []
+    for name in ("index.html", "guide.html"):
+        shutil.copy2(SITE / name, tmp_path / name)
+        pages.append(tmp_path / name)
+    headers = tmp_path / "security-headers.conf"
+    shutil.copy2(SITE / "security-headers.conf", headers)
+    env = {"PATH": __import__("os").environ["PATH"], "UMAMI_HTML_PATH": " ".join(str(p) for p in pages),
+           "UMAMI_HEADERS_PATH": str(headers), "UMAMI_SCRIPT_URL": UMAMI_URL, "UMAMI_WEBSITE_ID": UMAMI_ID}
+    for _ in range(2):  # el segundo arranque no cambia nada
+        proc = subprocess.run([SH, str(SITE / "docker-entrypoint.d" / "40-umami.sh")], env=env,
+                              capture_output=True, text=True, timeout=30, cwd=tmp_path)
+        assert proc.returncode == 0, proc.stderr
+    for path in pages:
+        assert path.read_text(encoding="utf-8").count("data-website-id") == 1, path.name
+    assert headers.read_text(encoding="utf-8").count("https://umami.minim-labs.app") == 2

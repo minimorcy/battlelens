@@ -9,7 +9,8 @@
 # Sin UMAMI_SCRIPT_URL y UMAMI_WEBSITE_ID no hace nada: la web no carga nada externo.
 set -eu
 
-HTML="${UMAMI_HTML_PATH:-/usr/share/nginx/html/index.html}"
+# Páginas con el marcador (separadas por espacios): la portada y la guía
+HTML_FILES="${UMAMI_HTML_PATH:-/usr/share/nginx/html/index.html /usr/share/nginx/html/guide.html}"
 HEADERS="${UMAMI_HEADERS_PATH:-/etc/nginx/snippets/security-headers.conf}"
 MARKER="<!-- umami -->"
 TAG="40-umami"
@@ -28,7 +29,13 @@ if [ -z "$url" ] || [ -z "$id" ]; then
     log "AVISO: hacen falta UMAMI_SCRIPT_URL y UMAMI_WEBSITE_ID; se omite la analítica"
     exit 0
 fi
-if ! grep -q "$MARKER" "$HTML"; then
+pending=""
+for html in $HTML_FILES; do
+    if [ -f "$html" ] && grep -q "$MARKER" "$html"; then
+        pending="$pending $html"
+    fi
+done
+if [ -z "$pending" ]; then
     log "el script de Umami ya estaba insertado (reinicio); nada que hacer"
     exit 0
 fi
@@ -54,6 +61,11 @@ fi
 origin=$(printf '%s' "$url" | sed -E 's#^(https://[^/]+).*#\1#')
 script="<script defer src=\"$url\" data-website-id=\"$id\"$domains_attr></script>"
 
-sed -i "s#$MARKER#$script#" "$HTML"
-sed -i "s#script-src 'self'#script-src 'self' $origin#; s#connect-src 'none'#connect-src $origin#" "$HEADERS"
+for html in $pending; do
+    sed -i "s#$MARKER#$script#" "$html"
+done
+# La CSP se amplía una sola vez, aunque una página se haya añadido después
+if ! grep -q "script-src 'self' $origin" "$HEADERS"; then
+    sed -i "s#script-src 'self'#script-src 'self' $origin#; s#connect-src 'none'#connect-src $origin#" "$HEADERS"
+fi
 log "Umami activado ($origin)"
