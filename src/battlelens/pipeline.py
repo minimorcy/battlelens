@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -18,7 +19,9 @@ from .core.matcher import MatchResult, NameMatcher
 from .core.moves import MAX_MOVES, MIN_MOVES, MoveMatcher
 from .core.normalize import extract_level
 from .core.pokedex import Pokedex, Species
-from .core.profiles import Profile
+from .core.presets import game_screen
+from .core.profiles import Profile, Region
+from .vision.viewport import find_viewport
 from .vision.preprocess import crop_region, fingerprint, level_variants, moves_variants, preprocess_variants
 
 log = logging.getLogger(__name__)
@@ -125,6 +128,52 @@ def read_moves(crop: np.ndarray, ocr_fn: OcrFn, matcher: MoveMatcher, languages:
     return moves if len(moves) >= MIN_MOVES else ()
 
 
+class GameAreaTracker:
+    """Dónde está la imagen del juego en cada tamaño de ventana (anchor-regions-to-game).
+
+    Las regiones de un perfil se miden con la imagen del juego en un sitio (`Profile.game_area`); si la
+    ventana del emulador cambia (pantalla completa, maximizada, barras de menús), la imagen se mueve y las
+    regiones se llevan a su nuevo sitio. Se busca solo cuando cambia el tamaño de la captura; mientras no
+    se encuentra con fiabilidad (pantalla en negro, transiciones), se reintenta en la siguiente.
+    """
+
+    def __init__(self) -> None:
+        self._found: dict[tuple, Region] = {}
+        self._lock = threading.Lock()
+
+    def area(self, frame: np.ndarray, game_id: str | None) -> Region | None:
+        screen = game_screen(game_id)
+        if screen is None:
+            return None
+        h, w = frame.shape[:2]
+        key = (w, h, game_id)
+        with self._lock:
+            if key in self._found:
+                return self._found[key]
+        viewport = find_viewport(frame, *screen)
+        if not viewport.reliable or viewport.width <= 0 or viewport.height <= 0:
+            return None
+        area = Region.from_pixels(viewport.x, viewport.y, viewport.width, viewport.height, w, h)
+        with self._lock:
+            self._found[key] = area
+        return area
+
+    def place(self, profile: Profile, frame: np.ndarray) -> Profile:
+        """El perfil con las regiones en la imagen del juego de esta captura (igual si no se puede)."""
+        if profile.game_area is None:
+            return profile
+        area = self.area(frame, profile.game)
+        if area is None:
+            if profile.game_area is not None:
+                log.debug("Imagen del juego no localizada (%sx%s): regiones sin mover", *frame.shape[1::-1])
+            return profile
+        return profile.placed(area)
+
+    def reset(self) -> None:
+        with self._lock:
+            self._found.clear()
+
+
 def crop_regions(frame: np.ndarray, profile: Profile) -> dict[str, np.ndarray]:
     """Recorta de una misma captura cada región configurada (rival, rival2, own)."""
     return {role: crop_region(frame, region) for role, region in profile.regions().items()}
@@ -161,6 +210,7 @@ class RecognitionPipeline:
         self.ocr_fn = ocr_fn
         self.debug_dir = debug_dir
         self.move_matcher = move_matcher
+        self.game_area = GameAreaTracker()
 
     def run(self, hwnd: int, profile: Profile) -> RecognitionResult:
         """Lanza CaptureError u OcrLanguageError si no se puede completar el ciclo."""
@@ -175,6 +225,7 @@ class RecognitionPipeline:
 
         frame = self.capture_fn(hwnd)
         lap("captura")
+        profile = self.game_area.place(profile, frame)
         crops = crop_regions(frame, profile)
         lap("recorte")
         readings_by_role = read_regions(crops, self.ocr_fn, self.matcher, profile.ocr_languages)

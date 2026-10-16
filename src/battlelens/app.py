@@ -37,12 +37,13 @@ from .core.learnsets import Learnsets, LearnsetsMissingError
 from .core.matcher import NameMatcher
 from .core.moves import MoveMatcher, MoveMemory
 from .core.pokedex import DatasetMissingError, Pokedex
-from .core.profiles import Profile, ProfileStore
+from .core.profiles import Profile, ProfileStore, Region
 from .core.presets import preset_for, to_profile_regions
 from .core.report import ReportInputs, issue_form_url, write_report
 from .core.storage import app_data_dir
 from .i18n import N_, _, resolve_language, set_language
 from .pipeline import (
+    GameAreaTracker,
     RecognitionPipeline,
     RecognitionResult,
     combined_fingerprint,
@@ -513,6 +514,7 @@ class Controller(QObject):
                 frame = capture_client(target.hwnd)
                 inputs.emulator_image = frame
                 if profile is not None:
+                    profile = self.pipeline.game_area.place(profile, frame)
                     inputs.region_crops = crop_regions(frame, profile)
                     if profile.moves_region is not None:
                         inputs.region_crops["moves"] = crop_region(frame, profile.moves_region)
@@ -632,19 +634,21 @@ class Controller(QObject):
     def _watch_tick(self) -> None:
         if self._watch_busy or self._busy or self._modal_open or self.target is None:
             return
+        self.overlay.keep_on_top()  # el emulador puede haberse puesto delante al pasar a pantalla completa
         self._auto_select_profile()
         profile = self.profiles.active
         if profile is None:
             return
         self._watch_busy = True
-        task = _Task(self._capture_crop, self.target.hwnd, profile)
+        task = _Task(self._capture_crop, self.target.hwnd, profile, self.pipeline.game_area)
         task.signals.finished.connect(self._on_watch_frame)
         task.signals.failed.connect(self._on_watch_error)
         self._pool.start(task)
 
     @staticmethod
-    def _capture_crop(hwnd: int, profile: Profile):
+    def _capture_crop(hwnd: int, profile: Profile, game_area: GameAreaTracker):
         frame = capture_client(hwnd)
+        profile = game_area.place(profile, frame)  # regiones sobre la imagen del juego de esta ventana
         crops = crop_regions(frame, profile)
         moves_crop = crop_region(frame, profile.moves_region) if profile.moves_region is not None else None
         return crops, combined_fingerprint(crops), profile, moves_crop
@@ -927,8 +931,10 @@ class Controller(QObject):
         name, game_id = answer
         h, w = image.shape[:2]
         regions = to_profile_regions(wizard.preset, wizard.viewport, w, h)
+        v = wizard.viewport
+        game_area = Region.from_pixels(v.x, v.y, v.width, v.height, w, h) if v is not None else None
         profile = Profile(name, regions["rival"], game=game_id, own_region=regions.get("own"),
-                          moves_region=regions.get("moves"))
+                          moves_region=regions.get("moves"), game_area=game_area)
         self.profiles.save(profile, activate=True)
         self.battle.reset()
         self._save_state()
@@ -949,7 +955,7 @@ class Controller(QObject):
         if answer is None:
             return
         name, game_id = answer
-        profile = Profile(name, dialog.region, game=game_id)
+        profile = Profile(name, dialog.region, game=game_id, game_area=self.pipeline.game_area.area(image, game_id))
         self.profiles.save(profile, activate=True)
         self._save_state()
         self._refresh_ui()
@@ -977,7 +983,11 @@ class Controller(QObject):
         finally:
             self._modal_open = False
         if accepted and dialog.region is not None:
-            self._save_region(profile, role, dialog.region)
+            region = dialog.region
+            area = self.pipeline.game_area.area(image, profile.game) if profile.game_area is not None else None
+            if area is not None:  # medida con la ventana como esté ahora: al sitio de las demás regiones
+                region = region.remap(area, profile.game_area)
+            self._save_region(profile, role, region)
 
     def _save_region(self, profile: Profile, role: str, region) -> None:
         self.profiles.save(profile.with_role_region(role, region), activate=True)

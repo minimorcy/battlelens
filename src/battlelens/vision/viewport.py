@@ -144,4 +144,6 @@ def find_viewport(frame: np.ndarray, aspect: float, ds: bool = False) -> Viewpor
     width, height = right - left, bottom - top
     reliable = height > 0 and abs(width / height - aspect) / aspect <= ASPECT_TOLERANCE
     kept = (width * height) / max(1, (box[1] - box[0]) * (box[3] - box[2]))
-    return Viewport(left, top, width, height, reliable and kept >= MIN_KEPT)
+    # Una pantalla lisa (negro entre escenas, fundidos) no dice dónde está la imagen.
+    has_content = height > 0 and width > 0 and float(luma[top:bottom, left:right].std()) >= UNIFORM_STD
+    return Viewport(left, top, width, height, reliable and kept >= MIN_KEPT and has_content)

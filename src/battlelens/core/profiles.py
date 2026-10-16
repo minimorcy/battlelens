@@ -62,6 +62,16 @@ class Region:
             round(height / client_h, 6),
         )
 
+    def remap(self, source: Region, target: Region) -> Region:
+        """La misma posición relativa a `source` (la imagen del juego al calibrar), llevada a `target`."""
+        x = target.x + (self.x - source.x) / source.width * target.width
+        y = target.y + (self.y - source.y) / source.height * target.height
+        w = self.width / source.width * target.width
+        h = self.height / source.height * target.height
+        x, y = min(max(x, 0.0), 1.0), min(max(y, 0.0), 1.0)
+        w, h = max(min(w, 1.0 - x), 1e-6), max(min(h, 1.0 - y), 1e-6)
+        return Region(round(x, 6), round(y, 6), round(w, 6), round(h, 6))
+
     def to_pixels(self, client_w: int, client_h: int) -> tuple[int, int, int, int]:
         x = min(max(round(self.x * client_w), 0), client_w - 1)
         y = min(max(round(self.y * client_h), 0), client_h - 1)
@@ -81,6 +91,9 @@ class Profile:
     rival2_region: Region | None = None  # nombre del 2.º rival (combates dobles)
     own_region: Region | None = None  # nombre de tu Pokémon
     moves_region: Region | None = None  # menú de ataques; no es una región de nombre (add-own-moves D1)
+    # Imagen del juego en el área cliente cuando se midieron las regiones (anchor-regions-to-game); None = perfil
+    # antiguo: las regiones son fracciones fijas de la ventana
+    game_area: Region | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.name, str) or not self.name.strip():
@@ -108,6 +121,17 @@ class Profile:
             return replace(self, moves_region=region)
         raise ValueError(role)
 
+    def placed(self, area: Region) -> Profile:
+        """Las regiones llevadas a la imagen del juego `area` de la captura actual."""
+        if self.game_area is None or area == self.game_area:
+            return self
+
+        def move(region: Region | None) -> Region | None:
+            return region.remap(self.game_area, area) if region is not None else None
+
+        return replace(self, region=move(self.region), rival2_region=move(self.rival2_region),
+                       own_region=move(self.own_region), moves_region=move(self.moves_region), game_area=area)
+
     def regions(self) -> dict[str, Region]:
         """Regiones configuradas en orden fijo: rival, rival2, own (design.md D1)."""
         found = {"rival": self.region, "rival2": self.rival2_region, "own": self.own_region}
@@ -132,6 +156,7 @@ class Profile:
                 rival2_region=Region(**data["rival2_region"]) if data.get("rival2_region") else None,
                 own_region=Region(**data["own_region"]) if data.get("own_region") else None,
                 moves_region=Region(**data["moves_region"]) if data.get("moves_region") else None,
+                game_area=Region(**data["game_area"]) if data.get("game_area") else None,
             )
         except (KeyError, TypeError) as exc:
             raise ProfileError(_("Perfil con formato inválido: {error}", error=exc)) from exc

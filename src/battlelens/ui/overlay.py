@@ -68,6 +68,22 @@ def _exclude_from_capture_and_activation(hwnd: int) -> None:
     user32.SetWindowLongW(wintypes.HWND(hwnd), _GWL_EXSTYLE, style | _WS_EX_NOACTIVATE)
 
 
+_HWND_TOPMOST = -1
+_SWP_NOSIZE, _SWP_NOMOVE, _SWP_NOACTIVATE = 0x0001, 0x0002, 0x0010
+
+
+def _bring_to_top(hwnd: int) -> None:
+    """Primera de las ventanas «siempre encima», sin activarla.
+
+    Un emulador a pantalla completa suele ser también «siempre encima» y, al activarse, queda por delante;
+    raise_() de Qt no basta con una ventana que no se activa (WS_EX_NOACTIVATE).
+    """
+    if sys.platform != "win32":
+        return
+    ctypes.windll.user32.SetWindowPos(wintypes.HWND(hwnd), wintypes.HWND(_HWND_TOPMOST), 0, 0, 0, 0,
+                                      _SWP_NOMOVE | _SWP_NOSIZE | _SWP_NOACTIVATE)
+
+
 def physical_to_logical(x: int, y: int) -> QPoint:
     """Convierte un punto en píxeles físicos (Win32) a coordenadas lógicas de Qt."""
     for screen in QGuiApplication.screens():
@@ -908,8 +924,14 @@ class Overlay(QWidget):
             _exclude_from_capture_and_activation(int(self.winId()))
             self._capture_excluded = True
         self.raise_()
+        self.keep_on_top()
         if self.auto_hide_seconds > 0:
             self._hide_timer.start(int(self.auto_hide_seconds * 1000))
+
+    def keep_on_top(self) -> None:
+        """Vuelve a ponerla por delante (p. ej. del emulador a pantalla completa) si está visible."""
+        if self.isVisible():
+            _bring_to_top(int(self.winId()))
 
     def _position(self, target_rect: tuple[int, int, int, int] | None) -> QPoint:
         size = self.size()

@@ -16,6 +16,7 @@ GAME_BOY = 160 / 144
 GBA = 240 / 160
 DS_SCREEN = 256 / 192
 SWITCH = 16 / 9
+GAMECUBE = 4 / 3
 
 Box = tuple[float, float, float, float]  # x, y, ancho, alto en fracciones de la imagen del juego
 
@@ -69,6 +70,24 @@ _BY_GAME = {game: preset for preset in PRESETS for game in preset.games}
 
 def preset_for(game_id: str | None) -> Preset | None:
     return _BY_GAME.get(game_id or "")
+
+
+# Proporción de la imagen de cada juego, para localizarla en cualquier tamaño de ventana (anchor-regions-to-game).
+# Los de 3DS no están: sus emuladores colocan las dos pantallas de muchas formas.
+GAME_SCREENS: dict[str, tuple[float, bool]] = {
+    **{g: (GAME_BOY, False) for g in ("red-blue", "yellow", "gold-silver", "crystal")},
+    **{g: (GBA, False) for g in ("ruby-sapphire", "emerald", "firered-leafgreen")},
+    **{g: (GAMECUBE, False) for g in ("colosseum", "xd")},
+    **{g: (DS_SCREEN, True) for g in ("diamond-pearl", "platinum", "heartgold-soulsilver", "black-white",
+                                      "black-2-white-2")},
+    **{g: (SWITCH, False) for g in ("lets-go-pikachu-lets-go-eevee", "sword-shield", "brilliant-diamond-shining-pearl",
+                                    "legends-arceus", "scarlet-violet", "legends-za", "mega-dimension", "champions")},
+}
+
+
+def game_screen(game_id: str | None) -> tuple[float, bool] | None:
+    """(proporción, es DS) de la imagen del juego, o None si no se conoce."""
+    return GAME_SCREENS.get(game_id or "")
 
 
 def games_with_presets() -> tuple[str, ...]:

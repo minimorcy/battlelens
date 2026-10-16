@@ -571,3 +571,36 @@ def test_acerca_de_usa_los_textos_legales(qapp):
 
     assert about.DISCLAIMER_TEXT == DISCLAIMER and about.ATTRIBUTION_TEXT == DATA_ATTRIBUTION
     assert DISCLAIMER in about.AboutPanel().text()
+
+
+@pytest.mark.windows
+@pytest.mark.skipif(sys.platform != "win32", reason="orden de ventanas de Win32")
+def test_ficha_por_delante_del_emulador_a_pantalla_completa(qapp, overlay, dex):
+    """Un emulador a pantalla completa suele ser «siempre encima»: al activarse se pone por delante de la ficha."""
+    import ctypes
+
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtWidgets import QWidget
+
+    user32 = ctypes.windll.user32
+    user32.GetTopWindow.restype = user32.GetWindow.restype = ctypes.c_void_p
+
+    def z_order() -> list[int]:
+        order, hwnd = [], user32.GetTopWindow(None)
+        while hwnd:
+            order.append(hwnd)
+            hwnd = user32.GetWindow(ctypes.c_void_p(hwnd), 2)  # GW_HWNDNEXT
+        return order
+
+    overlay.show_species(dex.get_species(25), None)
+    emulator = QWidget(None, Qt.WindowType.WindowStaysOnTopHint)
+    emulator.setGeometry(overlay.geometry())
+    emulator.show()
+    emulator.activateWindow()
+    emulator.raise_()
+    qapp.processEvents()
+    card, emu = int(overlay.winId()), int(emulator.winId())
+    assert z_order().index(emu) < z_order().index(card)  # el emulador ha quedado delante
+    overlay.keep_on_top()
+    assert z_order().index(card) < z_order().index(emu)
+    emulator.close()
