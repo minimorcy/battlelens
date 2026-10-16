@@ -33,6 +33,7 @@ def overlay(qapp, dex):
     from battlelens.ui.overlay import Overlay
 
     o = Overlay(dex, "es", mode="competitive")
+    o._available_height = lambda rect: 100_000  # sin depender de la pantalla (la CI tiene 768 px)
     yield o
     o.close()
 
