@@ -36,6 +36,17 @@ La web MUST NOT cargar scripts, hojas de estilo, fuentes ni imágenes de tercero
 - **WHEN** el contenedor arranca sin las variables de Umami
 - **THEN** la página no incluye ningún script externo y la CSP sigue permitiendo solo `'self'`
 
+### Requirement: Metadatos para buscadores y redes sociales
+La página SHALL incluir título y descripción con las palabras clave del producto, URL canónica (`https://battlelens.minim-labs.app/`), etiquetas Open Graph y de X (`twitter:card` = `summary_large_image`) y datos estructurados `SoftwareApplication` en JSON-LD. La imagen para compartir MUST ser `site/assets/og-image.png` (1200×630), referenciada con URL absoluta y con texto alternativo, y generada con `tools/make_og_image.py` a partir de la ficha real de la app en inglés, sin imágenes de los juegos. El sitio SHALL servir `robots.txt` y `sitemap.xml`. La URL canónica no carga ningún recurso y es la única URL absoluta permitida en un `<link>`.
+
+#### Scenario: Compartir el enlace en X
+- **WHEN** alguien publica `https://battlelens.minim-labs.app` en X
+- **THEN** aparece la tarjeta grande con la imagen de 1200×630, el título y la descripción
+
+#### Scenario: Regenerar la imagen para compartir
+- **WHEN** se ejecuta `uv run python tools/make_og_image.py`
+- **THEN** se genera `site/assets/og-image.png` de 1200×630
+
 ### Requirement: Diseño adaptable y accesible
 La web SHALL verse correctamente desde 320 px de ancho hasta escritorio, sin desplazamiento horizontal, con textos alternativos en todas las imágenes y contraste suficiente sobre el tema oscuro de la app.
 

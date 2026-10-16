@@ -11,6 +11,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 ALLOWED_EXTERNAL_HOSTS = {"github.com", "pokeapi.co"}
+SITE_HOST = "battlelens.minim-labs.app"
 
 
 class _Collector(HTMLParser):
@@ -48,7 +49,9 @@ def test_recursos_locales_existen_y_no_hay_externos(page):
             if not url or url.startswith(("#", "mailto:")):
                 continue
             parsed = urlparse(url)
-            if parsed.scheme:
+            if parsed.scheme and tag == "link" and attrs.get("rel") == "canonical":
+                assert parsed.netloc == SITE_HOST, url  # no carga nada: solo indica la URL oficial
+            elif parsed.scheme:
                 assert tag == "a", f"recurso externo no permitido: <{tag} {key}={url}>"
                 assert parsed.netloc in ALLOWED_EXTERNAL_HOSTS, url
             else:
@@ -61,6 +64,40 @@ def test_textos_traducidos_no_cargan_recursos_externos(page):
         for key in ("data-en", "data-es"):
             for host in re.findall(r'https?://([^/"]+)', attrs.get(key, "")):
                 assert host in ALLOWED_EXTERNAL_HOSTS, host
+
+
+def test_metadatos_para_buscadores_y_redes(page):
+    meta = {a.get("property") or a.get("name"): a.get("content") for t, a in page if t == "meta"}
+    for key in ("og:title", "og:description", "og:url", "twitter:title", "twitter:description", "description"):
+        assert meta.get(key, "").strip(), key
+    assert meta["twitter:card"] == "summary_large_image"
+    # X y el resto de redes solo aceptan la imagen con URL absoluta
+    for key in ("og:image", "twitter:image"):
+        url = urlparse(meta[key])
+        assert url.scheme == "https" and url.netloc == SITE_HOST, meta[key]
+        assert Image.open(SITE / url.path.lstrip("/")).size == (1200, 630)
+    assert (int(meta["og:image:width"]), int(meta["og:image:height"])) == (1200, 630)
+    assert meta["og:image:alt"].strip() and meta["twitter:image:alt"].strip()
+    (canonical,) = [a["href"] for t, a in page if t == "link" and a.get("rel") == "canonical"]
+    assert canonical == f"https://{SITE_HOST}/"
+
+
+def test_robots_y_sitemap():
+    robots = (SITE / "robots.txt").read_text(encoding="utf-8")
+    assert f"Sitemap: https://{SITE_HOST}/sitemap.xml" in robots
+    assert f"<loc>https://{SITE_HOST}/</loc>" in (SITE / "sitemap.xml").read_text(encoding="utf-8")
+    dockerfile = (SITE / "Dockerfile").read_text(encoding="utf-8")
+    assert "robots.txt" in dockerfile and "sitemap.xml" in dockerfile
+
+
+def test_datos_estructurados_validos():
+    import json
+
+    html = (SITE / "index.html").read_text(encoding="utf-8")
+    (block,) = re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)
+    data = json.loads(block)
+    assert data["@type"] == "SoftwareApplication" and data["name"] == "BattleLens"
+    assert data["offers"]["price"] == "0"
 
 
 def test_descarga_apunta_a_la_ultima_release(page):

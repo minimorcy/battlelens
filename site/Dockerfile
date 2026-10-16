@@ -3,7 +3,7 @@ FROM nginx:1.27-alpine
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY security-headers.conf /etc/nginx/snippets/security-headers.conf
-COPY index.html styles.css app.js /usr/share/nginx/html/
+COPY index.html styles.css app.js robots.txt sitemap.xml /usr/share/nginx/html/
 COPY assets/ /usr/share/nginx/html/assets/
 # Analítica opcional (Umami) configurada con variables de entorno; ver docs/deploy-website.md
 COPY docker-entrypoint.d/40-umami.sh /docker-entrypoint.d/40-umami.sh

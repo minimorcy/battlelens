@@ -3,17 +3,54 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BattleLens — Know your opponent before you make a move</title>
-  <meta name="description" content="Instant info card for your opponent in Pokémon games, on any PC emulator. Free and open source for Windows."
-        data-en-content="Instant info card for your opponent in Pokémon games, on any PC emulator. Free and open source for Windows."
-        data-es-content="Ficha instantánea del Pokémon rival para juegos de Pokémon en cualquier emulador de PC. Gratis y de código abierto para Windows.">
+  <title data-en="BattleLens — Pokémon battle info overlay for any PC emulator" data-es="BattleLens — Ficha del rival en combates Pokémon para cualquier emulador">BattleLens — Pokémon battle info overlay for any PC emulator</title>
+  <meta name="description" content="Free Windows app that shows your opponent's types, weaknesses, stats and catch rate during Pokémon battles on mGBA, DeSmuME, melonDS and other emulators."
+        data-en-content="Free Windows app that shows your opponent's types, weaknesses, stats and catch rate during Pokémon battles on mGBA, DeSmuME, melonDS and other emulators."
+        data-es-content="App gratuita para Windows que muestra los tipos, debilidades, estadísticas y ratio de captura del rival en combates de Pokémon en mGBA, DeSmuME, melonDS y otros emuladores.">
+  <link rel="canonical" href="https://battlelens.minim-labs.app/">
   <meta name="theme-color" content="#0f1218">
+
+  <!-- Redes sociales (Open Graph y X). La imagen sale de tools/make_og_image.py -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="BattleLens">
+  <meta property="og:url" content="https://battlelens.minim-labs.app/">
   <meta property="og:title" content="BattleLens — Know your opponent before you make a move">
-  <meta property="og:description" content="Instant info card for your opponent in Pokémon games, on any PC emulator. Free and open source for Windows.">
-  <meta property="og:image" content="assets/gameplay.jpg">
+  <meta property="og:description" content="Instant info card for your opponent in Pokémon games, on any PC emulator: types, weaknesses, stats, abilities and catch rate. Free and open source for Windows.">
+  <meta property="og:image" content="https://battlelens.minim-labs.app/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="BattleLens info card for Stufful next to the headline “Know your opponent before you make a move”">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="es_ES">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="BattleLens — Know your opponent before you make a move">
+  <meta name="twitter:description" content="Instant info card for your opponent in Pokémon games, on any PC emulator: types, weaknesses, stats, abilities and catch rate. Free and open source for Windows.">
+  <meta name="twitter:image" content="https://battlelens.minim-labs.app/assets/og-image.png">
+  <meta name="twitter:image:alt" content="BattleLens info card for Stufful next to the headline “Know your opponent before you make a move”">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "BattleLens",
+    "description": "Free Windows app that shows your opponent's types, weaknesses, stats and catch rate during Pokémon battles on mGBA, DeSmuME, melonDS and other emulators.",
+    "url": "https://battlelens.minim-labs.app/",
+    "image": "https://battlelens.minim-labs.app/assets/og-image.png",
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "Windows 10, Windows 11",
+    "inLanguage": ["en", "es"],
+    "isAccessibleForFree": true,
+    "license": "https://github.com/minimorcy/battlelens/blob/main/LICENSE",
+    "downloadUrl": "https://github.com/minimorcy/battlelens/releases/latest",
+    "codeRepository": "https://github.com/minimorcy/battlelens",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
+  }
+  </script>
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
   <link rel="icon" href="assets/icon.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icon.png">
   <link rel="stylesheet" href="styles.css">
   <!-- umami -->
 </head>
