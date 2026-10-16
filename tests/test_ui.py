@@ -105,6 +105,7 @@ def test_posicion_ventana_a_pantalla_completa(qapp, overlay, dex):
     dpr = screen.devicePixelRatio()
     g = screen.geometry()
     rect = (int(g.x() * dpr), int(g.y() * dpr), int(g.width() * dpr), int(g.height() * dpr))
+    del overlay._available_height  # aquí sí cuenta la pantalla real: la ficha tiene que caber en ella
     overlay.show_species(dex.get_species(6), rect)
     qapp.processEvents()
     avail = screen.availableGeometry()

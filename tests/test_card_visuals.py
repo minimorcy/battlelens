@@ -114,6 +114,10 @@ def _click_title(qapp, overlay, key, index=0):
 @pytest.mark.windows
 @pytest.mark.skipif(sys.platform != "win32", reason="Qt en Windows")
 def test_clic_en_el_titulo_pliega_sin_ocultar(qapp, overlay, dex):
+    from battlelens.core.config import CARD_SECTIONS
+
+    # ficha corta, para que quepa en cualquier pantalla y no se recoloque al cambiar de alto
+    overlay.hidden["competitive"] = frozenset(CARD_SECTIONS["competitive"]) - {"abilities", "eff"}
     overlay.show_species(dex.get_species(759), None, game="sword-shield", level=10)
     qapp.processEvents()
     height = overlay.height()
