@@ -62,7 +62,8 @@ La web puede usar tu Umami (sin cookies ni datos personales). El repositorio no 
 
 Qué registra:
 - Visitas y páginas, como cualquier sitio de Umami.
-- Eventos `download` y `github` al pulsar los botones, con las propiedades `place` (`hero`, `install`, `nav`) y `lang` (`en` o `es`).
+- Eventos al pulsar los enlaces, con las propiedades `place` (`hero`, `install`, `nav`) y `lang` (`en` o `es`): `download` (botones de descarga), `github` (enlaces al repositorio), `release-notes` (etiqueta de novedades) y `guide` («Leer la guía»).
+- Las descargas reales del instalador las cuenta GitHub, no Umami: `gh api repos/minimorcy/battlelens/releases --jq '.[] | {tag_name, assets: [.assets[] | {name, download_count}]}'`.
 - Con Umami activo, el pie de la web avisa de que hay analítica anónima sin cookies.
 
 La política de seguridad (CSP) se amplía solo al dominio de tu Umami. Sin las variables, la web no carga nada externo.
