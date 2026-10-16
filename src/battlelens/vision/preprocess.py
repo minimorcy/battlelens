@@ -132,5 +132,10 @@ def fingerprint(crop: np.ndarray) -> np.ndarray:
 
 
 def fingerprint_distance(a: np.ndarray, b: np.ndarray) -> float:
-    """Diferencia media absoluta (0-255) entre dos huellas."""
+    """Diferencia media absoluta (0-255) entre dos huellas.
+
+    Huellas de distinta forma (perfiles con distinto número de regiones) son totalmente distintas.
+    """
+    if a.shape != b.shape:
+        return 255.0
     return float(np.mean(np.abs(a.astype(np.int16) - b.astype(np.int16))))

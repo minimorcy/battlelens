@@ -19,6 +19,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Web rediseñada: captura anotada, comparativa, sección para streamers, preguntas frecuentes y novedades de la 0.3.
 - Web preparada para buscadores y redes: imagen propia al compartir el enlace (X, Discord, WhatsApp…), título y descripción con palabras clave, datos estructurados, `robots.txt` y `sitemap.xml`.
 
+### Corregido
+- La app se cerraba al cambiar de perfil (desde la bandeja, Ajustes o al cambiar de juego) con la detección automática activa, si los perfiles tenían distinto número de regiones. Los errores inesperados ahora quedan en `app.log` en lugar de cerrar la app sin aviso.
+
 ### English
 
 **Added**
@@ -36,7 +39,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Redesigned website: annotated screenshot, comparison, streamer section, FAQ and what's new in 0.3.
 - Website ready for search engines and social media: its own preview image when sharing the link (X, Discord, WhatsApp…), keyword-rich title and description, structured data, `robots.txt` and `sitemap.xml`.
 
-
+**Fixed**
+- The app closed when switching profiles (from the tray, Settings or by changing games) with automatic detection on, if the profiles had a different number of regions. Unexpected errors are now written to `app.log` instead of closing the app without notice.
 
 ## [0.3.0] - 2026-10-14
 

@@ -97,3 +97,13 @@ def test_ocultacion_desactivada():
 def test_resultado_manual_cuenta_como_mostrado(det):
     det.on_manual_result(16, fp(10))
     assert det.on_result(16, fp(10), 1.0) == Action.NONE
+
+
+def test_huellas_de_distinta_forma_son_distintas():
+    # Perfiles con distinto número de regiones: la huella combinada cambia de ancho (32 px por región)
+    a = np.zeros((12, 64), np.uint8)
+    b = np.zeros((12, 32), np.uint8)
+    assert fingerprint_distance(a, b) == 255.0
+    detector = BattleDetector(fingerprint_distance, hide_after_seconds=4.0)
+    detector.on_frame(a, 0.0)
+    detector.on_frame(b, 0.5)  # no lanza ValueError

@@ -827,9 +827,7 @@ class Controller(QObject):
         profile = self.profiles.find_by_game(game_id)
         if profile is None or profile.id == self.profiles.active_id:
             return
-        self.profiles.set_active(profile.id)
-        self._save_state()
-        self._refresh_ui()
+        self.select_profile(profile.id)
         game = self.pokedex.get_game(game_id)
         self.tray.notify(_("Perfil «{name}» activado ({game}).", name=profile.name, game=game.name(self.config.language)))
 
@@ -852,6 +850,8 @@ class Controller(QObject):
 
     def select_profile(self, profile_id: str) -> None:
         self.profiles.set_active(profile_id)
+        self.battle.reset()  # la huella cambia de forma si el perfil tiene otras regiones
+        self.moves_watcher.reset()
         self._save_state()
         self._refresh_ui()
 
@@ -1048,6 +1048,8 @@ def _setup_logging() -> None:
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s", handlers=handlers
     )
+    # Sin este gancho, PyQt6 cierra la app sin dejar rastro ante una excepción en un slot
+    sys.excepthook = lambda kind, value, tb: log.error("Error no controlado", exc_info=(kind, value, tb))
 
 
 def _fatal(message: str) -> int:

@@ -640,3 +640,20 @@ def test_perfil_desde_ajustes(qapp, controller):
     controller.set_profile_game("emerald")
     assert window.game_combo.currentData() == "emerald"
     window.hide()
+
+
+def test_cambiar_de_perfil_con_otras_regiones_no_rompe_la_deteccion(controller):
+    """Con la detección en marcha, cambiar a un perfil con más regiones cerraba la app (ValueError en un slot)."""
+    import numpy as np
+
+    from battlelens.core.profiles import Profile, Region
+
+    solo_rival = Profile("Solo rival", Region(0.1, 0.1, 0.3, 0.1))
+    completo = Profile("Completo", Region(0.1, 0.1, 0.3, 0.1), own_region=Region(0.1, 0.8, 0.3, 0.1))
+    controller.profiles.save(solo_rival, activate=True)
+    controller.profiles.save(completo)
+    controller.battle.on_frame(np.zeros((12, 32), np.uint8), 0.0)
+    controller.tray.profile_selected.emit(completo.id)
+    assert controller.profiles.active_id == completo.id
+    assert controller.battle._last is None  # la detección empieza de cero con las regiones nuevas
+    controller.battle.on_frame(np.zeros((12, 64), np.uint8), 0.5)
