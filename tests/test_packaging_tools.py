@@ -77,3 +77,4 @@ def test_notas_bilingues():
     notes = release_notes.build_notes(CHANGELOG, "0.2.0")
     assert "## Instalación" in notes and "## Installation" in notes
     assert "Run anyway" in notes and "unofficial fan project" in notes
+    assert notes.count("https://battlelens.minim-labs.app/guide.html") == 2

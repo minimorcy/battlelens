@@ -22,6 +22,8 @@ INSTALL_NOTES = """\
    Aparece porque el ejecutable no está firmado con un certificado de pago. Puedes comprobar la descarga con `SHA256SUMS.txt`.
 4. BattleLens usa el OCR de Windows. Si falta el paquete de idioma, la app te ofrece instalarlo desde su menú.
 
+Guía de uso con capturas: https://battlelens.minim-labs.app/guide.html
+
 ## Installation
 
 1. Download **`BattleLens-Setup-{version}.exe`** (or the portable ZIP if you'd rather not install anything).
@@ -29,6 +31,8 @@ INSTALL_NOTES = """\
 3. If Windows shows "Windows protected your PC" (SmartScreen), click **More info → Run anyway**.
    It appears because the executable isn't signed with a paid certificate. You can verify the download with `SHA256SUMS.txt`.
 4. BattleLens uses Windows' built-in OCR. If the language pack is missing, the app offers to install it from its menu.
+
+User guide with screenshots: https://battlelens.minim-labs.app/guide.html
 """
 
 DISCLAIMER = (
