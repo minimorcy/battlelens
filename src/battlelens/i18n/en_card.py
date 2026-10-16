@@ -27,6 +27,7 @@ EN: dict[str, str] = {
     "Tus movimientos (probables)": "Your moves (likely)",
     "Estado": "Status",
     # ---- eficacia ----
+    "Eficacias": "Type matchups",
     "Debilidades": "Weaknesses",
     "Resistencias": "Resistances",
     "Inmunidades": "Immunities",
@@ -53,7 +54,10 @@ EN: dict[str, str] = {
     "Habilidades": "Abilities",
     "(oculta)": "(hidden)",
     "Movimientos probables": "Likely moves",
-    "Físico": "Physical",
+    # Categoría abreviada de los movimientos (improve-card-visuals D8)
+    "Fís.": "Phys.",
+    "Esp.": "Spec.",
+    "Est.": "Status",
     "Nivel no leído: recalibra la región del rival incluyendo el nivel para ver sus movimientos.":
         "Level not read: recalibrate the opponent region including the level to see its moves.",
     "Sin datos de movimientos para este Pokémon.": "No move data for this Pokémon.",
@@ -76,8 +80,8 @@ EN: dict[str, str] = {
     "No reconocido": "Not recognized",
     "(vacío)": "(empty)",
     "Texto leído: {text}": "Text read: {text}",
-    "Si el texto no es el nombre del rival, recalibra la región del perfil desde la bandeja del sistema.":
-        "If the text is not the opponent's name, recalibrate the profile region from the system tray.",
+    "Si el texto no es el nombre del rival, recalibra la región del rival en Ajustes › Perfiles.":
+        "If the text is not the opponent's name, recalibrate the opponent region in Settings › Profiles.",
     "No se encuentra el dataset ({path}). Genéralo con: uv run python tools/build_dataset.py":
         "Dataset not found ({path}). Generate it with: uv run python tools/build_dataset.py",
 }

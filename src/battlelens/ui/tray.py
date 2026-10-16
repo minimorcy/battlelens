@@ -9,7 +9,7 @@ from PyQt6.QtGui import QAction, QActionGroup
 from PyQt6.QtWidgets import QMenu, QSystemTrayIcon
 
 from .. import APP_NAME
-from ..i18n import N_, _
+from ..i18n import _
 from ..core.profiles import Profile
 from ..platform.windows import WindowInfo
 from .icons import app_icon
@@ -21,18 +21,11 @@ class Tray(QObject):
     mode_selected = pyqtSignal(str)  # "normal" | "competitive"
     window_selected = pyqtSignal(object)  # WindowInfo
     profile_selected = pyqtSignal(str)
-    profile_game_selected = pyqtSignal(object)  # id de juego o None
-    calibrate_requested = pyqtSignal()
     preset_requested = pyqtSignal()
-    recalibrate_requested = pyqtSignal()
-    region_requested = pyqtSignal(str)  # calibrar "rival", "rival2", "own" o "moves"
-    region_remove_requested = pyqtSignal(str)
+    manage_profiles_requested = pyqtSignal()  # abre Ajustes en Perfiles
     stream_toggled = pyqtSignal(bool)
     copy_stream_url_requested = pyqtSignal()
-    delete_profile_requested = pyqtSignal()
-    open_data_requested = pyqtSignal()
     install_ocr_requested = pyqtSignal()
-    about_requested = pyqtSignal()
     report_requested = pyqtSignal()
     settings_requested = pyqtSignal()
     update_requested = pyqtSignal()
@@ -44,14 +37,12 @@ class Tray(QObject):
         get_target: Callable[[], WindowInfo | None],
         get_profiles: Callable[[], tuple[list[Profile], str | None]],
         hotkey_texts: dict[str, str],
-        get_games: Callable[[], list[tuple[str, str]]] = lambda: [],
     ) -> None:
         super().__init__()
         self._list_windows = list_windows
         self._get_target = get_target
         self._get_profiles = get_profiles
         self._hotkeys = hotkey_texts
-        self._get_games = get_games  # [(id, etiqueta)] ordenados por generación
 
         self.icon = QSystemTrayIcon(app_icon())
         self.menu = QMenu()
@@ -73,7 +64,6 @@ class Tray(QObject):
     def set_hotkey_hints(self, hotkey_texts: dict[str, str]) -> None:
         self._hotkeys = hotkey_texts
         self._recognize_action.setText(_("Reconocer ahora") + self._hint("recognize"))
-        self._calibrate_action.setText(_("Calibrar nuevo perfil…") + self._hint("calibrate"))
 
     def show_update(self, version: str) -> None:
         self.update_action.setText(_("Descargar BattleLens {version}…", version=version))
@@ -112,6 +102,7 @@ class Tray(QObject):
         return f"\t{text}" if text else ""
 
     def _build_menu(self) -> None:
+        """Opciones rápidas; el resto está en Ajustes (redesign-settings-window D7)."""
         m = self.menu
         recognize = self._recognize_action = m.addAction(_("Reconocer ahora") + self._hint("recognize"))
         recognize.triggered.connect(self.recognize_requested)
@@ -139,35 +130,19 @@ class Tray(QObject):
         self._windows_menu.aboutToShow.connect(self._populate_windows)
         self._profiles_menu = m.addMenu(_("Perfil activo"))
         self._profiles_menu.aboutToShow.connect(self._populate_profiles)
-        self._game_menu = m.addMenu(_("Juego del perfil activo"))
-        self._game_menu.aboutToShow.connect(self._populate_games)
-
         m.addAction(_("Nuevo perfil con un preset…")).triggered.connect(self.preset_requested)
-        self._calibrate_action = m.addAction(_("Calibrar nuevo perfil…") + self._hint("calibrate"))
-        self._calibrate_action.triggered.connect(self.calibrate_requested)
-        self._regions_menu = m.addMenu(_("Regiones del perfil"))
-        self._regions_menu.aboutToShow.connect(self._populate_regions)
-        self._delete = m.addAction(_("Eliminar perfil activo…"))
-        self._delete.triggered.connect(self.delete_profile_requested)
         m.addSeparator()
         self.install_ocr_action = m.addAction(_("Instalar OCR de Windows…"))
         self.install_ocr_action.triggered.connect(self.install_ocr_requested)
         self.install_ocr_action.setVisible(False)
-        m.addAction(_("Ajustes…")).triggered.connect(self.settings_requested)
-        m.addAction(_("Abrir carpeta de datos")).triggered.connect(self.open_data_requested)
         self.update_action = m.addAction(_("Descargar versión nueva…"))
         self.update_action.triggered.connect(self.update_requested)
         self.update_action.setVisible(False)
         m.addAction(_("Informar de un problema…")).triggered.connect(self.report_requested)
-        m.addAction(_("Acerca de…")).triggered.connect(self.about_requested)
+        self.settings_action = m.addAction(_("Ajustes…"))
+        self.settings_action.triggered.connect(self.settings_requested)
+        m.setDefaultAction(self.settings_action)  # en negrita, como el doble clic
         m.addAction(_("Salir")).triggered.connect(self.quit_requested)
-        m.aboutToShow.connect(self._update_enabled)
-
-    def _update_enabled(self) -> None:
-        _profiles, active_id = self._get_profiles()
-        self._regions_menu.setEnabled(active_id is not None)
-        self._game_menu.setEnabled(active_id is not None)
-        self._delete.setEnabled(active_id is not None)
 
     def _populate_windows(self) -> None:
         menu = self._windows_menu
@@ -197,41 +172,12 @@ class Tray(QObject):
             action.triggered.connect(lambda _=False, pid=profile.id: self.profile_selected.emit(pid))
             group.addAction(action)
             menu.addAction(action)
-
-    def _populate_regions(self) -> None:
-        menu = self._regions_menu
-        menu.clear()
-        profiles, active_id = self._get_profiles()
-        active = next((p for p in profiles if p.id == active_id), None)
-        if active is None:
-            return
-        menu.addAction(_("Recalibrar rival")).triggered.connect(lambda: self.recalibrate_requested.emit())
-        for role, label, current in (
-            ("rival2", N_("2.º rival (combates dobles)"), active.rival2_region),
-            ("own", N_("tu Pokémon"), active.own_region),
-            ("moves", N_("menú de ataques"), active.moves_region),
-        ):
-            text = _("Recalibrar {label}…", label=_(label)) if current else _("Calibrar {label}…", label=_(label))
-            menu.addAction(text).triggered.connect(lambda _=False, r=role: self.region_requested.emit(r))
-            if current:
-                menu.addAction(_("Quitar {label}", label=_(label))).triggered.connect(
-                    lambda _=False, r=role: self.region_remove_requested.emit(r)
-                )
-
-    def _populate_games(self) -> None:
-        menu = self._game_menu
-        menu.clear()
-        profiles, active_id = self._get_profiles()
-        active = next((p for p in profiles if p.id == active_id), None)
-        current = active.game if active else None
-        group = QActionGroup(menu)
-        for game_id, label in [(None, _("Sin especificar")), *self._get_games()]:
-            action = QAction(label, menu, checkable=True)
-            action.setChecked(game_id == current)
-            action.triggered.connect(lambda _=False, g=game_id: self.profile_game_selected.emit(g))
-            group.addAction(action)
-            menu.addAction(action)
+        menu.addSeparator()
+        menu.addAction(_("Gestionar perfiles…")).triggered.connect(self.manage_profiles_requested)
 
     def _on_activated(self, reason) -> None:
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
             self.menu.popup(self.icon.geometry().center())
+        elif reason == QSystemTrayIcon.ActivationReason.DoubleClick:
+            self.menu.hide()
+            self.settings_requested.emit()

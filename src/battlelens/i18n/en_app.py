@@ -107,4 +107,6 @@ EN: dict[str, str] = {
     'Informe creado: {path}': 'Report created: {path}',
     'Entra en un combate y abre «Nuevo perfil con un preset…» en la bandeja (o calibra a mano).': 'Enter a battle and open "New profile from a preset…" in the tray (or calibrate manually).',
     ' · Nv. {level}': ' · Lv. {level}',
+    # ---- secciones ocultas de la ficha (core/config.py) ----
+    '{key} debe ser una lista con valores de: {values}': '{key} must be a list with values from: {values}',
 }

@@ -1,13 +1,14 @@
-"""Ventana «Acerca de»."""
+"""Sección «Acerca de» de Ajustes (spec app-settings)."""
 
 from __future__ import annotations
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QDialog, QDialogButtonBox, QHBoxLayout, QLabel, QVBoxLayout
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from .. import APP_NAME, LICENSE_NAME, REPO_URL, __version__
 from ..i18n import N_, _
 from .icons import app_icon
+from .theme import ACCENT
 
 # Mismos textos que DATA_ATTRIBUTION y DISCLAIMER (battlelens/__init__.py), marcados aquí para traducirlos;
 # un test comprueba que siguen iguales.
@@ -19,39 +20,44 @@ DISCLAIMER_TEXT = N_(
 )
 
 
-class AboutDialog(QDialog):
+class AboutPanel(QWidget):
     def __init__(self) -> None:
-        super().__init__(None, Qt.WindowType.WindowStaysOnTopHint)
-        self.setWindowTitle(_("Acerca de {app}", app=APP_NAME))
-        self.setWindowIcon(app_icon())
-        self.setMinimumWidth(420)
-
+        super().__init__()
         logo = QLabel()
-        logo.setPixmap(app_icon().pixmap(64, 64))
-        title = QLabel(f"<b style='font-size:16px'>{APP_NAME} {__version__}</b><br>"
-                       + _("Ficha instantánea del Pokémon rival en cualquier emulador."))
-        title.setTextFormat(Qt.TextFormat.RichText)
+        logo.setPixmap(app_icon().pixmap(72, 72))
+        title = QLabel(APP_NAME)
+        title.setObjectName("about-title")
+        version = QLabel(_("Versión {version}", version=__version__))
+        version.setObjectName("row-hint")
+        tagline = QLabel(_("Ficha instantánea del Pokémon rival en cualquier emulador."))
+        tagline.setWordWrap(True)
+        names = QVBoxLayout()
+        names.setSpacing(2)
+        names.addWidget(title)
+        names.addWidget(version)
+        names.addWidget(tagline)
         header = QHBoxLayout()
-        header.addWidget(logo)
-        header.addWidget(title, 1)
+        header.setSpacing(16)
+        header.addWidget(logo, 0, Qt.AlignmentFlag.AlignTop)
+        header.addLayout(names, 1)
 
-        license_text = _("Licencia {license}. {attribution}.", license=LICENSE_NAME, attribution=_(ATTRIBUTION_TEXT))
-        body = QLabel(
-            f"<p><a href='{REPO_URL}'>{REPO_URL}</a></p>"
-            f"<p>{license_text}</p>"
-            f"<p style='color:#777'>{_(DISCLAIMER_TEXT)}</p>"
-        )
-        body.setTextFormat(Qt.TextFormat.RichText)
-        body.setOpenExternalLinks(True)
-        body.setWordWrap(True)
-
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
-        buttons.rejected.connect(self.reject)
+        link = QLabel(f"<a href='{REPO_URL}' style='color:{ACCENT}'>{REPO_URL}</a>")
+        link.setTextFormat(Qt.TextFormat.RichText)
+        link.setOpenExternalLinks(True)
+        license_text = QLabel(_("Licencia {license}. {attribution}.", license=LICENSE_NAME,
+                                attribution=_(ATTRIBUTION_TEXT)))
+        license_text.setWordWrap(True)
+        disclaimer = QLabel(_(DISCLAIMER_TEXT))
+        disclaimer.setObjectName("row-hint")
+        disclaimer.setWordWrap(True)
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(12)
         layout.addLayout(header)
-        layout.addWidget(body)
-        layout.addWidget(buttons)
+        layout.addWidget(link)
+        layout.addWidget(license_text)
+        layout.addWidget(disclaimer)
 
     def text(self) -> str:
         return " ".join(label.text() for label in self.findChildren(QLabel))

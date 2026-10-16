@@ -56,6 +56,10 @@ mode = {overlay_mode}
 language = {language}
 # Segundos hasta ocultar el overlay automáticamente (0 = no se oculta solo).
 auto_hide_seconds = {auto_hide_seconds}
+# Secciones que no se muestran en cada modo de la ficha (también en la del stream). Se eligen en
+# «Ajustes › Ficha». Valores: matchup, own_moves, eff, stats, abilities, moves, training, evo, forms.
+hidden_normal = {hidden_sections_normal}
+hidden_competitive = {hidden_sections_competitive}
 
 [stream]
 # Fuente de navegador para OBS en http://localhost:<port>/ (solo en este PC).
@@ -71,6 +75,11 @@ check = {updates_check}
 """
 LANGUAGES = ("es", "en", "fr", "de", "it")
 MODES = ("normal", "competitive")
+# Secciones de la ficha en cada modo, en el orden en que aparecen (claves de los bloques de ui/overlay.py)
+CARD_SECTIONS = {
+    "normal": ("matchup", "own_moves", "eff", "evo", "forms"),
+    "competitive": ("matchup", "own_moves", "eff", "stats", "abilities", "moves", "training", "evo", "forms"),
+}
 INTERFACE_LANGUAGES = ("auto", "es", "en")
 
 
@@ -79,6 +88,8 @@ def _toml_value(value) -> str:
         return "true" if value else "false"
     if isinstance(value, str):
         return json.dumps(value, ensure_ascii=False)  # cadena básica TOML válida
+    if isinstance(value, (list, tuple)):
+        return "[" + ", ".join(_toml_value(v) for v in value) + "]"
     return repr(value)
 
 
@@ -107,6 +118,14 @@ class Config:
     stream_port: int = 17320
     stream_card_mode: str = "normal"
     interface_language: str = "auto"
+    # Ficha por defecto (redesign-settings-window D8): Normal solo con eficacias; Competitivo con eficacias y
+    # estadísticas. El resto se activa en Ajustes › Ficha.
+    hidden_sections_normal: tuple[str, ...] = ("matchup", "own_moves", "evo", "forms")
+    hidden_sections_competitive: tuple[str, ...] = ("matchup", "own_moves", "abilities", "moves", "training",
+                                                    "evo", "forms")
+
+    def hidden_sections(self, mode: str) -> frozenset[str]:
+        return frozenset(self.hidden_sections_competitive if mode == "competitive" else self.hidden_sections_normal)
 
     @classmethod
     def from_toml(cls, text: str) -> Config:
@@ -142,6 +161,8 @@ class Config:
             stream_port=st.get("port", default.stream_port),
             stream_card_mode=st.get("card_mode", default.stream_card_mode),
             interface_language=ui.get("language", default.interface_language),
+            hidden_sections_normal=_sections(ov.get("hidden_normal", default.hidden_sections_normal)),
+            hidden_sections_competitive=_sections(ov.get("hidden_competitive", default.hidden_sections_competitive)),
         )
         cfg._validate()
         return cfg
@@ -182,6 +203,15 @@ class Config:
             raise ConfigError(_("{key} debe ser un entero entre {low} y {high}", key="detection.interval_ms", low=200, high=5000))
         if not isinstance(self.detection_hide_after_seconds, (int, float)) or self.detection_hide_after_seconds < 0:
             raise ConfigError(_("{key} debe ser un número >= 0", key="detection.hide_after_seconds"))
+        for mode, hidden in (("normal", self.hidden_sections_normal), ("competitive", self.hidden_sections_competitive)):
+            if not isinstance(hidden, tuple) or any(key not in CARD_SECTIONS[mode] for key in hidden):
+                raise ConfigError(_("{key} debe ser una lista con valores de: {values}", key=f"overlay.hidden_{mode}",
+                                    values=", ".join(CARD_SECTIONS[mode])))
+
+
+def _sections(value):
+    """Lista de TOML -> tupla (el dataclass es inmutable); lo demás se deja para que lo rechace _validate."""
+    return tuple(value) if isinstance(value, list) else value
 
 
 def render_config(cfg: Config) -> str:
@@ -213,6 +243,8 @@ class AppState:
     overlay_pos: list[int] | None = field(default=None)
     auto_detect: bool | None = None  # conmutador de la bandeja; tiene prioridad sobre detection.enabled
     last_update_check: str | None = None  # ISO 8601 de la última consulta a GitHub
+    # Bloques plegados de la ficha por modo (improve-card-visuals D11): {"competitive": ["abilities"]}
+    collapsed_sections: dict[str, list[str]] = field(default_factory=dict)
 
     @classmethod
     def load(cls, path: Path) -> AppState:

@@ -93,10 +93,10 @@ def test_resultados_de_instalacion(monkeypatch, launched, code, outcome):
 
 def test_acerca_de(qapp):
     from battlelens import REPO_URL, __version__
-    from battlelens.ui.about import AboutDialog
+    from battlelens.ui.about import AboutPanel
 
-    text = AboutDialog().text()
-    assert f"BattleLens {__version__}" in text
+    text = AboutPanel().text()
+    assert f"Versión {__version__}" in text
     assert REPO_URL in text and "MIT" in text and "PokéAPI" in text and "no oficial" in text
 
 
@@ -106,12 +106,12 @@ def test_icono_original_cargado(qapp):
     assert not app_icon().isNull()
 
 
-def test_menu_bandeja_ocr_y_acerca_de(qapp):
+def test_menu_bandeja_ocr(qapp):
     from battlelens.ui.tray import Tray
 
     tray = Tray(lambda: [], lambda: None, lambda: ([], None), {})
     labels = [a.text() for a in tray.menu.actions()]
-    assert "Acerca de…" in labels and "Instalar OCR de Windows…" in labels
+    assert "Instalar OCR de Windows…" in labels
     assert not tray.install_ocr_action.isVisible()
     tray.set_ocr_missing(True)
     assert tray.install_ocr_action.isVisible()

@@ -38,15 +38,15 @@ BattleLens uses the text recognition that ships with Windows. Almost every PC al
    - **Manually**: press `Ctrl+Alt+C`, draw a rectangle around the **opponent's name** (the tighter, the better) and press `Enter`. BattleLens suggests the profile name and the game from the window title.
    - With the game set, the card uses its **regional forms** (Alola, Galar, Hisui, Paldea) and the types and type chart of **its generation**.
    - When you switch games, the matching profile **is activated automatically**.
-   - To change a profile's game: tray → **Active profile's game** (*Juego del perfil activo*).
+   - To change a profile's game: **Settings → Profiles** (*Ajustes › Perfiles*) → **Game**.
 3. **In every battle the card appears by itself** next to the emulator as soon as the opponent's name is visible (**automatic detection**), and hides a few seconds after the battle ends.
    - If you turn it off from the tray (**Automatic detection** / *Detección automática*), press `Ctrl+Alt+P` to recognise manually.
-   - Click the card or press `Ctrl+Alt+H` to hide it. Drag it to move it.
+   - Click **✕** in its top-right corner or press `Ctrl+Alt+H` to hide it. Drag it to move it; click a section title to collapse it.
    - **Mega Evolutions and other forms** (Rotom, Deoxys, Giratina…) show the same name on screen, so press `Ctrl+Alt+F` to cycle through the forms available in that game; the card is recalculated and keeps that form while the Pokémon stays in battle.
 4. **Choose the card mode** (tray → **Card mode** / *Modo de la ficha*, `Ctrl+Alt+M` or *Ajustes*):
    - **Normal** (default): a compact card for adventuring and catching, with types, weaknesses, highlighted **catch difficulty**, evolution and stat total.
    - **Competitive**: everything above plus the **level**, resistances, **actual stats at its level** (min–max), **abilities** with their description and effect ("Levitate → Ground ×0"), **likely moves** (the last 4 it learns up to its level in that game, flagging the ones that hit you ×2), **who's faster** and **training** data (EVs, weight for Low Kick, stat profile). To read the level, calibrate the opponent's region **including the level**.
-5. **Optional: your Pokémon and double battles.** In tray → **Profile regions** (*Regiones del perfil*) you can also calibrate the name of **your Pokémon** and of the **2nd opponent**:
+5. **Optional: your Pokémon and double battles.** In **Settings → Profiles** (*Ajustes › Perfiles*; tray → *Perfil activo → Gestionar perfiles…*) you can also calibrate the name of **your Pokémon** and of the **2nd opponent**:
    - With your Pokémon, each card shows **"Against your X"** (*Contra tu X*): what your types do to it, what its types do to you, and a verdict (**Advantage / Neutral / Disadvantage** — *Ventaja / Neutral / Desventaja*). Nicknamed Pokémon can't be recognised.
    - With the 2nd opponent, double battles show two cards side by side.
    - **Your moves:** also calibrate the **move menu** (*Menú de ataques*) with the Fight menu open, over the 4 moves. Each time you open it, BattleLens reads your Pokémon's moves and remembers them per species; every card then shows **"Your moves"** (*Tus movimientos*) with how much each one does to that opponent. Until they're read, it shows your Pokémon's likely moves for its level.
@@ -61,7 +61,7 @@ BattleLens is built for playing, and the stream mode is an extra: turned off, no
 2. Tray → **Copy URL for OBS** (*Copiar URL para OBS*) — by default `http://localhost:17320/`.
 3. In OBS, add a **Browser source** with that URL (e.g. 800×900) and place it in your scene. The background is transparent.
 
-The stream card updates with every opponent, slides in and out, and hides when the battle ends. Clicking your private card doesn't hide it; `Ctrl+Alt+S` does. Add `?scale=1.5` to the URL to make it bigger. It has its own card mode (Normal by default) in *Settings → Stream mode*, and it only listens on your own PC (`127.0.0.1`).
+The stream card updates with every opponent, slides in and out, and hides when the battle ends. Closing your private card doesn't hide it; `Ctrl+Alt+S` does. Add `?scale=1.5` to the URL to make it bigger. It has its own card mode (Normal by default) in *Settings → Stream mode*, and it only listens on your own PC (`127.0.0.1`).
 
 ### Configuration
 
@@ -90,7 +90,7 @@ Everything can be changed from tray → **Settings…** (*Ajustes…*) (changes 
 ### If recognition fails
 
 1. Set `recognition.debug = true`, restart BattleLens and recognise a few opponents.
-2. In `%APPDATA%\BattleLens\debug\`, the `*-recorte.png` file should contain only the name. If not, use **Recalibrate opponent** (*Regiones del perfil → Recalibrar rival*).
+2. In `%APPDATA%\BattleLens\debug\`, the `*-recorte.png` file should contain only the name. If not, click **Recalibrate…** next to **Opponent** in **Settings → Profiles** (*Ajustes › Perfiles*).
 3. If the crop looks right and it still fails, use tray → **Report a problem…** (*Informar de un problema…*): it creates a ZIP with your settings, the log and a capture of the emulator with what BattleLens reads in each region (your user folder and name are hidden; nothing is sent). It then opens the ["Bug" form](https://github.com/minimorcy/battlelens/issues/new/choose) with the version, emulator and game filled in, so you only have to attach the ZIP.
 
 ### Updates

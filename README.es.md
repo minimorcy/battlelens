@@ -38,15 +38,15 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
    - **A mano**: pulsa `Ctrl+Alt+C`, dibuja un rectángulo que cubra el **nombre del rival** (cuanto más ajustado, mejor) y pulsa `Enter`. BattleLens propone el nombre del perfil y el juego a partir del título de la ventana.
    - Con el juego indicado, la ficha usa sus **formas regionales** (Alola, Galar, Hisui, Paldea) y los tipos y la tabla de eficacias de **su generación**.
    - Al cambiar de juego, el perfil correspondiente **se activa solo**.
-   - Para cambiar el juego de un perfil: bandeja → **Juego del perfil activo**.
+   - Para cambiar el juego de un perfil: **Ajustes › Perfiles** → **Juego**.
 3. **En cada combate, la ficha aparece sola** junto al emulador en cuanto se ve el nombre del rival (**detección automática**) y se oculta unos segundos después de terminar el combate.
    - Si la desactivas desde la bandeja (**Detección automática**), pulsa `Ctrl+Alt+P` para reconocer a mano.
-   - Haz clic en la ficha o pulsa `Ctrl+Alt+H` para ocultarla. Arrástrala para moverla.
+   - Pulsa **✕** en su esquina superior derecha o `Ctrl+Alt+H` para ocultarla. Arrástrala para moverla; un clic en el título de una sección la pliega.
    - Las **megaevoluciones y otras formas** (Rotom, Deoxys, Giratina…) muestran el mismo nombre en pantalla, así que pulsa `Ctrl+Alt+F` para alternar entre las formas disponibles en ese juego. La ficha se recalcula y mantiene esa forma mientras el Pokémon siga en combate.
 4. **Elige el modo de la ficha** (bandeja → **Modo de la ficha**, `Ctrl+Alt+M` o Ajustes):
    - **Normal** (por defecto): ficha compacta para la aventura y la captura, con tipos, debilidades, **dificultad de captura** destacada, evolución y total de estadísticas.
    - **Competitivo**: todo lo anterior más el **nivel**, resistencias, **estadísticas reales a su nivel** (mínimo-máximo), **habilidades** con su descripción y su efecto («Levitación → Tierra ×0»), **movimientos probables** (los 4 últimos que aprende hasta su nivel en ese juego, marcando los que te hacen ×2), **quién es más rápido** y datos de **entrenamiento** (EVs, peso para Patada Baja, perfil). Para leer el nivel, calibra la región del rival **incluyendo el nivel**.
-5. **Opcional: tu Pokémon y combates dobles.** En bandeja → **Regiones del perfil** puedes calibrar también el nombre de **tu Pokémon** y el del **2.º rival**:
+5. **Opcional: tu Pokémon y combates dobles.** En **Ajustes › Perfiles** (bandeja → *Perfil activo → Gestionar perfiles…*) puedes calibrar también el nombre de **tu Pokémon** y el del **2.º rival**:
    - Con tu Pokémon, cada ficha muestra **«Contra tu X»**: lo que le hacen tus tipos, lo que te hacen los suyos y un veredicto (**Ventaja / Neutral / Desventaja**). Si tu Pokémon tiene apodo, no se puede reconocer.
    - Con el 2.º rival, en los combates dobles aparecen dos fichas una al lado de la otra.
    - **Tus movimientos:** calibra también el **menú de ataques** con el menú de «Luchar» abierto, sobre los 4 movimientos. Cada vez que lo abres, BattleLens lee los movimientos de tu Pokémon y los recuerda por especie; cada ficha muestra entonces **«Tus movimientos»** con cuánto le hace cada uno a ese rival. Mientras no se han leído, muestra los movimientos probables de tu Pokémon según su nivel.
@@ -61,7 +61,7 @@ BattleLens está pensado para jugar y el modo stream es un extra: desactivado, n
 2. Bandeja → **Copiar URL para OBS** (por defecto `http://localhost:17320/`).
 3. En OBS, añade una **Fuente de navegador** con esa URL (p. ej., 800×900) y colócala en tu escena. El fondo es transparente.
 
-La ficha del stream se actualiza con cada rival, entra y sale con una animación y se oculta al terminar el combate. Cerrar tu ficha con un clic no la oculta; `Ctrl+Alt+S` sí. Añade `?scale=1.5` a la URL para agrandarla. Tiene su propio modo de ficha (Normal por defecto) en *Ajustes → Modo stream* y solo escucha en tu propio PC (`127.0.0.1`).
+La ficha del stream se actualiza con cada rival, entra y sale con una animación y se oculta al terminar el combate. Cerrar tu ficha no la oculta; `Ctrl+Alt+S` sí. Añade `?scale=1.5` a la URL para agrandarla. Tiene su propio modo de ficha (Normal por defecto) en *Ajustes → Modo stream* y solo escucha en tu propio PC (`127.0.0.1`).
 
 ### Configuración
 
@@ -90,7 +90,7 @@ Todo se puede cambiar desde bandeja → **Ajustes…** (los cambios se aplican a
 ### Si no reconoce bien
 
 1. Pon `recognition.debug = true`, reinicia BattleLens y reconoce varios rivales.
-2. En `%APPDATA%\BattleLens\debug\`, el archivo `*-recorte.png` debe contener solo el nombre. Si no, usa *Regiones del perfil → Recalibrar rival*.
+2. En `%APPDATA%\BattleLens\debug\`, el archivo `*-recorte.png` debe contener solo el nombre. Si no, pulsa **Recalibrar…** junto a **Rival** en **Ajustes › Perfiles**.
 3. Si el recorte es correcto y aun así falla, usa en la bandeja **Informar de un problema…**: crea un ZIP con tu configuración, el registro y una captura del emulador con lo que lee BattleLens en cada región (se ocultan tu carpeta y tu nombre de usuario; no se envía nada). Después abre el [formulario de «Fallo»](https://github.com/minimorcy/battlelens/issues/new/choose) con la versión, el emulador y el juego ya rellenados, y solo tienes que adjuntar el ZIP.
 
 ### Actualizaciones

@@ -33,6 +33,8 @@ def controller(qapp, tmp_path, monkeypatch):
         hotkey_cycle_form="Ctrl+Alt+Shift+F17",
         hotkey_toggle_stream="Ctrl+Alt+Shift+F16",
         detection_enabled=False,
+        hidden_sections_normal=(),  # ficha completa: los tests miran todas las secciones
+        hidden_sections_competitive=(),
     )
     c = Controller(qapp, config, Pokedex.load())
     yield c
@@ -568,3 +570,73 @@ def test_modo_desde_ajustes(qapp, controller):
     controller.tray.notify = lambda msg, warning=False: None
     controller.apply_config(replace(controller.config, overlay_mode="competitive"))
     assert controller.overlay.mode == "competitive" and controller.tray.mode_actions["competitive"].isChecked()
+
+
+def test_bloques_plegados_persisten(qapp, controller, tmp_path):
+    """Lo plegado se guarda en state.json por modo y «Desplegar todas las secciones» lo vacía (improve-card-visuals)."""
+    from battlelens.core.config import AppState
+
+    controller.overlay.mode = "competitive"
+    controller.overlay.show_species(controller.pokedex.get_species(759), None, level=10)
+    qapp.processEvents()
+    controller.overlay.toggle_block("abilities")
+    assert AppState.load(tmp_path / "state.json").collapsed_sections == {"competitive": ["abilities"]}
+    controller.expand_all_sections()
+    assert AppState.load(tmp_path / "state.json").collapsed_sections == {}
+    assert not any(b.collapsed for b in controller.overlay.blocks())
+
+
+# ---- ventana de Ajustes con secciones (redesign-settings-window) ------------------------
+
+def test_ajustes_ventana_unica_y_no_modal(qapp, controller):
+    controller.tray.notify = lambda msg, warning=False: None
+    controller.show_settings()
+    window = controller._settings
+    window.threshold.setValue(42)  # cambio sin guardar
+    controller.show_settings("profiles")
+    assert controller._settings is window and window.current_section() == "profiles"
+    assert window.threshold.value() == 42 and not controller._modal_open
+    window.ask_unsaved = lambda: "discard"
+    window.close()
+
+
+def test_ajustes_reflejan_la_bandeja(qapp, controller):
+    controller.tray.notify = lambda msg, warning=False: None
+    controller.show_settings()
+    window = controller._settings
+    controller.set_mode("competitive")
+    controller.set_auto_detect(True)
+    assert window.mode.currentData() == "competitive" and window.detection_enabled.isChecked()
+    assert not window.has_changes()
+    controller.set_auto_detect(False)
+    window.hide()
+
+
+def test_ajustes_guardan_y_aplican(qapp, controller, tmp_path):
+    from battlelens.core.config import load_config
+
+    controller.tray.notify = lambda msg, warning=False: None
+    controller.show_settings()
+    window = controller._settings
+    window.language.setCurrentIndex(window.language.findData("en"))
+    assert window._save()
+    assert controller.overlay.language == "en" and load_config(tmp_path / "config.toml").language == "en"
+    window.hide()
+
+
+def test_perfil_desde_ajustes(qapp, controller):
+    from battlelens.core.profiles import Profile, Region
+
+    controller.tray.notify = lambda msg, warning=False: None
+    first, second = Profile("A", Region(0.1, 0.1, 0.2, 0.05)), Profile("B", Region(0.1, 0.1, 0.2, 0.05))
+    controller.profiles.save(first, activate=True)
+    controller.profiles.save(second, activate=False)
+    controller.show_settings("profiles")
+    window = controller._settings
+    row = next(i for i in range(window.profile_list.count())
+               if window.profile_list.item(i).data(0x0100) == second.id)  # Qt.ItemDataRole.UserRole
+    window.profile_list.setCurrentRow(row)
+    assert controller.profiles.active_id == second.id
+    controller.set_profile_game("emerald")
+    assert window.game_combo.currentData() == "emerald"
+    window.hide()

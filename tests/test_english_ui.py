@@ -61,7 +61,7 @@ def test_bandeja_en_ingles(qapp, english):
     from battlelens.ui.tray import Tray
 
     profile = Profile("Sword", Region(0.1, 0.1, 0.2, 0.05))
-    tray = Tray(lambda: [], lambda: None, lambda: ([profile], profile.id), {}, lambda: [])
+    tray = Tray(lambda: [], lambda: None, lambda: ([profile], profile.id), {})
     texts = _menu_texts(tray.menu)
     assert "Recognize now" in texts
     assert not _spanish(texts), _spanish(texts)
@@ -70,11 +70,17 @@ def test_bandeja_en_ingles(qapp, english):
 
 def test_ajustes_en_ingles(qapp, english):
     from battlelens.core.config import Config
-    from battlelens.ui.settings import SettingsDialog
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.ui.settings import SettingsWindow
 
-    dialog = SettingsDialog(Config())
+    profile = Profile("Sword", Region(0.1, 0.1, 0.2, 0.05))
+    dialog = SettingsWindow(Config(), get_profiles=lambda: ([profile], profile.id))
+    dialog.set_update("9.9.9")
+    dialog.set_ocr_missing(True)
+    dialog.refresh()
     texts = _texts(dialog) + [dialog.windowTitle()]
-    assert "Interface language:" in texts
+    texts += [dialog.nav.item(i).text() for i in range(dialog.nav.count())]
+    assert "Interface language" in texts and "  Shortcuts" in texts and "Recalibrate…" in texts
     assert not _spanish(texts, allowed=("Español",)), _spanish(texts, allowed=("Español",))
 
 

@@ -52,7 +52,7 @@ def test_tarjeta_en_ingles_con_datos_en_espanol(dex):
                               mode="competitive")
     finally:
         i18n.set_language("es")
-    assert card["labels"] == {"you": "You", "them": "Them", "total": "Total"}
+    assert card["labels"] == {"you": "You", "them": "Them", "total": "Total", "effects": "Type matchups"}
     assert card["level"] == "Lv. 16" and card["capture"]["text"] == "Catch rate: 180 · Medium"
     assert card["versus"]["title"] == "Against your Scorbunny"
     assert card["versus"]["verdict"] == {"label": "Neutral", "key": "neutral"}
@@ -64,14 +64,14 @@ def test_tarjeta_en_ingles_con_datos_en_espanol(dex):
 
 def test_etiquetas_de_card_js_en_espanol(dex):
     (card,) = build_cards(dex, [dex.view(66, "sword-shield")], None, [None])
-    assert card["labels"] == {"you": "Tú", "them": "Él", "total": "Total"}
+    assert card["labels"] == {"you": "Tú", "them": "Él", "total": "Total", "effects": "Eficacias"}
 
 
 def test_textos_de_habilidades_iguales_que_la_ficha(dex):
     (card,) = build_cards(dex, [dex.view(437, "platinum")], dex.view(445, "platinum"), [None])
     assert "Si tiene Levitación: Tierra ×0" in card["ability_lines"]
     assert "Tierra: ×0 si tiene Levitación" in card["versus"]["notes"]
-    assert any(t["label"] == "Tierra ×2*" for t in card["versus"]["you"])
+    assert any((t["label"], t["mult"], t["tone"]) == ("Tierra", "×2*", "good") for t in card["versus"]["you"])
 
 
 # ---- estado ---------------------------------------------------------------------------------
@@ -183,3 +183,17 @@ def test_configuracion_se_guarda_con_el_stream(tmp_path):
     cfg = replace(Config(), stream_enabled=True, stream_port=18001)
     save_config(tmp_path / "config.toml", cfg)
     assert load_config(tmp_path / "config.toml") == cfg
+
+
+def test_estilo_de_la_ficha_del_stream(dex):
+    """Pastillas suaves, tonos para el jugador y evolución por etapas (improve-card-visuals)."""
+    from battlelens.stream.payload import build_cards
+    from battlelens.ui import theme
+
+    (card,) = build_cards(dex, [dex.view(66, "sword-shield")], dex.view(813, "sword-shield"), [None])  # Machop
+    assert card["types"][0]["soft"] == dict(zip(("background", "border"), theme.soft_type_colors("fighting")))
+    assert {row["tone"] for row in card["groups"][0]["rows"]} == {"good"}
+    assert card["capture"]["meter"] == round(180 / 255, 3)
+    assert card["evolution"]["stages"][0] == [{"name": "Machop", "condition": None, "current": True}]
+    (comp,) = build_cards(dex, [dex.view(66, "sword-shield")], None, [16], mode="competitive")
+    assert sum(r["max"] for r in comp["stats"]["rows"]) == 1  # Ataque 80

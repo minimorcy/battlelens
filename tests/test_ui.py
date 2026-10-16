@@ -28,6 +28,21 @@ def _labels(widget):
     return [label.text() for label in widget.findChildren(QLabel) if not label.isHidden()]
 
 
+def _plain(text):
+    """Texto de una etiqueta sin el formato HTML (p. ej. la evolución, improve-card-visuals D8)."""
+    import re
+
+    return re.sub(r"<[^>]+>", "", text)
+
+
+def _typed(overlay):
+    """Pastillas de «Contra tu X» como «Tipo ×N»: el multiplicador va en una insignia aparte (D4)."""
+    from battlelens.ui.overlay import _Typed
+    from PyQt6.QtWidgets import QLabel
+
+    return [" ".join(label.text() for label in w.findChildren(QLabel)) for w in overlay.findChildren(_Typed)]
+
+
 def test_ficha_completa(qapp, overlay, dex):
     overlay.show_species(dex.get_species(6), None)
     qapp.processEvents()
@@ -96,14 +111,21 @@ def test_posicion_ventana_a_pantalla_completa(qapp, overlay, dex):
     assert overlay.frameGeometry().right() >= avail.right() - 20
 
 
-def test_clic_oculta(qapp, overlay, dex):
+def test_clic_no_oculta_y_el_boton_cierra(qapp, overlay, dex):
     from PyQt6.QtCore import QPoint, Qt
     from PyQt6.QtTest import QTest
+    from PyQt6.QtWidgets import QPushButton
 
     overlay.show_species(dex.get_species(6), None)
     qapp.processEvents()
     QTest.mouseClick(overlay, Qt.MouseButton.LeftButton, pos=QPoint(20, 20))
-    assert not overlay.isVisible()
+    assert overlay.isVisible()
+    dismissed = []
+    overlay.dismissed.connect(lambda: dismissed.append(1))
+    (close,) = [b for b in overlay.findChildren(QPushButton) if b.objectName() == "close-button"]
+    assert close.text() == "✕"
+    close.click()
+    assert not overlay.isVisible() and dismissed == [1]
 
 
 def test_auto_ocultar(qapp, dex):
@@ -193,24 +215,6 @@ def test_dialogo_perfil_propone_juego(qapp, dex):
     assert dialog.result_value[1] is None
 
 
-def test_menu_juego_del_perfil(qapp):
-    from battlelens.core.profiles import Profile, Region
-    from battlelens.ui.tray import Tray
-
-    profile = Profile("Espada", Region(0.1, 0.1, 0.2, 0.05), game="sword-shield")
-    tray = Tray(lambda: [], lambda: None, lambda: ([profile], profile.id), {},
-                lambda: [("emerald", "Gen 3 · Esmeralda"), ("sword-shield", "Gen 8 · Espada / Escudo")])
-    chosen = []
-    tray.profile_game_selected.connect(chosen.append)
-    tray._populate_games()
-    actions = tray._game_menu.actions()
-    assert [a.text() for a in actions] == ["Sin especificar", "Gen 3 · Esmeralda", "Gen 8 · Espada / Escudo"]
-    assert actions[2].isChecked()
-    actions[1].trigger()
-    assert chosen == ["emerald"]
-    tray.hide()
-
-
 def test_combate_doble_con_comparativa(qapp, overlay, dex):
     rivals = [dex.view(3), dex.view(76)]  # Venusaur y Golem
     overlay.show_battle(rivals, dex.view(6), None)  # contra tu Charizard
@@ -222,7 +226,7 @@ def test_combate_doble_con_comparativa(qapp, overlay, dex):
     assert names == ["Venusaur", "Golem"]
     assert verdicts == ["Ventaja", "Desventaja"]
     texts = " | ".join(_labels(overlay))
-    assert "CONTRA TU CHARIZARD" in texts and "Fuego ×2" in texts and "Planta ×¼" in texts
+    assert "CONTRA TU CHARIZARD" in texts and "Fuego ×2" in _typed(overlay) and "Planta ×¼" in _typed(overlay)
     assert overlay.width() > 600
 
 
@@ -233,30 +237,6 @@ def test_sin_tu_pokemon_no_hay_comparativa(qapp, overlay, dex):
     assert overlay.width() == 360
 
 
-def test_submenu_de_regiones(qapp):
-    from battlelens.core.profiles import Profile, Region
-    from battlelens.ui.tray import Tray
-
-    simple = Profile("Simple", Region(0.1, 0.1, 0.2, 0.05))
-    tray = Tray(lambda: [], lambda: None, lambda: ([simple], simple.id), {})
-    tray._populate_regions()
-    labels = [a.text() for a in tray._regions_menu.actions()]
-    assert labels == ["Recalibrar rival", "Calibrar 2.º rival (combates dobles)…", "Calibrar tu Pokémon…",
-                      "Calibrar menú de ataques…"]
-
-    full = simple.with_role_region("rival2", Region(0.1, 0.2, 0.2, 0.05))
-    tray2 = Tray(lambda: [], lambda: None, lambda: ([full], full.id), {})
-    removed = []
-    tray2.region_remove_requested.connect(removed.append)
-    tray2._populate_regions()
-    actions = {a.text(): a for a in tray2._regions_menu.actions()}
-    assert "Quitar 2.º rival (combates dobles)" in actions and "Quitar tu Pokémon" not in actions
-    actions["Quitar 2.º rival (combates dobles)"].trigger()
-    assert removed == ["rival2"]
-    tray.hide()
-    tray2.hide()
-
-
 def test_datos_adicionales_stufful(qapp, overlay, dex):
     from PyQt6.QtWidgets import QLabel
 
@@ -264,7 +244,7 @@ def test_datos_adicionales_stufful(qapp, overlay, dex):
     qapp.processEvents()
     by_name = {w.objectName(): w.text() for w in overlay.findChildren(QLabel) if w.objectName()}
     assert by_name["capture"] == "Captura: 140 · Media"
-    assert by_name["evolution"] == "Stufful → Bewear (Nv. 27)"
+    assert _plain(by_name["evolution"]) == "Stufful → Bewear (Nv. 27)"
     fluffy = next(w for w in overlay.findChildren(QLabel) if "Peluche" in w.text() and w.toolTip())
     assert "Fuego" in fluffy.toolTip()
 
@@ -277,9 +257,9 @@ def test_sin_evolucion_no_hay_apartado(qapp, overlay, dex):
 
 def test_ajustes_muestran_valores_actuales(qapp):
     from battlelens.core.config import Config
-    from battlelens.ui.settings import SettingsDialog
+    from battlelens.ui.settings import SettingsWindow
 
-    d = SettingsDialog(Config(language="fr", threshold=75, detection_interval_ms=800, updates_check=False))
+    d = SettingsWindow(Config(language="fr", threshold=75, detection_interval_ms=800, updates_check=False))
     assert d.language.currentData() == "fr" and d.threshold.value() == 75
     assert d.interval.value() == 800 and not d.updates.isChecked()
     assert d.hotkey_edits["hotkey_recognize"].text() == "Ctrl+Alt+P"
@@ -288,9 +268,9 @@ def test_ajustes_muestran_valores_actuales(qapp):
 
 def test_ajustes_rechazan_atajo_sin_modificador(qapp):
     from battlelens.core.config import Config
-    from battlelens.ui.settings import SettingsDialog
+    from battlelens.ui.settings import SettingsWindow
 
-    d = SettingsDialog(Config())
+    d = SettingsWindow(Config())
     d.hotkey_edits["hotkey_recognize"].setText("F8")
     d._save()
     assert d.result_config is None
@@ -300,9 +280,9 @@ def test_ajustes_rechazan_atajo_sin_modificador(qapp):
 
 def test_ajustes_rechazan_atajos_repetidos(qapp):
     from battlelens.core.config import Config
-    from battlelens.ui.settings import SettingsDialog
+    from battlelens.ui.settings import SettingsWindow
 
-    d = SettingsDialog(Config())
+    d = SettingsWindow(Config())
     d.hotkey_edits["hotkey_hide"].setText("ctrl+alt+p")
     config, errors = d.collect()
     assert config is None and "hotkey_hide" in errors
@@ -310,9 +290,9 @@ def test_ajustes_rechazan_atajos_repetidos(qapp):
 
 def test_ajustes_devuelven_configuracion(qapp):
     from battlelens.core.config import Config
-    from battlelens.ui.settings import SettingsDialog
+    from battlelens.ui.settings import SettingsWindow
 
-    d = SettingsDialog(Config())
+    d = SettingsWindow(Config())
     d.language.setCurrentIndex(d.language.findData("en"))
     d.debug.setChecked(True)
     config, errors = d.collect()
@@ -338,9 +318,10 @@ def test_modo_normal_compacto(qapp, dex):
     qapp.processEvents()
     texts = " | ".join(_labels(o))
     assert _named(o, "capture") == ["Captura: 140 · Media"]
-    assert "DEBILIDADES" in texts and "Stufful → Bewear (Nv. 27)" in texts and "<b>340</b>" in texts
+    assert "DEBILIDADES" in texts and "Stufful → Bewear (Nv. 27)" in _plain(texts) and "<b>340</b>" in texts
     assert "RESISTENCIAS" not in texts and "HABILIDADES" not in texts and "MOVIMIENTOS" not in texts
-    assert not o.findChildren(QProgressBar)
+    # sin barras de estadísticas: la única barra es el medidor de captura (improve-card-visuals D6)
+    assert [b.objectName() for b in o.findChildren(QProgressBar)] == ["capture-meter"]
     assert o.width() == 300
     o.close()
 
@@ -396,8 +377,7 @@ def test_normal_explica_inmunidad_por_habilidad(qapp, dex):
 def test_comparativa_avisa_de_habilidad_posible(qapp, overlay, dex):
     overlay.show_battle([dex.view(437, "platinum")], dex.view(445, "platinum"), None)  # Bronzong contra Garchomp
     qapp.processEvents()
-    texts = " | ".join(_labels(overlay))
-    assert "Tierra ×2*" in texts
+    assert "Tierra ×2*" in _typed(overlay)
     assert "Tierra: ×0 si tiene Levitación" in _named(overlay, "matchup-ability-note")
     assert "Si tiene Levitación: Tierra ×0" in _named(overlay, "ability-effect-line")
 
@@ -412,9 +392,9 @@ def test_movimiento_contra_tu_flygon(qapp, overlay, dex):
 
 def test_ajustes_incluyen_modo_y_atajo(qapp):
     from battlelens.core.config import Config
-    from battlelens.ui.settings import SettingsDialog
+    from battlelens.ui.settings import SettingsWindow
 
-    d = SettingsDialog(Config(overlay_mode="competitive"))
+    d = SettingsWindow(Config(overlay_mode="competitive"))
     assert d.mode.currentData() == "competitive"
     assert d.hotkey_edits["hotkey_toggle_mode"].text() == "Ctrl+Alt+M"
     d.mode.setCurrentIndex(d.mode.findData("normal"))
@@ -558,9 +538,9 @@ def test_bandeja_modo_stream(qapp):
 
 def test_ajustes_del_modo_stream(qapp):
     from battlelens.core.config import Config
-    from battlelens.ui.settings import SettingsDialog
+    from battlelens.ui.settings import SettingsWindow
 
-    d = SettingsDialog(Config(stream_enabled=True, stream_port=18000, stream_card_mode="competitive"))
+    d = SettingsWindow(Config(stream_enabled=True, stream_port=18000, stream_card_mode="competitive"))
     assert d.stream_enabled.isChecked() and d.stream_port.value() == 18000
     assert d.stream_mode.currentData() == "competitive"
     assert d.hotkey_edits["hotkey_toggle_stream"].text() == "Ctrl+Alt+S"
@@ -573,15 +553,15 @@ def test_ajustes_del_modo_stream(qapp):
 
 def test_ajustes_idioma_de_la_interfaz(qapp):
     from battlelens.core.config import Config
-    from battlelens.ui.settings import SettingsDialog
+    from battlelens.ui.settings import SettingsWindow
 
-    d = SettingsDialog(Config())
+    d = SettingsWindow(Config())
     assert d.interface_language.currentData() == "auto"
     assert d.interface_language.currentText() == "Automático (idioma de Windows)"
     d.interface_language.setCurrentIndex(d.interface_language.findData("en"))
     config, errors = d.collect()
     assert not errors and config.interface_language == "en"
-    assert SettingsDialog(Config(interface_language="es")).interface_language.currentData() == "es"
+    assert SettingsWindow(Config(interface_language="es")).interface_language.currentData() == "es"
 
 
 def test_acerca_de_usa_los_textos_legales(qapp):
@@ -589,4 +569,4 @@ def test_acerca_de_usa_los_textos_legales(qapp):
     from battlelens.ui import about
 
     assert about.DISCLAIMER_TEXT == DISCLAIMER and about.ATTRIBUTION_TEXT == DATA_ATTRIBUTION
-    assert DISCLAIMER in about.AboutDialog().text()
+    assert DISCLAIMER in about.AboutPanel().text()

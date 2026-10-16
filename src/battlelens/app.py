@@ -65,8 +65,7 @@ from .platform.ocr_setup import (
     ui_language_tag,
 )
 from .platform.single_instance import SingleInstance
-from .ui.about import AboutDialog
-from .ui.settings import SettingsDialog
+from .ui.settings import SettingsWindow
 from .ui.calibrator import CalibrationDialog, ask_profile
 from .ui.icons import app_icon
 from .ui.overlay import Overlay
@@ -129,6 +128,7 @@ class Controller(QObject):
         self.detector = GameDetector(pokedex.games)
 
         self.overlay = Overlay(pokedex, config.language, config.auto_hide_seconds, mode=config.overlay_mode)
+        self.overlay.hidden = {mode: config.hidden_sections(mode) for mode in ("normal", "competitive")}
         self._last_battle = None  # (clave, juego, niveles) de la última ficha, para redibujarla
         self._form_choice: dict[int, str] = {}  # especie -> forma elegida con el atajo (add-alternate-forms D4)
         # Modo stream: fuente de navegador para OBS (spec stream-mode)
@@ -139,6 +139,9 @@ class Controller(QObject):
             self.overlay.saved_pos = QPoint(*self.state.overlay_pos)
         self.overlay.moved.connect(self._on_overlay_moved)
         self.overlay.dismissed.connect(lambda: self.battle.on_hidden_by_user())
+        for mode, keys in (self.state.collapsed_sections or {}).items():  # bloques plegados (improve-card-visuals D11)
+            self.overlay.collapsed[mode] = set(keys)
+        self.overlay.collapsed_changed.connect(self._on_overlay_collapsed)
 
         # Detección automática del combate (spec battle-detection)
         self.battle = BattleDetector(fingerprint_distance, config.detection_hide_after_seconds)
@@ -154,9 +157,8 @@ class Controller(QObject):
         self.tray = Tray(
             windows.list_windows,
             lambda: self.target,
-            lambda: (self.profiles.sorted_profiles(), self.profiles.active_id),
+            self._profiles_snapshot,
             {name: hk.text for name, hk in bindings.items()},
-            lambda: [(g.id, f"Gen {g.generation} · {g.name(config.language)}") for g in pokedex.games],
         )
         self.tray.recognize_requested.connect(self.recognize)
         self.tray.auto_detect_toggled.connect(self.set_auto_detect)
@@ -164,24 +166,17 @@ class Controller(QObject):
         self.tray.set_mode(config.overlay_mode)
         self.tray.window_selected.connect(self.select_window)
         self.tray.profile_selected.connect(self.select_profile)
-        self.tray.profile_game_selected.connect(self.set_profile_game)
-        self.tray.calibrate_requested.connect(self.calibrate_new)
         self.tray.preset_requested.connect(self.new_profile_from_preset)
-        self.tray.recalibrate_requested.connect(self.recalibrate)
-        self.tray.region_requested.connect(self.calibrate_region)
-        self.tray.region_remove_requested.connect(self.remove_region)
-        self.tray.delete_profile_requested.connect(self.delete_profile)
-        self.tray.open_data_requested.connect(lambda: os.startfile(self.data_dir))
+        self.tray.manage_profiles_requested.connect(lambda: self.show_settings("profiles"))
         self.tray.install_ocr_requested.connect(self.install_ocr)
-        self.tray.about_requested.connect(self.show_about)
         self.tray.report_requested.connect(self.show_report)
-        self.tray.settings_requested.connect(self.show_settings)
+        self.tray.settings_requested.connect(lambda: self.show_settings())
         self.tray.update_requested.connect(self.open_update)
         self.tray.stream_toggled.connect(self.set_stream_enabled)
         self.tray.copy_stream_url_requested.connect(self.copy_stream_url)
-        self._settings: SettingsDialog | None = None
+        self._settings: SettingsWindow | None = None
+        self._ocr_missing = False
         self.release: Release | None = None
-        self._about: AboutDialog | None = None
         self.tray.quit_requested.connect(self.quit)
         self.tray.show()
 
@@ -230,7 +225,7 @@ class Controller(QObject):
             )
             notices.append(_("No se pudieron registrar los atajos: {detail}. Cámbialos en config.toml.", detail=detail))
         if not self.ocr_available():
-            self.tray.set_ocr_missing(True)
+            self._set_ocr_missing(True)
             notices.append(_("Falta el OCR de Windows. Instálalo desde el menú de la bandeja: «Instalar OCR de Windows…»."))
         if self.target is None:
             notices.append(_("Selecciona la ventana del emulador en el menú de la bandeja."))
@@ -280,22 +275,65 @@ class Controller(QObject):
                   instructions=_(MANUAL_INSTRUCTIONS)),
             )
         elif self.ocr_available():
-            self.tray.set_ocr_missing(False)
+            self._set_ocr_missing(False)
             self.tray.notify(_("OCR instalado. Ya puedes reconocer con {hotkey}.", hotkey=self.config.hotkey_recognize))
         else:
             self.tray.notify(_("OCR instalado. Reinicia BattleLens para empezar a usarlo."))
 
+    def _set_ocr_missing(self, missing: bool) -> None:
+        self._ocr_missing = missing
+        self.tray.set_ocr_missing(missing)
+        if self._settings is not None:
+            self._settings.set_ocr_missing(missing)
+
     # ---- ajustes (spec app-settings) ----------------------------------------------
 
-    def show_settings(self) -> None:
-        self._settings = SettingsDialog(self.config)
-        self._modal_open = True
-        try:
-            accepted = self._settings.exec()
-        finally:
-            self._modal_open = False
-        if accepted and self._settings.result_config is not None:
-            self.apply_config(self._settings.result_config)
+    def _profiles_snapshot(self) -> tuple[list[Profile], str | None]:
+        return self.profiles.sorted_profiles(), self.profiles.active_id
+
+    def _game_labels(self) -> list[tuple[str, str]]:
+        return [(g.id, f"Gen {g.generation} · {g.name(self.config.language)}") for g in self.pokedex.games]
+
+    def show_settings(self, section: str | None = None) -> None:
+        """Ventana única y no modal (redesign-settings-window D5)."""
+        if self._settings is None:
+            w = self._settings = SettingsWindow(self.config, windows.list_windows, lambda: self.target,
+                                                self._profiles_snapshot, self._game_labels)
+            w.saved.connect(self.apply_config)
+            w.window_selected.connect(self.select_window)
+            w.profile_selected.connect(self.select_profile)
+            w.profile_game_selected.connect(self.set_profile_game)
+            w.preset_requested.connect(self.new_profile_from_preset)
+            w.calibrate_requested.connect(self.calibrate_new)
+            w.region_requested.connect(self.calibrate_region)
+            w.region_remove_requested.connect(self.remove_region)
+            w.delete_profile_requested.connect(self.delete_profile)
+            w.open_data_requested.connect(lambda: os.startfile(self.data_dir))
+            w.report_requested.connect(self.show_report)
+            w.install_ocr_requested.connect(self.install_ocr)
+            w.update_requested.connect(self.open_update)
+            w.copy_stream_url_requested.connect(self.copy_stream_url)
+            w.expand_sections_requested.connect(self.expand_all_sections)
+            w.set_stream(self.config.stream_enabled, self.stream_server.url)
+            w.set_update(self.release.version if self.release else None)
+            w.set_ocr_missing(self._ocr_missing)
+        if section is not None:
+            self._settings.show_section(section)
+        self._settings.refresh()
+        self._settings.show()
+        self._settings.raise_()
+        self._settings.activateWindow()
+
+    def _refresh_ui(self) -> None:
+        """Tras cambiar perfiles o ventana: tooltip de la bandeja y sección Perfiles de Ajustes."""
+        self.tray.refresh_tooltip()
+        if self._settings is not None:
+            self._settings.refresh()
+
+    def _sync_settings(self, name: str, value) -> None:
+        """Refleja en Ajustes un cambio hecho desde la bandeja o un atajo, sin marcarlo como pendiente."""
+        if self._settings is not None:
+            self._settings.sync_value(name, value)
 
     def apply_config(self, new: Config) -> None:
         """Guarda config.toml y aplica los cambios sin reiniciar (design.md D3)."""
@@ -319,10 +357,15 @@ class Controller(QObject):
         self.pipeline.debug_dir = self.data_dir / "debug" if new.debug else None
         self.overlay.language = new.language
         self.overlay.auto_hide_seconds = new.auto_hide_seconds
-        if new.overlay_mode != old.overlay_mode:
+        sections_changed = (new.hidden_sections_normal, new.hidden_sections_competitive) != (
+            old.hidden_sections_normal, old.hidden_sections_competitive)
+        self.overlay.hidden = {mode: new.hidden_sections(mode) for mode in ("normal", "competitive")}
+        if new.overlay_mode != old.overlay_mode or sections_changed:
             self.overlay.mode = new.overlay_mode
             self.tray.set_mode(new.overlay_mode)
             self._redraw_last_battle()
+        if sections_changed:
+            self._publish_stream(keep_visibility=True)
         self._watch_timer.setInterval(new.detection_interval_ms)
         self.battle.hide_after_seconds = new.detection_hide_after_seconds
         if new.detection_enabled != old.detection_enabled:
@@ -350,6 +393,9 @@ class Controller(QObject):
                 self.tray.notify(_("El puerto {port} está ocupado: cámbialo en Ajustes.", port=config.stream_port),
                                  warning=True)
         self.tray.set_stream(config.stream_enabled, self.stream_server.url)
+        if self._settings is not None:
+            self._settings.set_stream(config.stream_enabled, self.stream_server.url)
+        self._sync_settings("stream_enabled", config.stream_enabled)
 
     def set_stream_enabled(self, enabled: bool) -> None:
         if enabled != self.config.stream_enabled:
@@ -374,7 +420,8 @@ class Controller(QObject):
         rivals, own, levels, moves, probable = self._stream_args
         visible = self.stream_state.visible
         cards = build_cards(self.pokedex, rivals, own, levels, moves, probable,
-                            self.config.stream_card_mode, self.config.language)
+                            self.config.stream_card_mode, self.config.language,
+                            self.config.hidden_sections(self.config.stream_card_mode))
         self.stream_state.publish(cards)
         if keep_visibility:
             self.stream_state.set_visible(visible)
@@ -398,6 +445,8 @@ class Controller(QObject):
         if release is not None:
             self.release = release
             self.tray.show_update(release.version)
+            if self._settings is not None:
+                self._settings.set_update(release.version)
             self.tray.notify(_("BattleLens {version} disponible. Descárgala desde el menú de la bandeja.",
                                version=release.version))
 
@@ -506,12 +555,6 @@ class Controller(QObject):
         if open_form:
             QDesktopServices.openUrl(QUrl(url))
 
-    def show_about(self) -> None:
-        self._about = AboutDialog()
-        self._about.show()
-        self._about.raise_()
-        self._about.activateWindow()
-
     def _on_hotkey(self, name: str) -> None:
         {
             "recognize": self.recognize,
@@ -531,6 +574,7 @@ class Controller(QObject):
             self.config = new
         self.overlay.mode = mode
         self.tray.set_mode(mode)
+        self._sync_settings("mode", mode)
         self._redraw_last_battle()
 
     def toggle_mode(self) -> None:
@@ -583,6 +627,7 @@ class Controller(QObject):
         else:
             self._watch_timer.stop()
         self.tray.set_auto_detect(enabled)
+        self._sync_settings("detection_enabled", enabled)
 
     def _watch_tick(self) -> None:
         if self._watch_busy or self._busy or self._modal_open or self.target is None:
@@ -784,7 +829,7 @@ class Controller(QObject):
             return
         self.profiles.set_active(profile.id)
         self._save_state()
-        self.tray.refresh_tooltip()
+        self._refresh_ui()
         game = self.pokedex.get_game(game_id)
         self.tray.notify(_("Perfil «{name}» activado ({game}).", name=profile.name, game=game.name(self.config.language)))
 
@@ -795,6 +840,7 @@ class Controller(QObject):
         self.profiles.save(profile.with_game(game_id), activate=True)
         game = self.pokedex.get_game(game_id)
         label = game.name(self.config.language) if game else _("sin especificar")
+        self._refresh_ui()
         self.tray.notify(_("Juego de «{name}»: {game}.", name=profile.name, game=label))
 
     def _set_target(self, info: windows.WindowInfo | None) -> None:
@@ -802,12 +848,12 @@ class Controller(QObject):
         self.state.last_window_exe = info.exe if info else None
         self.state.last_window_title = info.title if info else None
         self._save_state()
-        self.tray.refresh_tooltip()
+        self._refresh_ui()
 
     def select_profile(self, profile_id: str) -> None:
         self.profiles.set_active(profile_id)
         self._save_state()
-        self.tray.refresh_tooltip()
+        self._refresh_ui()
 
     def _capture_for_calibration(self):
         if self.target is None:
@@ -886,7 +932,7 @@ class Controller(QObject):
         self.profiles.save(profile, activate=True)
         self.battle.reset()
         self._save_state()
-        self.tray.refresh_tooltip()
+        self._refresh_ui()
         self.tray.notify(_("Perfil «{name}» creado y activo.", name=name))
 
     def _calibrate_new_with(self, image) -> None:
@@ -906,7 +952,7 @@ class Controller(QObject):
         profile = Profile(name, dialog.region, game=game_id)
         self.profiles.save(profile, activate=True)
         self._save_state()
-        self.tray.refresh_tooltip()
+        self._refresh_ui()
         self.tray.notify(_("Perfil «{name}» creado y activo.", name=name))
 
     REGION_TARGETS = {
@@ -915,9 +961,6 @@ class Controller(QObject):
         "own": N_("nombre de tu Pokémon"),
         "moves": N_("menú de ataques (los 4 movimientos)"),
     }
-
-    def recalibrate(self) -> None:
-        self.calibrate_region("rival")
 
     def calibrate_region(self, role: str) -> None:
         profile = self.profiles.active
@@ -940,6 +983,7 @@ class Controller(QObject):
         self.profiles.save(profile.with_role_region(role, region), activate=True)
         self.battle.reset()  # la huella cambia de forma al cambiar las regiones
         self.moves_watcher.reset()
+        self._refresh_ui()
         self.tray.notify(_("«{name}»: región del {target} guardada.", name=profile.name,
                            target=_(self.REGION_TARGETS[role])))
 
@@ -949,6 +993,7 @@ class Controller(QObject):
             return
         self.profiles.save(profile.with_role_region(role, None), activate=True)
         self.battle.reset()
+        self._refresh_ui()
         self.tray.notify(_("«{name}»: región del {target} quitada.", name=profile.name,
                            target=_(self.REGION_TARGETS[role])))
 
@@ -960,7 +1005,15 @@ class Controller(QObject):
         if answer == QMessageBox.StandardButton.Yes:
             self.profiles.delete(profile.id)
             self._save_state()
-            self.tray.refresh_tooltip()
+            self._refresh_ui()
+
+    def _on_overlay_collapsed(self) -> None:
+        self.state.collapsed_sections = {mode: sorted(keys) for mode, keys in self.overlay.collapsed.items() if keys}
+        self._save_state()
+
+    def expand_all_sections(self) -> None:
+        """«Desplegar todas las secciones» (improve-card-visuals)."""
+        self.overlay.expand_all()  # emite collapsed_changed, que lo guarda en state.json
 
     def _on_overlay_moved(self, x: int, y: int) -> None:
         self.state.overlay_pos = [x, y]
@@ -978,6 +1031,8 @@ class Controller(QObject):
         self.stream_server.stop()
         self.hotkeys.stop()
         self._save_state()
+        if self._settings is not None:
+            self._settings.hide()
         self.tray.hide()
         self.app.quit()
 
