@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Comportamiento de la ventana
-El overlay SHALL estar siempre por encima del resto de ventanas, también de un emulador a pantalla completa, sin marco, MUST NOT robar el foco del teclado al emulador y MUST NOT aparecer en la barra de tareas. Se SHALL posicionar por defecto junto al borde derecho de la ventana objetivo, o dentro de la pantalla si no cabe, y MUST recordar la posición si el usuario lo arrastra. El overlay MUST caber en la pantalla: si su contenido es más alto que la altura disponible, se limita a esa altura y el contenido se desplaza con la rueda del ratón. Las tarjetas MUST reservar la altura que necesitan sus textos partidos en líneas, también con escalado de pantalla alto.
+El overlay SHALL estar siempre por encima del resto de ventanas, también de un emulador a pantalla completa sin bordes (la pantalla completa exclusiva no deja dibujar otras ventanas encima), sin marco, MUST NOT robar el foco del teclado al emulador y MUST NOT aparecer en la barra de tareas. Se SHALL posicionar por defecto junto al borde derecho de la ventana objetivo, o dentro de la pantalla si no cabe, y MUST recordar la posición si el usuario lo arrastra. El overlay MUST caber en la pantalla: si su contenido es más alto que la altura disponible, se limita a esa altura y el contenido se desplaza con la rueda del ratón. Las tarjetas MUST reservar la altura que necesitan sus textos partidos en líneas, también con escalado de pantalla alto.
 
 #### Scenario: Foco preservado
 - **WHEN** el overlay aparece mientras el usuario juega

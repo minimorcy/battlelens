@@ -1082,7 +1082,16 @@ def _setup_logging() -> None:
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s", handlers=handlers
     )
     # Sin este gancho, PyQt6 cierra la app sin dejar rastro ante una excepción en un slot
-    sys.excepthook = lambda kind, value, tb: log.error("Error no controlado", exc_info=(kind, value, tb))
+    sys.excepthook = _log_unhandled
+
+
+def _log_unhandled(kind, value, tb) -> None:
+    if issubclass(kind, KeyboardInterrupt):  # Ctrl+C en la consola: salir, como antes del gancho
+        app = QApplication.instance()
+        if app is not None:
+            app.quit()
+        return
+    log.error("Error no controlado", exc_info=(kind, value, tb))
 
 
 def _fatal(message: str) -> int:

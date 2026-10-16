@@ -707,3 +707,14 @@ def test_calibrar_a_mano_saltando_lo_opcional(controller, monkeypatch):
     controller._calibrate_new_with(np.zeros((480, 720, 3), np.uint8))
     profile = controller.profiles.active
     assert profile.name == "Solo rival" and profile.own_region is None and profile.moves_region is None
+
+
+def test_ctrl_c_cierra_la_app_y_los_errores_se_registran(qapp, monkeypatch, caplog):
+    from battlelens import app as app_module
+
+    quits = []
+    monkeypatch.setattr(qapp, "quit", lambda: quits.append(1))
+    app_module._log_unhandled(KeyboardInterrupt, KeyboardInterrupt(), None)
+    assert quits == [1] and "Error no controlado" not in caplog.text
+    app_module._log_unhandled(ValueError, ValueError("x"), None)
+    assert quits == [1] and "Error no controlado" in caplog.text
