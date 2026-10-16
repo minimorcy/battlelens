@@ -1,0 +1,22 @@
+schema: spec-driven
+
+# Constitución del proyecto: contexto y reglas que OpenSpec añade al generar cada artefacto.
+context: |
+  BattleLens: app de Windows (Python 3.12, PyQt6) que muestra la ficha del Pokémon rival leyendo su nombre
+  en la ventana del emulador con el OCR de Windows. Interfaz en español e inglés (src/battlelens/i18n).
+  Web estática bilingüe en site/: portada (index.html) y guía de uso con capturas (guide.html).
+  Las propuestas, especificaciones, diseños y tareas se escriben en español.
+
+  Guía de uso siempre al día: todo cambio que altere algo que la guía explica o muestra (menús de la
+  bandeja, ventana de Ajustes, asistente de presets, calibración, la ficha y sus secciones, modos, atajos,
+  modo stream, textos de la interfaz, valores por defecto, requisitos, instalación o limitaciones) MUST
+  actualizar site/guide.html en los dos idiomas y regenerar las capturas con
+  `uv run python tools/make_guide_screenshots.py`. Si aparece una pantalla u opción nueva que el usuario
+  deba conocer, se añade a la guía (texto y, si ayuda, captura nueva en el script).
+
+rules:
+  proposal:
+    - "En «Impact», indica si el cambio afecta a la guía de uso (site/guide.html) y qué apartados; si no la afecta, dilo explícitamente."
+  tasks:
+    - "Si el cambio afecta a algo que explica o muestra la guía de uso, incluye una tarea final «Guía de uso»: actualizar el texto de site/guide.html en español e inglés y regenerar las capturas con `uv run python tools/make_guide_screenshots.py` (añadiendo al script las capturas nuevas que hagan falta)."
+    - "Incluye también actualizar README.md, README.es.md y CHANGELOG.md (en los dos idiomas) cuando el cambio sea visible para el usuario."
