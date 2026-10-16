@@ -52,7 +52,19 @@ EN: dict[str, str] = {
         "Draw a rectangle over the <b>{target}</b>; the tighter, the better "
         "(it's fine if it includes the level). "
         "<b>Enter</b> confirms · <b>Esc</b> cancels.",
+    "Dibuja un rectángulo que cubra el <b>{target}</b>; cuanto más ajustado, mejor. "
+    "Es opcional: <b>Enter</b> confirma · <b>Esc</b> lo salta (puedes calibrarlo después "
+    "en Ajustes › Perfiles).":
+        "Draw a rectangle over the <b>{target}</b>; the tighter, the better. "
+        "It's optional: <b>Enter</b> confirms · <b>Esc</b> skips it (you can calibrate it later "
+        "in Settings › Profiles).",
     "Primero dibuja un rectángulo sobre el nombre.": "First draw a rectangle over the name.",
+    "Volver a capturar": "Capture again",
+    "¿No está a la vista? Haz que se vea en el emulador (por ejemplo, abre el menú de "
+    "Luchar) y pulsa «Volver a capturar».":
+        "Not on screen? Make it visible in the emulator (for example, open the Fight menu) "
+        "and click \"Capture again\".",
+    "Saltar": "Skip",
     "Nuevo perfil": "New profile",
     "Sin especificar (formas originales, tabla actual)": "Unspecified (original forms, current type chart)",
     "Nombre del perfil:": "Profile name:",

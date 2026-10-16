@@ -657,3 +657,53 @@ def test_cambiar_de_perfil_con_otras_regiones_no_rompe_la_deteccion(controller):
     assert controller.profiles.active_id == completo.id
     assert controller.battle._last is None  # la detección empieza de cero con las regiones nuevas
     controller.battle.on_frame(np.zeros((12, 64), np.uint8), 0.5)
+
+
+def test_calibrar_a_mano_pide_rival_tu_pokemon_y_ataques(controller, monkeypatch):
+    """Calibrar nuevo perfil: el rival y, opcionales, tu Pokémon y el menú de ataques (con otra captura)."""
+    from battlelens import app as app_module
+    from battlelens.core.profiles import Region
+
+    first, menu = np.zeros((480, 720, 3), np.uint8), np.ones((480, 720, 3), np.uint8)
+    drawn = {"rival": Region(0.6, 0.05, 0.3, 0.08), "own": Region(0.05, 0.6, 0.3, 0.08), "moves": Region(0.5, 0.75, 0.45, 0.2)}
+    asked = []
+
+    class FakeCalibration:
+        def __init__(self, image, title, target=app_module.Controller.REGION_TARGETS["rival"], optional=False,
+                     recapture=None):
+            role = next(r for r, t in app_module.Controller.REGION_TARGETS.items() if t == target)
+            asked.append((role, optional, recapture is not None))
+            self.image = recapture() if role == "moves" else image  # «Volver a capturar» con el menú abierto
+            self.region = drawn[role]
+
+        def exec(self):
+            return True
+
+    monkeypatch.setattr(app_module, "CalibrationDialog", FakeCalibration)
+    monkeypatch.setattr(app_module, "ask_profile", lambda name, games, game, lang: ("A mano", game))
+    monkeypatch.setattr(controller, "_capture_for_calibration", lambda: menu)
+    controller.tray.notify = lambda msg, warning=False: None
+    controller._calibrate_new_with(first)
+    assert asked == [("rival", False, False), ("own", True, True), ("moves", True, True)]
+    profile = controller.profiles.active
+    assert (profile.region, profile.own_region, profile.moves_region) == (drawn["rival"], drawn["own"], drawn["moves"])
+
+
+def test_calibrar_a_mano_saltando_lo_opcional(controller, monkeypatch):
+    from battlelens import app as app_module
+    from battlelens.core.profiles import Region
+
+    class FakeCalibration:
+        def __init__(self, image, title, target=None, optional=False, recapture=None):
+            self.image, self.optional = image, optional
+            self.region = None if optional else Region(0.6, 0.05, 0.3, 0.08)
+
+        def exec(self):
+            return not self.optional  # Esc / «Saltar»
+
+    monkeypatch.setattr(app_module, "CalibrationDialog", FakeCalibration)
+    monkeypatch.setattr(app_module, "ask_profile", lambda name, games, game, lang: ("Solo rival", game))
+    controller.tray.notify = lambda msg, warning=False: None
+    controller._calibrate_new_with(np.zeros((480, 720, 3), np.uint8))
+    profile = controller.profiles.active
+    assert profile.name == "Solo rival" and profile.own_region is None and profile.moves_region is None

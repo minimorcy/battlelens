@@ -191,6 +191,35 @@ def test_calibrador_esc_cancela(qapp):
     assert dialog.result() == 0 and dialog.region is None
 
 
+def test_calibrador_opcional_se_salta_y_vuelve_a_capturar(qapp):
+    from PyQt6.QtWidgets import QPushButton
+
+    from battlelens.ui.calibrator import CalibrationDialog
+
+    menu = np.full((320, 480, 3), 200, dtype=np.uint8)
+    dialog = CalibrationDialog(np.zeros((160, 240, 3), dtype=np.uint8), "test", optional=True, recapture=lambda: menu)
+    buttons = {b.text(): b for b in dialog.findChildren(QPushButton)}
+    assert set(buttons) == {"Volver a capturar", "Saltar"}
+    buttons["Volver a capturar"].click()
+    assert dialog.image is menu and dialog._selector.image_size == (480, 320)
+    sel = dialog._selector
+    s = sel.width() / 480
+    _drag(sel, (round(240 * s), round(20 * s)), (round(400 * s), round(52 * s)))
+    dialog._confirm()
+    assert dialog.region.x == pytest.approx(0.5, abs=0.01)
+    skipped = CalibrationDialog(np.zeros((160, 240, 3), dtype=np.uint8), "test", optional=True)
+    next(b for b in skipped.findChildren(QPushButton) if b.text() == "Saltar").click()
+    assert skipped.result() == 0 and skipped.region is None
+
+
+def test_calibrador_sin_opciones_no_tiene_botones(qapp):
+    from PyQt6.QtWidgets import QPushButton
+
+    from battlelens.ui.calibrator import CalibrationDialog
+
+    assert not CalibrationDialog(np.zeros((160, 240, 3), dtype=np.uint8), "test").findChildren(QPushButton)
+
+
 def test_ficha_forma_regional(qapp, overlay, dex):
     overlay.show_species(dex.get_species(263), None, game="sword-shield")
     qapp.processEvents()

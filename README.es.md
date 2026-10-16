@@ -35,7 +35,7 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
 1. Busca el icono de BattleLens en la bandeja del sistema (junto al reloj) y elige **Ventana del emulador**.
 2. **Configura el juego** (una sola vez por juego), durante un combate:
    - **Con un preset** (lo más fácil): bandeja → **Nuevo perfil con un preset…**. BattleLens localiza la imagen del juego en la ventana del emulador y dibuja dónde leerá el nombre del rival, el tuyo y el menú de ataques, con lo que lee en cada recuadro. Si caen sobre los nombres, pulsa **Guardar perfil**; si no, **Ajustar la imagen del juego** o **Calibrar a mano**. Presets: Rojo/Azul/Amarillo, Oro/Plata/Cristal, Rubí/Zafiro/Esmeralda, Rojo Fuego/Verde Hoja, Diamante/Perla/Platino, HeartGold/SoulSilver, Negro/Blanco (2) y Espada/Escudo.
-   - **A mano**: pulsa `Ctrl+Alt+C`, dibuja un rectángulo que cubra el **nombre del rival** (cuanto más ajustado, mejor) y pulsa `Enter`. BattleLens propone el nombre del perfil y el juego a partir del título de la ventana.
+   - **A mano**: pulsa `Ctrl+Alt+C`, dibuja un rectángulo que cubra el **nombre del rival** (cuanto más ajustado, mejor) y pulsa `Enter`. Después haz lo mismo, si quieres, con el **nombre de tu Pokémon** y el **menú de ataques** (*Volver a capturar* toma una captura nueva cuando abras el menú de Luchar; `Esc` salta el paso). BattleLens propone el nombre del perfil y el juego a partir del título de la ventana.
    - Con el juego indicado, la ficha usa sus **formas regionales** (Alola, Galar, Hisui, Paldea) y los tipos y la tabla de eficacias de **su generación**.
    - Al cambiar de juego, el perfil correspondiente **se activa solo**.
    - Para cambiar el juego de un perfil: **Ajustes › Perfiles** → **Juego**.

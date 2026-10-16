@@ -942,24 +942,46 @@ class Controller(QObject):
         self.tray.notify(_("Perfil «{name}» creado y activo.", name=name))
 
     def _calibrate_new_with(self, image) -> None:
-        dialog = CalibrationDialog(image, _("Calibrar nuevo perfil"))
+        """Calibración a mano de un perfil nuevo: el rival y, opcionalmente, tu Pokémon y el menú de ataques."""
+        title = _("Calibrar nuevo perfil")
+        dialog = CalibrationDialog(image, f"{title} (1/3)")
         if not dialog.exec() or dialog.region is None:
             return
         detection = self.detector.detect_version(self._current_title())
+        guess = detection.game_id if detection else None
+        game_area = self.pipeline.game_area.area(image, guess)
+        regions = {"rival": dialog.region}
+        for step, role in enumerate(("own", "moves"), start=2):
+            dialog = CalibrationDialog(image, f"{title} ({step}/3)", self.REGION_TARGETS[role], optional=True,
+                                       recapture=self._capture_for_calibration)
+            if dialog.exec() and dialog.region is not None:
+                regions[role] = self._anchor_region(dialog.region, dialog.image, guess, image)
         lang = self.config.language
         if detection is not None:
             default_name = f"Pokémon {detection.version_name(lang)}"
         else:
             default_name = self.target.title if self.target else _("Mi juego")
-        answer = ask_profile(default_name, self.pokedex.games, detection.game_id if detection else None, lang)
+        answer = ask_profile(default_name, self.pokedex.games, guess, lang)
         if answer is None:
             return
         name, game_id = answer
-        profile = Profile(name, dialog.region, game=game_id, game_area=self.pipeline.game_area.area(image, game_id))
+        if game_id != guess:
+            game_area = self.pipeline.game_area.area(image, game_id)
+        profile = Profile(name, regions["rival"], game=game_id, own_region=regions.get("own"),
+                          moves_region=regions.get("moves"), game_area=game_area)
         self.profiles.save(profile, activate=True)
+        self.battle.reset()
         self._save_state()
         self._refresh_ui()
         self.tray.notify(_("Perfil «{name}» creado y activo.", name=name))
+
+    def _anchor_region(self, region: Region, drawn_on, game_id: str | None, reference) -> Region:
+        """Una región dibujada sobre otra captura (p. ej. con otro tamaño de ventana), llevada a `reference`."""
+        if drawn_on is reference or drawn_on.shape == reference.shape:
+            return region
+        source = self.pipeline.game_area.area(drawn_on, game_id)
+        target = self.pipeline.game_area.area(reference, game_id)
+        return region.remap(source, target) if source is not None and target is not None else region
 
     REGION_TARGETS = {
         "rival": N_("nombre del Pokémon rival"),
@@ -976,7 +998,8 @@ class Controller(QObject):
         if image is None:
             return
         target = _(self.REGION_TARGETS[role])
-        dialog = CalibrationDialog(image, _("«{name}»: {target}", name=profile.name, target=target), target)
+        dialog = CalibrationDialog(image, _("«{name}»: {target}", name=profile.name, target=target),
+                                   self.REGION_TARGETS[role], recapture=self._capture_for_calibration)
         self._modal_open = True
         try:
             accepted = dialog.exec()
@@ -984,7 +1007,7 @@ class Controller(QObject):
             self._modal_open = False
         if accepted and dialog.region is not None:
             region = dialog.region
-            area = self.pipeline.game_area.area(image, profile.game) if profile.game_area is not None else None
+            area = self.pipeline.game_area.area(dialog.image, profile.game) if profile.game_area is not None else None
             if area is not None:  # medida con la ventana como esté ahora: al sitio de las demás regiones
                 region = region.remap(area, profile.game_area)
             self._save_region(profile, role, region)

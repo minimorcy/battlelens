@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import numpy as np
 from PyQt6.QtCore import QPoint, QRect, QRectF, Qt
 from PyQt6.QtGui import QColor, QGuiApplication, QImage, QKeyEvent, QMouseEvent, QPainter, QPen, QPixmap
@@ -12,6 +14,7 @@ from PyQt6.QtWidgets import (
     QFormLayout,
     QLabel,
     QLineEdit,
+    QPushButton,
     QVBoxLayout,
     QWidget,
 )
@@ -84,30 +87,70 @@ class _Selector(QWidget):
 
 
 class CalibrationDialog(QDialog):
-    """Devuelve la región elegida en `self.region` si el usuario confirma con Enter."""
+    """Devuelve la región elegida en `self.region` si el usuario confirma con Enter.
 
-    def __init__(self, image: np.ndarray, title: str, target: str = N_("nombre del Pokémon rival")) -> None:
+    Con `optional`, Esc (o «Saltar») deja la región sin calibrar. Con `recapture`, «Volver a capturar»
+    cambia la imagen por una captura nueva del emulador (p. ej. tras abrir el menú de Luchar); la imagen
+    sobre la que se dibujó queda en `self.image`.
+    """
+
+    def __init__(self, image: np.ndarray, title: str, target: str = N_("nombre del Pokémon rival"),
+                 optional: bool = False, recapture: Callable[[], np.ndarray | None] | None = None) -> None:
         super().__init__(None, Qt.WindowType.WindowStaysOnTopHint)
         self.setWindowTitle(title)
         self.region: Region | None = None
+        self.image = image
         screen = QGuiApplication.primaryScreen().availableGeometry()
-        max_size = screen.size() * 0.85
+        self._max_size = screen.size() * 0.85
 
         help_text = QLabel(_(
             "Dibuja un rectángulo que cubra el <b>{target}</b>; cuanto más ajustado, mejor "
             "(no pasa nada si incluye el nivel). "
             "<b>Enter</b> confirma · <b>Esc</b> cancela.",
             target=_(target),
+        ) if not optional else _(
+            "Dibuja un rectángulo que cubra el <b>{target}</b>; cuanto más ajustado, mejor. "
+            "Es opcional: <b>Enter</b> confirma · <b>Esc</b> lo salta (puedes calibrarlo después "
+            "en Ajustes › Perfiles).",
+            target=_(target),
         ))
         help_text.setTextFormat(Qt.TextFormat.RichText)
+        help_text.setWordWrap(True)
         self._error = QLabel()
         self._error.setStyleSheet("color:#e5484d; font-weight:600;")
-        self._selector = _Selector(image, max_size)
+        self._selector = _Selector(image, self._max_size)
 
-        layout = QVBoxLayout(self)
-        layout.addWidget(help_text)
-        layout.addWidget(self._selector, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self._error)
+        self._layout = QVBoxLayout(self)
+        self._layout.addWidget(help_text)
+        self._layout.addWidget(self._selector, alignment=Qt.AlignmentFlag.AlignCenter)
+        self._layout.addWidget(self._error)
+        buttons = QDialogButtonBox()
+        if recapture is not None:
+            self._recapture = recapture
+            hint = QLabel(_("¿No está a la vista? Haz que se vea en el emulador (por ejemplo, abre el menú de "
+                            "Luchar) y pulsa «Volver a capturar»."))
+            hint.setWordWrap(True)
+            self._layout.insertWidget(1, hint)
+            again = buttons.addButton(_("Volver a capturar"), QDialogButtonBox.ButtonRole.ActionRole)
+            again.setAutoDefault(False)
+            again.clicked.connect(self._capture_again)
+        if optional:
+            skip = buttons.addButton(_("Saltar"), QDialogButtonBox.ButtonRole.RejectRole)
+            skip.setAutoDefault(False)
+            skip.clicked.connect(self.reject)
+        if buttons.buttons():
+            self._layout.addWidget(buttons)
+
+    def _capture_again(self) -> None:
+        image = self._recapture()
+        if image is None:
+            return
+        selector = _Selector(image, self._max_size)
+        self._layout.replaceWidget(self._selector, selector)
+        self._selector.deleteLater()
+        self._selector, self.image = selector, image
+        self._error.clear()
+        self.adjustSize()
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):

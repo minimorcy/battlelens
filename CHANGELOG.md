@@ -22,6 +22,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ### Corregido
 - La app se cerraba al cambiar de perfil (desde la bandeja, Ajustes o al cambiar de juego) con la detección automática activa, si los perfiles tenían distinto número de regiones. Los errores inesperados ahora quedan en `app.log` en lugar de cerrar la app sin aviso.
 - Con el emulador a pantalla completa, la ficha quedaba detrás de él.
+- «Calibrar a mano» solo pedía la región del rival: ahora pide también, opcionales, la de tu Pokémon y la del menú de ataques, con «Volver a capturar» para abrir antes el menú de Luchar (también al recalibrar una región).
 - Al pasar el emulador de pantalla completa a maximizado (o al revés), las regiones dejaban de caer sobre los nombres. Los perfiles creados con un preset recuerdan dónde estaba la imagen del juego y las regiones la siguen; los anteriores hay que volver a crearlos con un preset.
 
 ### English
@@ -44,6 +45,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 **Fixed**
 - The app closed when switching profiles (from the tray, Settings or by changing games) with automatic detection on, if the profiles had a different number of regions. Unexpected errors are now written to `app.log` instead of closing the app without notice.
 - With the emulator in fullscreen, the card stayed behind it.
+- "Calibrate manually" only asked for the opponent's region: it now also asks, optionally, for your Pokémon's and the moves menu, with "Capture again" so you can open the Fight menu first (also when recalibrating a region).
 - Switching the emulator between fullscreen and maximized made the regions miss the names. Profiles created from a preset remember where the game image was and the regions follow it; older profiles need to be created again from a preset.
 
 ## [0.3.0] - 2026-10-14
