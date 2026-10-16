@@ -64,6 +64,7 @@
         <ol>
           <li><a href="#rapido">Empieza en 3 minutos</a></li>
           <li><a href="#instalar">Instalar</a></li>
+          <li><a href="#emulador">Prepara el emulador</a></li>
           <li><a href="#bandeja">El menú de la bandeja</a></li>
           <li><a href="#perfil">Configurar tu juego con un preset</a></li>
           <li><a href="#calibrar">Calibrar a mano</a></li>
@@ -85,7 +86,7 @@
           <h2>Empieza en 3 minutos</h2>
           <ol class="quick">
             <li><b>Instala</b> BattleLens y ábrelo: aparece un icono junto al reloj.</li>
-            <li><b>Abre tu emulador</b> y entra en un combate, con los nombres en pantalla.</li>
+            <li><b>Abre tu emulador</b> (en ventana o a pantalla completa <a href="#emulador">sin bordes</a>) y entra en un combate, con los nombres en pantalla.</li>
             <li>Bandeja → <b>Ventana del emulador</b> → elige tu emulador.</li>
             <li>Bandeja → <b>Nuevo perfil con un preset…</b> → comprueba que los recuadros caen sobre los nombres → <b>Guardar perfil</b>.</li>
             <li><b>Juega.</b> En cada combate la ficha del rival aparece sola y se oculta al terminar.</li>
@@ -102,6 +103,26 @@
           </ol>
           <p><b>Requisitos:</b> Windows 10 (2004 o posterior) u 11, de 64 bits.</p>
           <p><b>OCR de Windows.</b> BattleLens lee los nombres con el reconocimiento de texto que trae Windows. Casi todos los equipos lo tienen en su idioma. Si falta, la app avisa al arrancar y aparece <b>Instalar OCR de Windows…</b> en la bandeja y en <i>Ajustes › General</i>.</p>
+        </section>
+
+        <section class="g-section" id="emulador">
+          <h2>Prepara el emulador</h2>
+          <p>BattleLens no toca el emulador ni su memoria: hace una captura de su ventana, lee los nombres con el OCR de Windows y muestra la ficha encima. Por eso funciona con cualquier emulador, pero conviene saber qué ve.</p>
+          <dl class="defs">
+            <dt>Qué captura</dt><dd>El interior de la ventana que eliges en <i>Ventana del emulador</i>, sin el marco ni la barra de título. La lee aunque otra ventana la tape.</dd>
+            <dt>Minimizado</dt><dd>No se puede leer. Deja el emulador abierto, aunque sea detrás de otras ventanas.</dd>
+            <dt>Tamaño de la ventana</dt><dd>Con un perfil creado con un <a href="#perfil">preset</a> (o a mano en un juego con preset) puedes pasar de ventana a maximizado o a pantalla completa: las regiones siguen a la imagen del juego. Los demás perfiles esperan la ventana como estaba al calibrar.</dd>
+            <dt>Nitidez</dt><dd>Cuanto más grande se ve el juego, mejor lee. Los filtros que deforman el texto (CRT, líneas de barrido) pueden empeorar la lectura.</dd>
+          </dl>
+          <h3>Pantalla completa: mejor sin bordes</h3>
+          <p>Muchos emuladores tienen dos tipos de pantalla completa. En la <b>exclusiva</b>, el juego se queda la pantalla para él solo y Windows no deja dibujar ninguna ventana encima: <b>la ficha no se ve</b>. La <b>ventana sin bordes</b> (<i>borderless</i>) se ve igual y deja que la ficha aparezca delante.</p>
+          <dl class="defs">
+            <dt>Eden, Yuzu, Citron, Sudachi</dt><dd><i>Emulación › Configurar › Gráficos</i>: en el modo de pantalla completa, elige <b>ventana sin bordes</b> (<i>Borderless Windowed</i>) en lugar de <i>Exclusive Fullscreen</i>.</dd>
+            <dt>RetroArch</dt><dd><i>Settings › Video › Fullscreen Mode</i>: activa <b>Windowed Fullscreen Mode</b>.</dd>
+            <dt>Dolphin</dt><dd><i>Graphics › Advanced</i>: activa <b>Borderless Fullscreen</b>.</dd>
+            <dt>Otros</dt><dd>Si tu emulador no tiene esta opción, su pantalla completa suele ser ya sin bordes.</dd>
+          </dl>
+          <p class="tip">¿No sabes cuál usa? Con el emulador a pantalla completa, pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> en un combate. Si la ficha no aparece y en ventana sí, es pantalla completa exclusiva. Mientras tanto, la ventana maximizada siempre funciona.</p>
         </section>
 
         <section class="g-section" id="bandeja">
@@ -322,7 +343,7 @@
               <li>Comprueba en la bandeja que la <i>Ventana del emulador</i> es la correcta y que hay un <i>Perfil activo</i>.</li>
               <li>Comprueba que la <i>Detección automática</i> está activada, o pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>.</li>
               <li>¿Has minimizado el emulador? BattleLens lee la ventana aunque esté tapada, pero no si está minimizada.</li>
-              <li>¿Solo falla a pantalla completa? Si el emulador usa <b>pantalla completa exclusiva</b>, Windows no dibuja ninguna otra ventana encima. Cámbialo a <b>ventana sin bordes</b> (<i>borderless</i>): en Eden, Yuzu, Citron o Sudachi, <i>Emulación › Configurar › Gráficos → Modo de pantalla completa</i>.</li>
+              <li>¿Solo falla a pantalla completa? Si el emulador usa <b>pantalla completa exclusiva</b>, Windows no dibuja ninguna otra ventana encima. Cámbialo a <b>ventana sin bordes</b>: mira <a href="#emulador">Prepara el emulador</a>.</li>
             </ul>
           </details>
           <details class="faq-item">
@@ -358,7 +379,7 @@
             <li>Los <b>movimientos probables</b> son los de un Pokémon salvaje o de un entrenador corriente; líderes, rivales y equipos competitivos pueden llevar otros.</li>
             <li>La comparativa es <b>por tipos</b> (ataques con STAB) y tiene en cuenta las habilidades que cambian la eficacia; si solo alguna de sus habilidades lo hace, la ficha avisa («si tiene Levitación»). No cuenta objetos ni habilidades como Rompemoldes.</li>
             <li><b>Tus movimientos</b> usan su tipo y potencia del juego; los de tipo variable (Poder Oculto, Meteorobola…) muestran su tipo base.</li>
-            <li>La ficha no se puede ver sobre un emulador en <b>pantalla completa exclusiva</b>; usa la pantalla completa <b>sin bordes</b>.</li>
+            <li>La ficha no se puede ver sobre un emulador en <b>pantalla completa exclusiva</b>; usa la pantalla completa <a href="#emulador">sin bordes</a>.</li>
           </ul>
         </section>
 
@@ -380,6 +401,7 @@
         <ol>
           <li><a href="#quick-start">Get started in 3 minutes</a></li>
           <li><a href="#install">Install</a></li>
+          <li><a href="#emulator">Set up your emulator</a></li>
           <li><a href="#tray">The tray menu</a></li>
           <li><a href="#profile">Set up your game with a preset</a></li>
           <li><a href="#calibrate">Calibrate manually</a></li>
@@ -401,7 +423,7 @@
           <h2>Get started in 3 minutes</h2>
           <ol class="quick">
             <li><b>Install</b> BattleLens and open it: an icon appears next to the clock.</li>
-            <li><b>Open your emulator</b> and start a battle, with the names on screen.</li>
+            <li><b>Open your emulator</b> (windowed or in <a href="#emulator">borderless</a> fullscreen) and start a battle, with the names on screen.</li>
             <li>Tray → <b>Emulator window</b> → pick your emulator.</li>
             <li>Tray → <b>New profile from a preset…</b> → check the boxes sit on the names → <b>Save profile</b>.</li>
             <li><b>Play.</b> In every battle the opponent card pops up by itself and hides when the battle ends.</li>
@@ -418,6 +440,26 @@
           </ol>
           <p><b>Requirements:</b> Windows 10 (2004 or later) or 11, 64-bit.</p>
           <p><b>Windows OCR.</b> BattleLens reads names with the text recognition built into Windows. Almost every PC has it for its language. If it's missing, the app tells you on startup and shows <b>Install Windows OCR…</b> in the tray and in <i>Settings › General</i>.</p>
+        </section>
+
+        <section class="g-section" id="emulator">
+          <h2>Set up your emulator</h2>
+          <p>BattleLens doesn't touch the emulator or its memory: it takes a screenshot of its window, reads the names with Windows OCR and shows the card on top. That's why it works with any emulator, but it helps to know what it sees.</p>
+          <dl class="defs">
+            <dt>What it captures</dt><dd>The inside of the window you pick in <i>Emulator window</i>, without the frame or title bar. It reads it even when another window covers it.</dd>
+            <dt>Minimized</dt><dd>It can't be read. Keep the emulator open, even if it's behind other windows.</dd>
+            <dt>Window size</dt><dd>With a profile created from a <a href="#profile">preset</a> (or manually for a game that has a preset) you can switch between windowed, maximized and fullscreen: the regions follow the game image. Other profiles expect the window as it was when you calibrated.</dd>
+            <dt>Sharpness</dt><dd>The bigger the game looks, the better it reads. Filters that distort text (CRT, scanlines) can make reading worse.</dd>
+          </dl>
+          <h3>Fullscreen: go borderless</h3>
+          <p>Many emulators have two kinds of fullscreen. In <b>exclusive</b> fullscreen the game takes the screen for itself and Windows draws no other window on top: <b>the card can't be seen</b>. <b>Borderless windowed</b> looks the same and lets the card appear in front.</p>
+          <dl class="defs">
+            <dt>Eden, Yuzu, Citron, Sudachi</dt><dd><i>Emulation › Configure › Graphics</i>: set the fullscreen mode to <b>Borderless Windowed</b> instead of <i>Exclusive Fullscreen</i>.</dd>
+            <dt>RetroArch</dt><dd><i>Settings › Video › Fullscreen Mode</i>: turn on <b>Windowed Fullscreen Mode</b>.</dd>
+            <dt>Dolphin</dt><dd><i>Graphics › Advanced</i>: turn on <b>Borderless Fullscreen</b>.</dd>
+            <dt>Others</dt><dd>If your emulator doesn't have this option, its fullscreen is usually borderless already.</dd>
+          </dl>
+          <p class="tip">Not sure which one it uses? With the emulator in fullscreen, press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> during a battle. If the card doesn't show up but does in a window, it's exclusive fullscreen. Meanwhile, a maximized window always works.</p>
         </section>
 
         <section class="g-section" id="tray">
@@ -638,7 +680,7 @@
               <li>Check in the tray that the <i>Emulator window</i> is the right one and that there's an <i>Active profile</i>.</li>
               <li>Check that <i>Automatic detection</i> is on, or press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>.</li>
               <li>Is the emulator minimized? BattleLens reads the window even when it's covered, but not when it's minimized.</li>
-              <li>Does it only fail in fullscreen? If the emulator uses <b>exclusive fullscreen</b>, Windows draws no other window on top. Switch it to <b>borderless windowed</b>: in Eden, Yuzu, Citron or Sudachi, <i>Emulation › Configure › Graphics → Fullscreen Mode</i>.</li>
+              <li>Does it only fail in fullscreen? If the emulator uses <b>exclusive fullscreen</b>, Windows draws no other window on top. Switch it to <b>borderless windowed</b>: see <a href="#emulator">Set up your emulator</a>.</li>
             </ul>
           </details>
           <details class="faq-item">
@@ -674,7 +716,7 @@
             <li><b>Likely moves</b> are those of a wild Pokémon or a regular trainer; leaders, rivals and competitive teams may carry others.</li>
             <li>The matchup is <b>type-based</b> (STAB attacks) and accounts for abilities that change effectiveness; if only some of its abilities do, the card warns you ("if it has Levitate"). Items and abilities like Mold Breaker aren't considered.</li>
             <li><b>Your moves</b> use their type and power in your game; variable-type moves (Hidden Power, Weather Ball…) show their base type.</li>
-            <li>The card can't be shown over an emulator in <b>exclusive fullscreen</b>; use <b>borderless</b> fullscreen.</li>
+            <li>The card can't be shown over an emulator in <b>exclusive fullscreen</b>; use <a href="#emulator">borderless</a> fullscreen.</li>
           </ul>
         </section>
 

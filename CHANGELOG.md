@@ -5,7 +5,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ## [0.4.0] - 2026-10-16
 
 ### Añadido
-- Guía de uso en la web (`guide.html`), en español e inglés y con capturas de la app: instalación, presets, calibración, la ficha y sus modos, dobles, formas, ajustes, OBS y solución de problemas. «Leer la guía» lleva ahí.
+- Guía de uso en la web (`guide.html`), en español e inglés y con capturas de la app: instalación, cómo preparar el emulador (qué captura y pantalla completa sin bordes), presets, calibración, la ficha y sus modos, dobles, formas, ajustes, OBS y solución de problemas. «Leer la guía» lleva ahí.
 
 ### Cambiado
 - Ficha rediseñada (también la del stream): cabecera con el nombre y los tipos en color pleno, secciones en bloques, tipos en pastillas suaves y multiplicadores en verde, rojo o gris según lo que suponen para ti. La captura se muestra con un medidor y las estadísticas, en una sola gama con la más alta y la más baja resaltadas.
@@ -29,7 +29,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ### English
 
 **Added**
-- User guide on the website (`guide.html`), in English and Spanish with screenshots of the app: installing, presets, calibration, the card and its modes, doubles, forms, settings, OBS and troubleshooting. "Read the guide" now goes there.
+- User guide on the website (`guide.html`), in English and Spanish with screenshots of the app: installing, setting up the emulator (what it captures and borderless fullscreen), presets, calibration, the card and its modes, doubles, forms, settings, OBS and troubleshooting. "Read the guide" now goes there.
 
 **Changed**
 - Redesigned card (the stream card too): header with the name and the types in solid color, sections in blocks, other types as soft pills and multipliers in green, red or grey depending on what they mean for you. The catch rate has a meter and the stats use a single color range with the highest and lowest highlighted.

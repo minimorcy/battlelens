@@ -23,4 +23,4 @@ Con el emulador a pantalla completa la ficha quedaba detrás: el emulador tambi�
 - Código: `ui/overlay.py`, `app.py`, `pipeline.py`, `core/profiles.py`, `core/presets.py`, `vision/viewport.py`.
 - Tests: `tests/test_game_area.py`, `tests/test_ui.py`.
 - Formato de `profiles.json`: campo opcional `game_area` (compatible con los perfiles anteriores).
-- **Guía de uso: sí.** Se explica que con un perfil creado con un preset la ventana del emulador puede cambiar (pantalla completa, maximizada) y se añaden los problemas de pantalla completa (regiones que no coinciden y pantalla completa exclusiva) y su limitación (es/en). Las capturas no cambian.
+- **Guía de uso: sí.** Se explica que con un perfil creado con un preset la ventana del emulador puede cambiar (pantalla completa, maximizada) , se añade el apartado «Prepara el emulador» (qué captura y cómo poner la pantalla completa sin bordes en Eden/Yuzu, RetroArch y Dolphin) y los problemas de pantalla completa (regiones que no coinciden y pantalla completa exclusiva) y su limitación (es/en). Las capturas no cambian.
