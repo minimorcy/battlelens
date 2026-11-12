@@ -592,27 +592,28 @@ class Overlay(QWidget):
     def _effectiveness(self, view: SpeciesView, layout: QVBoxLayout) -> None:
         """Debilidades (verde: bueno para ti), resistencias (rojo) e inmunidades (gris) en un bloque (D4)."""
         groups = view.matchups
-        sections = [(_("Debilidades"), (4.0, 2.0), "good")]
+        sections = [(_("Debilidades"), [(m, groups[m]) for m in (4.0, 2.0)], "good"),
+                    # Lo que sus ataques de su propio tipo hacen ×2: una amenaza para ti (rojo)
+                    (_("Fuerte contra"), [(2.0, view.strong_against)], "bad")]
         if self.competitive:
-            sections.append((_("Resistencias"), (0.5, 0.25), "bad"))
-        sections.append((_("Inmunidades"), (0.0,), "neutral"))
+            sections.append((_("Resistencias"), [(m, groups[m]) for m in (0.5, 0.25)], "bad"))
+        sections.append((_("Inmunidades"), [(0.0, groups[0.0])], "neutral"))
         lines = ability_effect_lines(view, self._type_label, self.language)
-        present = [s for s in sections if any(groups[m] for m in s[1])]
+        present = [(title, [(m, types) for m, types in rows if types], tone) for title, rows, tone in sections]
+        present = [s for s in present if s[1]]
         if not present and not lines:
             return
         block = self._block("eff", _("Eficacias"), layout)
-        for title, multipliers, tone in present:
+        for title, rows, tone in present:
             block.add(_sub_title(title))
-            for m in multipliers:
-                if not groups[m]:
-                    continue
+            for m, types in rows:
                 row = QHBoxLayout()
                 row.setSpacing(6)
                 mult = _mult(theme.MULTIPLIER_LABELS[m], tone, "eff-mult")
                 mult.setFixedWidth(30)
                 row.addWidget(mult, alignment=Qt.AlignmentFlag.AlignTop)
                 # Dentro del bloque y con la columna del multiplicador, en Normal (300 px) caben 3 por fila
-                pills = [_pill(self._type_label(t), t) for t in groups[m]]
+                pills = [_pill(self._type_label(t), t) for t in types]
                 row.addWidget(_FlowRow(pills, per_row=4 if self.competitive else 3), 1)
                 block.add(row)
         for line in lines:

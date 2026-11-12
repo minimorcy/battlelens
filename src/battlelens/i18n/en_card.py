@@ -29,6 +29,7 @@ EN: dict[str, str] = {
     # ---- eficacia ----
     "Eficacias": "Type matchups",
     "Debilidades": "Weaknesses",
+    "Fuerte contra": "Strong against",
     "Resistencias": "Resistances",
     "Inmunidades": "Immunities",
     # Notas de habilidades (core/card_text.py, core/abilities.py)

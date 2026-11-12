@@ -14,13 +14,14 @@ from ..core.pokedex import Pokedex, SpeciesView
 from ..i18n import N_, _
 from ..ui import theme
 
-EFFECT_GROUPS = (("weaknesses", (4.0, 2.0)), ("resistances", (0.5, 0.25)), ("immunities", (0.0,)))
+EFFECT_GROUPS = (("weaknesses", (4.0, 2.0)), ("strong", (2.0,)), ("resistances", (0.5, 0.25)), ("immunities", (0.0,)))
 # Textos en español marcados con N_: se traducen al construir cada tarjeta (add-english-ui D5)
 TITLES = {
     "versus": N_("Contra tu {name}"),
     "moves": N_("Tus movimientos"),
     "moves_probable": N_("Tus movimientos (probables)"),
     "weaknesses": N_("Debilidades"),
+    "strong": N_("Fuerte contra"),
     "resistances": N_("Resistencias"),
     "immunities": N_("Inmunidades"),
     "stats": N_("Estadísticas base"),
@@ -40,7 +41,7 @@ HIDDEN_FIELDS = {
     "evo": (("evolution", None),),
 }
 # Tono de cada grupo de eficacias para el jugador (improve-card-visuals D4)
-GROUP_TONES = {"weaknesses": "good", "resistances": "bad", "immunities": "neutral"}
+GROUP_TONES = {"weaknesses": "good", "strong": "bad", "resistances": "bad", "immunities": "neutral"}
 
 
 def _type(pokedex: Pokedex, type_id: str | None, lang: str) -> dict:
@@ -124,9 +125,10 @@ def _card(
     for key, multipliers in EFFECT_GROUPS:
         if key == "resistances" and not competitive:
             continue
+        groups = {2.0: view.strong_against} if key == "strong" else view.matchups
         rows = [{"mult": theme.MULTIPLIER_LABELS[m], "tone": GROUP_TONES[key],
-                 "types": [_type(pokedex, t, lang) for t in view.matchups[m]]}
-                for m in multipliers if view.matchups[m]]
+                 "types": [_type(pokedex, t, lang) for t in groups[m]]}
+                for m in multipliers if groups[m]]
         if rows:
             card["groups"].append({"title": _(TITLES[key]), "rows": rows})
     if competitive:

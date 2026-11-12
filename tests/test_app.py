@@ -751,3 +751,18 @@ def test_deteccion_sin_nivel_no_muestra_la_ficha(controller, monkeypatch):
     controller._busy = True
     controller._on_auto_result(((25, None, None), fp + 50, type("P", (), {"game": None})(), (12, None, None)))
     assert shown == [(25, None, None)]
+
+
+@pytest.mark.parametrize("rival2_x, expected", [(0.49, ["Bulbasaur", "Charmander"]), (0.05, ["Bulbasaur", "Charmander"]),
+                                                 (0.77, ["Charmander", "Bulbasaur"])])
+def test_dobles_en_el_orden_de_la_pantalla(controller, monkeypatch, rival2_x, expected):
+    """Las fichas van de izquierda a derecha como los recuadros, aunque el «2.º rival» esté a la izquierda."""
+    from battlelens.core.profiles import Profile, Region
+
+    rival_x = 0.76 if rival2_x < 0.76 else 0.3
+    controller.profiles.save(Profile("Dobles", Region(rival_x, 0.03, 0.22, 0.06), game="sword-shield",
+                                     rival2_region=Region(rival2_x, 0.03, 0.22, 0.06)), activate=True)
+    shown = []
+    monkeypatch.setattr(controller.overlay, "show_battle", lambda rivals, *a: shown.append([v.name for v in rivals]))
+    controller._show_battle((4, 1, None), "sword-shield", None, (12, 14, None))  # rival Charmander, 2.º Bulbasaur
+    assert shown == [expected]

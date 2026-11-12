@@ -772,6 +772,9 @@ class Controller(QObject):
         rival, rival2, own = key
         lang = self.config.language
         pairs = [(sid, lvl) for sid, lvl in zip((rival, rival2), levels[:2]) if sid is not None]
+        profile = self.profiles.active
+        if profile is not None and profile.rival2_region is not None and profile.rival2_region.x < profile.region.x:
+            pairs.reverse()  # fichas en el orden de los recuadros en pantalla, de izquierda a derecha
         # La forma elegida se olvida cuando la especie deja de estar entre los rivales (add-alternate-forms D4)
         self._form_choice = {sid: f for sid, f in self._form_choice.items() if sid in (rival, rival2)}
         self.overlay.form_hotkey = self.config.hotkey_cycle_form

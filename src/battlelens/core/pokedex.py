@@ -249,6 +249,8 @@ class SpeciesView:
     ev_yield: dict[str, int] = field(default_factory=dict)
     # Efectos defensivos de sus habilidades, seguros y posibles (add-ability-aware-matchups D3)
     ability_effects: tuple[AbilityEffect, ...] = field(default_factory=tuple)
+    # Tipos a los que sus ataques de su propio tipo (STAB) hacen ×2
+    strong_against: tuple[str, ...] = field(default_factory=tuple)
     form_id: str | None = None  # identificador de la forma mostrada (el de la especie si es la base)
     base_pokemon: str | None = None  # Pokémon de la especie, para los movimientos de las megas
 
@@ -423,6 +425,11 @@ class Pokedex:
                 groups[factor].append(attacking)
         return groups
 
+    def strong_against(self, attacking_types: tuple[str, ...], generation: int = CURRENT_GENERATION) -> tuple[str, ...]:
+        """Tipos defensores a los que alguno de `attacking_types` hace ×2 en esa generación."""
+        chart = self.type_chart(generation)
+        return tuple(d for d in chart if any(chart.get(a, {}).get(d, 1.0) >= 2 for a in attacking_types))
+
     def ability_effects(
         self, defending_types: tuple[str, ...], abilities: tuple[Ability, ...], generation: int = CURRENT_GENERATION
     ) -> tuple[AbilityEffect, ...]:
@@ -567,6 +574,7 @@ class Pokedex:
             abilities=abilities,
             generation=generation,
             matchups=self.defensive_matchups(types, generation, abilities),
+            strong_against=self.strong_against(types, generation),
             other_forms=tuple(others),
             capture_rate=species.capture_rate,
             capture_difficulty=capture_difficulty(species.capture_rate),

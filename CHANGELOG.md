@@ -6,23 +6,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ### Añadido
 - Pantalla de inicio al abrir la app: eliges la ventana del emulador, el perfil (o creas uno con un preset), el modo de la ficha y la detección automática, y pulsas «Empezar». Se puede quitar en Ajustes › General.
+- «Fuerte contra» en las eficacias de la ficha (también la del stream): los tipos a los que el rival hace ×2 con los ataques de su propio tipo, según la generación del juego.
 
 ### Cambiado
 - La detección automática solo muestra la ficha si lee el nivel junto al nombre del rival, como en la pantalla de combate: ya no salta en la Pokédex ni en los datos de tus Pokémon. Se desactiva en Ajustes › Reconocimiento → «Solo en la pantalla de combate» (para regiones sin el nivel).
 
 ### Corregido
 - A veces la ficha no salía sola porque dos lecturas de OCR coincidían (la del rival y la del menú de ataques) y una fallaba con «Another RecognizeAsync operation is already running». Ahora se hacen por turnos.
+- En los combates dobles, las fichas salían al revés que los Pokémon en el campo si el recuadro del 2.º rival estaba a la izquierda del primero. Ahora siguen el orden de los recuadros en la pantalla.
 
 ### English
 
 **Added**
 - Start screen when the app opens: pick the emulator window, the profile (or create one from a preset), the card mode and automatic detection, then click "Start". It can be turned off in Settings → General.
+- "Strong against" in the card's type matchups (the stream card too): the types the opponent hits ×2 with its own-type attacks, using the game's generation.
 
 **Changed**
 - Automatic detection only shows the card when it reads the level next to the opponent's name, as on the battle screen: it no longer pops up in the Pokédex or on your Pokémon's summary. Turn it off in Settings → Recognition → "Only on the battle screen" (for regions without the level).
 
 **Fixed**
 - Sometimes the card didn't show up by itself because two OCR reads overlapped (the opponent's and the moves menu's) and one failed with "Another RecognizeAsync operation is already running". They now take turns.
+- In double battles, the cards were swapped compared with the Pokémon on the field when the 2nd opponent's box was left of the first one. They now follow the order of the boxes on screen.
 
 ## [0.4.0] - 2026-10-16
 

@@ -25,6 +25,9 @@
     document.querySelectorAll("[data-" + lang + "-alt]").forEach(function (el) {
       el.setAttribute("alt", el.getAttribute("data-" + lang + "-alt"));
     });
+    document.querySelectorAll("[data-" + lang + "-src]").forEach(function (el) {
+      el.setAttribute("src", el.getAttribute("data-" + lang + "-src"));
+    });
     document.querySelectorAll("[data-" + lang + "-content]").forEach(function (el) {
       el.setAttribute("content", el.getAttribute("data-" + lang + "-content"));
     });

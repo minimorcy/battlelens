@@ -4,7 +4,7 @@
 
 **Instant info card for your opponent in Pokémon games, on any PC emulator.**
 
-During a battle, BattleLens shows next to the emulator your opponent's types, weaknesses, resistances and immunities, base stats, abilities (with their description on hover), catch rate and evolution chain, plus how your own Pokémon fares against it.
+During a battle, BattleLens shows next to the emulator your opponent's types, weaknesses, what it's strong against, resistances and immunities, base stats, abilities (with their description on hover), catch rate and evolution chain, plus how your own Pokémon fares against it.
 
 It doesn't read the emulator's memory: it reads **the opponent's name on screen** with Windows' built-in OCR. That's why it works with any emulator (mGBA, DeSmuME, melonDS, Citra…) and any generation, after a one-time calibration per game.
 
@@ -44,7 +44,7 @@ BattleLens uses the text recognition that ships with Windows. Almost every PC al
    - Click **✕** in its top-right corner or press `Ctrl+Alt+H` to hide it. Drag it to move it; click a section title to collapse it.
    - **Mega Evolutions and other forms** (Rotom, Deoxys, Giratina…) show the same name on screen, so press `Ctrl+Alt+F` to cycle through the forms available in that game; the card is recalculated and keeps that form while the Pokémon stays in battle.
 4. **Choose the card mode** (tray → **Card mode** / *Modo de la ficha*, `Ctrl+Alt+M` or *Ajustes*):
-   - **Normal** (default): a compact card for adventuring and catching, with types, weaknesses, highlighted **catch difficulty**, evolution and stat total.
+   - **Normal** (default): a compact card for adventuring and catching, with types, weaknesses, what it's strong against, highlighted **catch difficulty**, evolution and stat total.
    - **Competitive**: everything above plus the **level**, resistances, **actual stats at its level** (min–max), **abilities** with their description and effect ("Levitate → Ground ×0"), **likely moves** (the last 4 it learns up to its level in that game, flagging the ones that hit you ×2), **who's faster** and **training** data (EVs, weight for Low Kick, stat profile). To read the level, calibrate the opponent's region **including the level**.
 5. **Optional: your Pokémon and double battles.** In **Settings → Profiles** (*Ajustes › Perfiles*; tray → *Perfil activo → Gestionar perfiles…*) you can also calibrate the name of **your Pokémon** and of the **2nd opponent**:
    - With your Pokémon, each card shows **"Against your X"** (*Contra tu X*): what your types do to it, what its types do to you, and a verdict (**Advantage / Neutral / Disadvantage** — *Ventaja / Neutral / Desventaja*). Nicknamed Pokémon can't be recognised.

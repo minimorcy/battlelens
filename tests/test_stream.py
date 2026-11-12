@@ -28,8 +28,10 @@ def test_tarjeta_normal_machop_contra_scorbunny(dex):
     assert card["capture"]["text"] == "Captura: 180 · Media"
     assert card["versus"]["title"] == "Contra tu Scorbunny" and card["versus"]["verdict"]["label"] == "Neutral"
     assert [(m["name"], m["mult"]) for m in card["moves"]["items"]] == [("Ascuas", "×1"), ("Gruñido", "Estado")]
-    (weak,) = card["groups"]
-    assert weak["title"] == "Debilidades"
+    weak, strong = card["groups"]
+    assert weak["title"] == "Debilidades" and strong["title"] == "Fuerte contra"
+    assert [t["label"] for t in strong["rows"][0]["types"]] == ["Normal", "Roca", "Acero", "Hielo", "Siniestro"]
+    assert strong["rows"][0]["tone"] == "bad"
     assert [t["label"] for t in weak["rows"][0]["types"]] == ["Volador", "Psíquico", "Hada"]
     assert card["stats"] is None and card["total"] == "Total estadísticas base: 305"
 
@@ -37,7 +39,7 @@ def test_tarjeta_normal_machop_contra_scorbunny(dex):
 def test_tarjeta_competitiva(dex):
     (card,) = build_cards(dex, [dex.view(66, "sword-shield")], None, [16], mode="competitive")
     assert card["level"] == "Nv. 16"
-    assert [g["title"] for g in card["groups"]] == ["Debilidades", "Resistencias"]
+    assert [g["title"] for g in card["groups"]] == ["Debilidades", "Fuerte contra", "Resistencias"]
     assert card["stats"]["total"] == 305 and len(card["stats"]["rows"]) == 6
 
 
@@ -57,7 +59,7 @@ def test_tarjeta_en_ingles_con_datos_en_espanol(dex):
     assert card["versus"]["title"] == "Against your Scorbunny"
     assert card["versus"]["verdict"] == {"label": "Neutral", "key": "neutral"}
     assert [(m["name"], m["mult"]) for m in card["moves"]["items"]] == [("Ascuas", "×1"), ("Gruñido", "Status")]
-    assert [g["title"] for g in card["groups"]] == ["Weaknesses", "Resistances"]
+    assert [g["title"] for g in card["groups"]] == ["Weaknesses", "Strong against", "Resistances"]
     assert [t["label"] for t in card["groups"][0]["rows"][0]["types"]] == ["Volador", "Psíquico", "Hada"]
     assert card["stats"]["title"] == "Base stats" and card["stats"]["rows"][0]["label"] == "HP"
 

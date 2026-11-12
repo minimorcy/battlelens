@@ -97,7 +97,7 @@ def test_eficacias_agrupadas(qapp, overlay, dex):
     qapp.processEvents()
     (block,) = overlay.blocks("eff")
     texts = [w.text() for w in block.findChildren(QLabel)]
-    assert {"DEBILIDADES", "RESISTENCIAS", "INMUNIDADES"} <= set(texts)
+    assert {"DEBILIDADES", "FUERTE CONTRA", "RESISTENCIAS", "INMUNIDADES"} <= set(texts)
 
 
 # ---- bloques plegables (D11) -----------------------------------------------------------

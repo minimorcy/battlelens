@@ -42,3 +42,12 @@ def test_inmunidades_gengar(dex):
 def test_dataset_ausente(tmp_path):
     with pytest.raises(DatasetMissingError, match="build_dataset"):
         Pokedex.load(tmp_path / "no-existe.json")
+
+
+def test_fuerte_contra_segun_la_generacion():
+    from battlelens.core.pokedex import Pokedex
+
+    dex = Pokedex.load()
+    assert set(dex.view(4, "sword-shield").strong_against) == {"bug", "steel", "grass", "ice"}  # Charmander
+    assert set(dex.view(4, "red-blue").strong_against) == {"bug", "grass", "ice"}  # sin Acero en la Gen 1
+    assert dex.view(143, "sword-shield").strong_against == ()  # Snorlax: Normal no hace ×2 a nada
