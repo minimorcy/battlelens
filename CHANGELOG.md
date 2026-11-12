@@ -2,13 +2,16 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versionado [SemVer](https://semver.org/lang/es/).
 
-## [Sin publicar]
+## [0.5.0] - 2026-11-12
 
 ### Añadido
 - Pantalla de inicio al abrir la app: eliges la ventana del emulador, el perfil (o creas uno con un preset), el modo de la ficha y la detección automática, y pulsas «Empezar». Se puede quitar en Ajustes › General.
 
 ### Cambiado
 - La detección automática solo muestra la ficha si lee el nivel junto al nombre del rival, como en la pantalla de combate: ya no salta en la Pokédex ni en los datos de tus Pokémon. Se desactiva en Ajustes › Reconocimiento → «Solo en la pantalla de combate» (para regiones sin el nivel).
+
+### Corregido
+- A veces la ficha no salía sola porque dos lecturas de OCR coincidían (la del rival y la del menú de ataques) y una fallaba con «Another RecognizeAsync operation is already running». Ahora se hacen por turnos.
 
 ### English
 
@@ -17,6 +20,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 **Changed**
 - Automatic detection only shows the card when it reads the level next to the opponent's name, as on the battle screen: it no longer pops up in the Pokédex or on your Pokémon's summary. Turn it off in Settings → Recognition → "Only on the battle screen" (for regions without the level).
+
+**Fixed**
+- Sometimes the card didn't show up by itself because two OCR reads overlapped (the opponent's and the moves menu's) and one failed with "Another RecognizeAsync operation is already running". They now take turns.
 
 ## [0.4.0] - 2026-10-16
 

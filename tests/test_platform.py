@@ -183,3 +183,21 @@ def test_mutex_por_defecto_coincide_con_appmutex_del_instalador():
     finally:
         b.release()
         a.release()
+
+
+def test_ocr_desde_dos_hilos_a_la_vez(requires_ocr):
+    """La detección y el menú de ataques leen en hilos distintos con el mismo motor de OCR."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    import numpy as np
+
+    from PIL import Image, ImageDraw, ImageFont
+
+    from battlelens.platform.ocr import recognize
+
+    img = Image.new("RGB", (240, 48), "white")
+    ImageDraw.Draw(img).text((8, 8), "PIKACHU", fill="black", font=ImageFont.truetype("consola.ttf", 24))
+    image = np.array(img)
+    with ThreadPoolExecutor(4) as pool:
+        texts = list(pool.map(lambda _: recognize(image, requires_ocr).text, range(24)))
+    assert all("PIKACHU" in t.upper() for t in texts)

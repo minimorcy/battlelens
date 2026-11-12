@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import threading
 from dataclasses import dataclass
 from functools import lru_cache
 
@@ -75,11 +76,17 @@ async def _recognize_async(bitmap: SoftwareBitmap, language_tag: str) -> str:
     return " ".join(line.text for line in result.lines).strip()
 
 
+# Un OcrEngine no admite dos RecognizeAsync a la vez («Another RecognizeAsync operation is already running»):
+# la detección automática y la lectura del menú de ataques corren en hilos distintos.
+_LOCK = threading.Lock()
+
+
 def recognize(image: np.ndarray, languages: tuple[str, ...] | list[str]) -> OcrOutput:
     """Ejecuta el OCR con cada idioma en orden y devuelve el primer resultado no vacío."""
     bitmap = _to_bitmap(image)
     for tag in resolve_languages(languages):
-        text = asyncio.run(_recognize_async(bitmap, tag))
+        with _LOCK:
+            text = asyncio.run(_recognize_async(bitmap, tag))
         if text:
             return OcrOutput(text, tag)
     return OcrOutput("", None)
