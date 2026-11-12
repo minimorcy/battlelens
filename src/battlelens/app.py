@@ -36,7 +36,7 @@ from .core.updates import Release, check_latest, due
 from .core.learnsets import Learnsets, LearnsetsMissingError
 from .core.matcher import NameMatcher
 from .core.moves import MoveMatcher, MoveMemory
-from .core.pokedex import DatasetMissingError, Pokedex
+from .core.pokedex import CURRENT_GENERATION, DatasetMissingError, Pokedex
 from .core.profiles import Profile, ProfileStore, Region
 from .core.presets import preset_for, to_profile_regions
 from .core.report import ReportInputs, issue_form_url, write_report
@@ -75,6 +75,7 @@ from .ui.report import ReportDialog
 from .ui.search import SearchDialog
 from .ui.start import StartDialog
 from .ui.tray import Tray
+from .ui.type_chart import TypeChartWindow
 from .stream.payload import build_cards
 from .stream.server import StreamServer, StreamState
 from .vision.preprocess import crop_region, fingerprint, fingerprint_distance
@@ -147,6 +148,15 @@ class Controller(QObject):
         for mode, keys in (self.state.collapsed_sections or {}).items():  # bloques plegados (improve-card-visuals D11)
             self.overlay.collapsed[mode] = set(keys)
         self.overlay.collapsed_changed.connect(self._on_overlay_collapsed)
+        # Tabla de tipos (spec type-chart): resalta los tipos de la ficha mientras está visible
+        self.type_chart = TypeChartWindow()
+        pos, scale = self.state.type_chart_pos, self.state.type_chart_scale  # state.json puede venir tocado a mano
+        if isinstance(pos, list) and len(pos) == 2 and all(isinstance(v, int) for v in pos):
+            self.type_chart.saved_pos = QPoint(*pos)
+        if isinstance(scale, (int, float)) and not isinstance(scale, bool):
+            self.type_chart.scale = float(scale)
+        self.type_chart.changed.connect(self._on_type_chart_changed)
+        self.overlay.became_hidden.connect(lambda: self.type_chart.set_highlight(()))
 
         # Detección automática del combate (spec battle-detection)
         self.battle = BattleDetector(fingerprint_distance, config.detection_hide_after_seconds)
@@ -167,6 +177,7 @@ class Controller(QObject):
         )
         self.tray.recognize_requested.connect(self.recognize)
         self.tray.search_requested.connect(self.search_pokemon)
+        self.tray.type_chart_requested.connect(self.toggle_type_chart)
         self.tray.auto_detect_toggled.connect(self.set_auto_detect)
         self.tray.mode_selected.connect(self.set_mode)
         self.tray.set_mode(config.overlay_mode)
@@ -212,6 +223,7 @@ class Controller(QObject):
             ("cycle_form", config.hotkey_cycle_form),
             ("toggle_stream", config.hotkey_toggle_stream),
             ("search", config.hotkey_search),
+            ("type_chart", config.hotkey_type_chart),
         ):
             try:
                 bindings[name] = parse_hotkey(text)
@@ -375,9 +387,9 @@ class Controller(QObject):
         save_config(self.data_dir / "config.toml", new)
         self.config = new
         if (new.hotkey_recognize, new.hotkey_calibrate, new.hotkey_hide, new.hotkey_toggle_mode,
-                new.hotkey_cycle_form, new.hotkey_toggle_stream, new.hotkey_search) != (
+                new.hotkey_cycle_form, new.hotkey_toggle_stream, new.hotkey_search, new.hotkey_type_chart) != (
             old.hotkey_recognize, old.hotkey_calibrate, old.hotkey_hide, old.hotkey_toggle_mode, old.hotkey_cycle_form,
-            old.hotkey_toggle_stream, old.hotkey_search
+            old.hotkey_toggle_stream, old.hotkey_search, old.hotkey_type_chart
         ):
             self.hotkeys.stop()
             bindings, invalid = self._parse_hotkeys(new)
@@ -599,6 +611,7 @@ class Controller(QObject):
             "cycle_form": self.cycle_form,
             "toggle_stream": self.toggle_stream_card,
             "search": self.search_pokemon,
+            "type_chart": self.toggle_type_chart,
         }[name]()
 
     # ---- modos de ficha (spec display-modes) ---------------------------------------
@@ -669,6 +682,7 @@ class Controller(QObject):
         if self._watch_busy or self._busy or self._modal_open or self.target is None:
             return
         self.overlay.keep_on_top()  # el emulador puede haberse puesto delante al pasar a pantalla completa
+        self.type_chart.keep_on_top()
         self._auto_select_profile()
         profile = self.profiles.active
         if profile is None:
@@ -792,9 +806,25 @@ class Controller(QObject):
         own_view = self.pokedex.view(own, game, lang) if own is not None else None
         own_moves, probable = self._own_moves(own_view, levels[2]) if own_view is not None else ([], False)
         self.overlay.show_battle(rivals, own_view, rect, [lvl for _, lvl in pairs], levels[2], own_moves, probable)
+        self.type_chart.set_highlight(t for view in rivals for t in view.types)  # tras mostrarla: su hide la limpia
         if not searched:
             self._stream_args = (rivals, own_view, [lvl for _, lvl in pairs], own_moves, probable)
             self._publish_stream()
+
+    def toggle_type_chart(self) -> None:
+        """Muestra u oculta la tabla de tipos de la generación del perfil activo (spec type-chart)."""
+        if self.type_chart.isVisible():
+            self.type_chart.hide()
+            return
+        profile = self.profiles.active
+        game = self.pokedex.get_game(profile.game if profile is not None else None)
+        generation = game.generation if game is not None else CURRENT_GENERATION
+        chart = self.pokedex.type_chart(generation)
+        lang = get_language()
+        self.type_chart.set_chart(chart, {t: self.pokedex.type_name(t, lang) for t in chart}, generation)
+        if not self.overlay.isVisible():
+            self.type_chart.set_highlight(())
+        self.type_chart.present(self._target_rect())
 
     def search_pokemon(self) -> None:
         """Buscador con atajo global: ficha de cualquier especie fuera del combate (spec pokemon-search)."""
@@ -1119,6 +1149,12 @@ class Controller(QObject):
     def expand_all_sections(self) -> None:
         """«Desplegar todas las secciones» (improve-card-visuals)."""
         self.overlay.expand_all()  # emite collapsed_changed, que lo guarda en state.json
+
+    def _on_type_chart_changed(self) -> None:
+        pos = self.type_chart.saved_pos
+        self.state.type_chart_pos = [pos.x(), pos.y()] if pos is not None else None
+        self.state.type_chart_scale = self.type_chart.scale
+        self._save_state()
 
     def _on_overlay_moved(self, x: int, y: int) -> None:
         self.state.overlay_pos = [x, y]

@@ -33,6 +33,7 @@ def controller(qapp, tmp_path, monkeypatch):
         hotkey_cycle_form="Ctrl+Alt+Shift+F17",
         hotkey_toggle_stream="Ctrl+Alt+Shift+F16",
         hotkey_search="Ctrl+Alt+Shift+F15",
+        hotkey_type_chart="Ctrl+Alt+Shift+F14",
         detection_enabled=False,
         hidden_sections_normal=(),  # ficha completa: los tests miran todas las secciones
         hidden_sections_competitive=(),
@@ -216,6 +217,7 @@ def auto_controller(qapp, tmp_path, monkeypatch):
         hotkey_cycle_form="Ctrl+Alt+Shift+F17",
         hotkey_toggle_stream="Ctrl+Alt+Shift+F16",
         hotkey_search="Ctrl+Alt+Shift+F15",
+        hotkey_type_chart="Ctrl+Alt+Shift+F14",
         detection_enabled=True,
         detection_interval_ms=200,
         detection_hide_after_seconds=1.0,
@@ -804,3 +806,34 @@ def test_buscar_pokemon_muestra_su_ficha_sin_tocar_el_stream(qapp, controller, m
     qapp.processEvents()
     assert _card_names(controller, "species-name") != ["Rotom Lavado"]
     assert controller._stream_args is None and not controller._modal_open
+
+
+def test_tabla_de_tipos_con_el_juego_y_los_tipos_de_la_ficha(qapp, controller):
+    from battlelens.core.profiles import Profile, Region
+
+    controller.profiles.save(Profile("Rojo", Region(0.6, 0.05, 0.2, 0.05), game="red-blue"))
+    controller.toggle_type_chart()  # como Ctrl+Alt+T
+    chart = controller.type_chart
+    assert chart.isVisible() and chart.generation == 1 and len(chart.types) == 15 and not chart.highlight
+
+    controller._show_battle((94, None, None), "red-blue", None)  # Gengar en Gen 1: Fantasma/Veneno
+    assert chart.highlight == {"ghost", "poison"}
+    controller.hide_overlay()
+    assert not chart.highlight
+    controller.toggle_type_chart()
+    assert not chart.isVisible()
+
+
+def test_tabla_de_tipos_recuerda_posicion_y_tamano(qapp, controller, tmp_path):
+    from PyQt6.QtCore import QPoint
+
+    from battlelens.core.config import AppState
+
+    controller.toggle_type_chart()
+    chart = controller.type_chart
+    chart.saved_pos = QPoint(40, 50)
+    chart.set_scale(1.3)
+    chart.changed.emit()  # como al soltar el tirador
+    state = AppState.load(tmp_path / "state.json")
+    assert state.type_chart_pos == [40, 50] and state.type_chart_scale == 1.3
+    controller.toggle_type_chart()

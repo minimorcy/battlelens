@@ -109,6 +109,7 @@ def main() -> int:
     from battlelens.ui.search import SearchDialog
     from battlelens.ui.start import StartDialog
     from battlelens.ui.tray import Tray
+    from battlelens.ui.type_chart import TypeChartWindow
 
     dex = Pokedex.load()
     learnsets = Learnsets.get()
@@ -149,6 +150,16 @@ def main() -> int:
         QTest.keyClicks(search.edit, "rapidash")  # abre las sugerencias, con los tipos en píldoras
         save_stacked(search, search.edit.completer().popup(), "search.png", lang)
         search.close()
+
+        # ---- tabla de tipos (con un Rapidash de Galar en la ficha) ----
+        generation = dex.get_game(GAME).generation
+        chart = dex.type_chart(generation)
+        type_chart = TypeChartWindow()
+        type_chart.set_chart(chart, {t: dex.type_name(t, lang) for t in chart}, generation)
+        type_chart.set_highlight(("psychic", "fairy"))
+        type_chart.show()
+        save(type_chart, "type-chart.png", lang)
+        type_chart.close()
 
         # ---- ajustes ----
         config = Config(language=lang, interface_language=lang, stream_enabled=True)

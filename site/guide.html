@@ -74,6 +74,7 @@
           <li><a href="#equipo">Tu Pokémon, tus movimientos y dobles</a></li>
           <li><a href="#formas">Megas y otras formas</a></li>
           <li><a href="#buscar">Buscar un Pokémon</a></li>
+          <li><a href="#tabla-tipos">Tabla de tipos</a></li>
           <li><a href="#a-medida">Tu ficha a medida</a></li>
           <li><a href="#ajustes">Resto de ajustes</a></li>
           <li><a href="#directo">Directo con OBS</a></li>
@@ -146,11 +147,12 @@
           <h2>El menú de la bandeja</h2>
           <p>BattleLens no tiene ventana principal: vive en la bandeja del sistema, junto al reloj (si no lo ves, mira en la flecha <b>^</b>). Haz clic en el icono para abrir el menú; con <b>doble clic</b> se abren los Ajustes.</p>
           <figure class="shot">
-            <img src="assets/guide/es/tray.png" width="351" height="292" loading="lazy" alt="Menú de BattleLens en la bandeja del sistema">
+            <img src="assets/guide/es/tray.png" width="351" height="316" loading="lazy" alt="Menú de BattleLens en la bandeja del sistema">
           </figure>
           <dl class="defs">
             <dt>Reconocer ahora</dt><dd>Lee el nombre del rival en ese momento. Útil si tienes la detección automática apagada.</dd>
             <dt>Buscar Pokémon…</dt><dd>Abre la ficha de cualquier Pokémon, sin estar en combate. Ver <a href="#buscar">Buscar un Pokémon</a>.</dd>
+            <dt>Tabla de tipos</dt><dd>Muestra u oculta la chuleta de tipos del juego. Ver <a href="#tabla-tipos">Tabla de tipos</a>.</dd>
             <dt>Detección automática</dt><dd>Vigila el combate y muestra la ficha sola. Activada por defecto.</dd>
             <dt>Modo de la ficha</dt><dd>Normal (aventura y captura) o Competitivo (combate). Ver <a href="#modos">Normal y Competitivo</a>.</dd>
             <dt>Modo stream (OBS) · Copiar URL para OBS</dt><dd>Ficha para tu directo. Ver <a href="#directo">Directo con OBS</a>.</dd>
@@ -295,6 +297,21 @@
           </ul>
         </section>
 
+        <section class="g-section" id="tabla-tipos">
+          <h2>Tabla de tipos</h2>
+          <figure class="shot">
+            <img src="assets/guide/es/type-chart.png" width="504" height="476" loading="lazy" alt="Tabla de tipos de la generación 8 con las columnas Psíquico y Hada resaltadas">
+          </figure>
+          <p>Pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd> (o bandeja → <b>Tabla de tipos</b>) para tener la chuleta de tipos encima del juego. Vuelve a pulsarlo, o haz clic en su <b>✕</b>, para ocultarla.</p>
+          <ul>
+            <li>Cada fila es el tipo que <b>ataca</b> y cada columna el que <b>defiende</b>: <b>×2</b> en verde, <b>×½</b> en rojo y <b>×0</b> en gris. Las casillas vacías son ×1. Pasa el ratón por una columna para ver el nombre completo.</li>
+            <li>Es la tabla de la <b>generación del juego</b> del perfil activo: en la Gen 1 salen 15 tipos (y Fantasma no afecta a Psíquico), de la Gen 2 a la 5 no hay Hada y Acero resiste Fantasma y Siniestro. Sin perfil, la tabla actual.</li>
+            <li>Con una ficha en pantalla, se <b>resaltan las columnas de los tipos del rival</b> (o del Pokémon buscado): de un vistazo ves qué le pega fuerte.</li>
+            <li>Arrástrala a donde quieras; la primera vez sale a la izquierda del emulador. Para cambiar su tamaño, arrastra el <b>tirador de la esquina inferior derecha</b> o usa <kbd>Ctrl</kbd> + rueda del ratón encima (del 60 % al 200 %). Recuerda dónde la dejaste y su tamaño.</li>
+            <li>El OCR no la ve, así que puede tapar el nombre del rival.</li>
+          </ul>
+        </section>
+
         <section class="g-section" id="a-medida">
           <h2>Tu ficha a medida</h2>
           <p>En <i>Ajustes › Ficha</i> eliges qué secciones ves en cada modo. De fábrica la ficha es mínima: <b>Normal</b> solo con las eficacias y <b>Competitivo</b> con eficacias y estadísticas. El nombre, los tipos y la captura se ven siempre. La ficha del stream sigue la misma elección.</p>
@@ -332,7 +349,7 @@
 
           <h3>Atajos</h3>
           <figure class="shot">
-            <img src="assets/guide/es/settings-hotkeys.png" width="880" height="600" loading="lazy" alt="Ajustes, sección Atajos">
+            <img src="assets/guide/es/settings-hotkeys.png" width="880" height="647" loading="lazy" alt="Ajustes, sección Atajos">
           </figure>
           <table class="keys">
             <thead><tr><th>Atajo</th><th>Qué hace</th></tr></thead>
@@ -344,6 +361,7 @@
               <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd></td><td>Cambiar la forma del rival</td></tr>
               <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd></td><td>Mostrar u ocultar la ficha del stream</td></tr>
               <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd></td><td>Buscar un Pokémon</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd></td><td>Mostrar u ocultar la tabla de tipos</td></tr>
             </tbody>
           </table>
           <p class="note">Todos necesitan un modificador (Ctrl, Alt, Shift o Win): las teclas F solas las usan los emuladores para los estados guardados.</p>
@@ -450,6 +468,7 @@
           <li><a href="#team">Your Pokémon, your moves and doubles</a></li>
           <li><a href="#forms">Megas and other forms</a></li>
           <li><a href="#search">Search for a Pokémon</a></li>
+          <li><a href="#type-chart">Type chart</a></li>
           <li><a href="#customize">Make the card yours</a></li>
           <li><a href="#settings">Other settings</a></li>
           <li><a href="#stream">Streaming with OBS</a></li>
@@ -522,11 +541,12 @@
           <h2>The tray menu</h2>
           <p>BattleLens has no main window: it lives in the system tray, next to the clock (if you can't see it, look under the <b>^</b> arrow). Click the icon to open the menu; <b>double-click</b> it to open Settings.</p>
           <figure class="shot">
-            <img src="assets/guide/en/tray.png" width="335" height="292" loading="lazy" alt="BattleLens menu in the system tray">
+            <img src="assets/guide/en/tray.png" width="335" height="316" loading="lazy" alt="BattleLens menu in the system tray">
           </figure>
           <dl class="defs">
             <dt>Recognize now</dt><dd>Reads the opponent's name right now. Handy if automatic detection is off.</dd>
             <dt>Search Pokémon…</dt><dd>Opens the card of any Pokémon, outside battle too. See <a href="#search">Search for a Pokémon</a>.</dd>
+            <dt>Type chart</dt><dd>Shows or hides the game's type cheat sheet. See <a href="#type-chart">Type chart</a>.</dd>
             <dt>Automatic detection</dt><dd>Watches the battle and shows the card by itself. On by default.</dd>
             <dt>Card mode</dt><dd>Normal (adventure and catching) or Competitive (battle). See <a href="#modes">Normal and Competitive</a>.</dd>
             <dt>Stream mode (OBS) · Copy URL for OBS</dt><dd>A card for your stream. See <a href="#stream">Streaming with OBS</a>.</dd>
@@ -671,6 +691,21 @@
           </ul>
         </section>
 
+        <section class="g-section" id="type-chart">
+          <h2>Type chart</h2>
+          <figure class="shot">
+            <img src="assets/guide/en/type-chart.png" width="504" height="476" loading="lazy" alt="Generation 8 type chart with the Psychic and Fairy columns highlighted">
+          </figure>
+          <p>Press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd> (or tray → <b>Type chart</b>) to keep the type cheat sheet over the game. Press it again, or click its <b>✕</b>, to hide it.</p>
+          <ul>
+            <li>Each row is the <b>attacking</b> type and each column the <b>defending</b> one: <b>×2</b> in green, <b>×½</b> in red and <b>×0</b> in grey. Empty cells are ×1. Hover over a column to see its full name.</li>
+            <li>It's the chart for the <b>generation of the active profile's game</b>: Gen 1 has 15 types (and Ghost doesn't affect Psychic), Gens 2 to 5 have no Fairy and Steel resists Ghost and Dark. Without a profile, the current chart.</li>
+            <li>With a card on screen, the <b>columns of the opponent's types are highlighted</b> (or the searched Pokémon's): you see at a glance what hits it hard.</li>
+            <li>Drag it wherever you like; the first time it shows left of the emulator. To resize it, drag the <b>grip in the bottom-right corner</b> or use <kbd>Ctrl</kbd> + mouse wheel over it (60% to 200%). It remembers where you left it and its size.</li>
+            <li>The OCR can't see it, so it can cover the opponent's name.</li>
+          </ul>
+        </section>
+
         <section class="g-section" id="customize">
           <h2>Make the card yours</h2>
           <p>In <i>Settings › Card</i> you choose which sections each mode shows. Out of the box the card is minimal: <b>Normal</b> shows only type matchups and <b>Competitive</b> shows matchups and stats. The name, types and catch rate are always shown. The stream card follows the same choice.</p>
@@ -708,7 +743,7 @@
 
           <h3>Shortcuts</h3>
           <figure class="shot">
-            <img src="assets/guide/en/settings-hotkeys.png" width="880" height="600" loading="lazy" alt="Settings, Shortcuts section">
+            <img src="assets/guide/en/settings-hotkeys.png" width="880" height="647" loading="lazy" alt="Settings, Shortcuts section">
           </figure>
           <table class="keys">
             <thead><tr><th>Shortcut</th><th>What it does</th></tr></thead>
@@ -720,6 +755,7 @@
               <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd></td><td>Switch the opponent's form</td></tr>
               <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd></td><td>Show or hide the stream card</td></tr>
               <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd></td><td>Search for a Pokémon</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd></td><td>Show or hide the type chart</td></tr>
             </tbody>
           </table>
           <p class="note">They all need a modifier (Ctrl, Alt, Shift or Win): emulators use the plain F keys for save states.</p>

@@ -38,6 +38,8 @@ cycle_form = {hotkey_cycle_form}
 toggle_stream = {hotkey_toggle_stream}
 # Abre el buscador para ver la ficha de cualquier Pokémon.
 search = {hotkey_search}
+# Muestra u oculta la tabla de tipos del juego.
+type_chart = {hotkey_type_chart}
 
 [recognition]
 # Puntuación mínima (0-100) para dar por reconocido un nombre.
@@ -124,6 +126,7 @@ class Config:
     hotkey_cycle_form: str = "Ctrl+Alt+F"
     hotkey_toggle_stream: str = "Ctrl+Alt+S"
     hotkey_search: str = "Ctrl+Alt+B"
+    hotkey_type_chart: str = "Ctrl+Alt+T"
     stream_enabled: bool = False
     stream_port: int = 17320
     stream_card_mode: str = "normal"
@@ -170,6 +173,7 @@ class Config:
             hotkey_cycle_form=hk.get("cycle_form", default.hotkey_cycle_form),
             hotkey_toggle_stream=hk.get("toggle_stream", default.hotkey_toggle_stream),
             hotkey_search=hk.get("search", default.hotkey_search),
+            hotkey_type_chart=hk.get("type_chart", default.hotkey_type_chart),
             stream_enabled=st.get("enabled", default.stream_enabled),
             stream_port=st.get("port", default.stream_port),
             stream_card_mode=st.get("card_mode", default.stream_card_mode),
@@ -196,6 +200,8 @@ class Config:
             raise ConfigError(_("{name} debe ser un texto", name="hotkeys.toggle_stream"))
         if not isinstance(self.hotkey_search, str):
             raise ConfigError(_("{name} debe ser un texto", name="hotkeys.search"))
+        if not isinstance(self.hotkey_type_chart, str):
+            raise ConfigError(_("{name} debe ser un texto", name="hotkeys.type_chart"))
         if not isinstance(self.stream_enabled, bool):
             raise ConfigError(_("{key} debe ser true o false", key="stream.enabled"))
         if not isinstance(self.stream_port, int) or isinstance(self.stream_port, bool) or not 1024 <= self.stream_port <= 65535:
@@ -264,6 +270,8 @@ class AppState:
     last_update_check: str | None = None  # ISO 8601 de la última consulta a GitHub
     # Bloques plegados de la ficha por modo (improve-card-visuals D11): {"competitive": ["abilities"]}
     collapsed_sections: dict[str, list[str]] = field(default_factory=dict)
+    type_chart_pos: list[int] | None = None  # tabla de tipos (spec type-chart): dónde la dejó el usuario
+    type_chart_scale: float = 1.0
 
     @classmethod
     def load(cls, path: Path) -> AppState:

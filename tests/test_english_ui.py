@@ -129,6 +129,7 @@ def test_cambio_de_idioma_en_caliente(qapp, tmp_path, monkeypatch, dex):
                     hotkey_hide="Ctrl+Alt+Shift+F22", hotkey_toggle_mode="Ctrl+Alt+Shift+F18",
                     hotkey_cycle_form="Ctrl+Alt+Shift+F17", hotkey_toggle_stream="Ctrl+Alt+Shift+F16",
                     hotkey_search="Ctrl+Alt+Shift+F15",
+                    hotkey_type_chart="Ctrl+Alt+Shift+F14",
                     updates_check=False, detection_enabled=False, interface_language="es")
     controller = Controller(qapp, config, dex)
     messages = []

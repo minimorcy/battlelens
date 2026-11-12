@@ -240,6 +240,7 @@ class _Block(QFrame):
 class Overlay(QWidget):
     moved = pyqtSignal(int, int)
     dismissed = pyqtSignal()  # el usuario la ha cerrado con el botón ✕
+    became_hidden = pyqtSignal()  # se ha ocultado por cualquier motivo (✕, atajo, fin del combate, temporizador)
     collapsed_changed = pyqtSignal()  # se ha plegado o desplegado un bloque (guardar en state.json)
 
     def __init__(
@@ -928,6 +929,10 @@ class Overlay(QWidget):
         self.keep_on_top()
         if self.auto_hide_seconds > 0:
             self._hide_timer.start(int(self.auto_hide_seconds * 1000))
+
+    def hideEvent(self, event) -> None:
+        super().hideEvent(event)
+        self.became_hidden.emit()
 
     def keep_on_top(self) -> None:
         """Vuelve a ponerla por delante (p. ej. del emulador a pantalla completa) si está visible."""

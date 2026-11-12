@@ -8,6 +8,12 @@ EN: dict[str, str] = {
     "Buscar Pokémon": "Search Pokémon",
     "Nombre del Pokémon": "Pokémon name",
     "No encuentro ese Pokémon.": "Can't find that Pokémon.",
+    # ---- tabla de tipos (ui/type_chart.py) ----
+    "Tabla de tipos": "Type chart",
+    "Tabla de tipos · Gen {generation}": "Type chart · Gen {generation}",
+    "Defiende →": "Defends →",
+    "Ataca ↓": "Attacks ↓",
+    "Cerrar": "Close",
     "Descargar BattleLens {version}…": "Download BattleLens {version}…",
     "Copiar URL para OBS ({url})": "Copy URL for OBS ({url})",
     "Copiar URL para OBS": "Copy URL for OBS",
