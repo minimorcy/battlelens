@@ -837,3 +837,106 @@ def test_tabla_de_tipos_recuerda_posicion_y_tamano(qapp, controller, tmp_path):
     state = AppState.load(tmp_path / "state.json")
     assert state.type_chart_pos == [40, 50] and state.type_chart_scale == 1.3
     controller.toggle_type_chart()
+
+
+# ---- editar perfiles existentes (edit-existing-profiles) ----------------------------------------
+
+def test_atajo_de_calibrar_con_y_sin_perfil(controller, monkeypatch):
+    from battlelens import app as app_module
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.platform.windows import WindowInfo
+
+    calls = []
+    monkeypatch.setattr(controller, "calibrate_new", lambda: calls.append("new"))
+    monkeypatch.setattr(controller, "calibrate_region", lambda role: calls.append(role))
+    controller.calibrate()  # sin perfiles: crea uno sin preguntar
+    assert calls == ["new"]
+
+    controller.profiles.save(Profile("Espada", Region(0.6, 0.05, 0.2, 0.05), own_region=Region(0, 0.8, 0.2, 0.05)))
+    controller.target = WindowInfo(1, "Emu", "emu.exe", 0)
+    asked = []
+
+    def fake_ask(name, regions, allow_new):
+        asked.append((name, [(r, present) for r, _label, present in regions], allow_new))
+        return answers.pop(0)
+
+    monkeypatch.setattr(app_module, "ask_calibration_target", fake_ask)
+    answers = ["own", "new", None]
+    controller.calibrate()
+    controller.calibrate()
+    controller.calibrate()  # cancelado
+    assert calls == ["new", "own", "new"]
+    assert asked[0] == ("Espada", [("rival", True), ("rival2", False), ("own", True), ("moves", False)], True)
+    assert not controller._modal_open
+
+
+def test_renombrar_perfil(controller):
+    from battlelens.core.profiles import Profile, Region
+
+    profile = Profile("Pokémon Espada", Region(0.6, 0.05, 0.2, 0.05), game="sword-shield")
+    controller.profiles.save(profile)
+    controller.rename_profile("  Espada (Eden)  ")
+    renamed = controller.profiles.active
+    assert renamed.name == "Espada (Eden)" and renamed.id == profile.id and renamed.region == profile.region
+    assert len(controller.profiles.profiles) == 1
+    controller.rename_profile("   ")  # vacío: no cambia
+    assert controller.profiles.active.name == "Espada (Eden)"
+
+
+def test_aplicar_un_preset_al_perfil_activo(controller, monkeypatch):
+    import numpy as np
+
+    from battlelens import app as app_module
+    from battlelens.core.presets import preset_for
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.vision.viewport import Viewport
+
+    old_area = Region(0.0, 0.0, 1.0, 1.0)
+    rival2 = Region(0.1, 0.1, 0.2, 0.05)
+    profile = Profile("Mi Esmeralda", Region(0.5, 0.5, 0.1, 0.1), game="emerald", rival2_region=rival2,
+                      game_area=old_area)
+    controller.profiles.save(profile)
+
+    class FakeWizard:
+        def __init__(self, image, games, proposed, read_fn):
+            assert proposed == "emerald"  # propone el juego del perfil
+            self.action, self.game_id = "save", "emerald"
+            self.preset, self.viewport = preset_for("emerald"), Viewport(160, 40, 960, 640)
+
+        def exec(self):
+            return True
+
+    monkeypatch.setattr(app_module, "PresetWizard", FakeWizard)
+    controller.tray.notify = lambda msg, warning=False: None
+    controller._apply_preset_with(profile, np.zeros((720, 1280, 3), dtype=np.uint8))
+    updated = controller.profiles.active
+    assert len(controller.profiles.profiles) == 1  # no se crea otro perfil
+    assert (updated.id, updated.name, updated.game) == (profile.id, "Mi Esmeralda", "emerald")
+    assert updated.region != profile.region and updated.own_region is not None and updated.moves_region is not None
+    new_area = Region.from_pixels(160, 40, 960, 640, 1280, 720)
+    assert updated.game_area == new_area and updated.rival2_region == rival2.remap(old_area, new_area)
+
+
+def test_preset_a_mano_recalibra_sin_crear_perfil(controller, monkeypatch):
+    import numpy as np
+
+    from battlelens import app as app_module
+    from battlelens.core.profiles import Profile, Region
+
+    profile = Profile("Mi Esmeralda", Region(0.5, 0.5, 0.1, 0.1), game="emerald")
+    controller.profiles.save(profile)
+
+    class FakeWizard:
+        def __init__(self, *args):
+            self.action = "manual"
+
+        def exec(self):
+            return True
+
+    asked, recalibrated = [], []
+    monkeypatch.setattr(app_module, "PresetWizard", FakeWizard)
+    monkeypatch.setattr(app_module, "ask_calibration_target",
+                        lambda name, regions, allow_new: asked.append(allow_new) or "rival")
+    monkeypatch.setattr(controller, "calibrate_region", recalibrated.append)
+    controller._apply_preset_with(profile, np.zeros((720, 1280, 3), dtype=np.uint8))
+    assert asked == [False] and recalibrated == ["rival"] and len(controller.profiles.profiles) == 1

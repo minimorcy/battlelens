@@ -43,6 +43,7 @@ BattleLens uses the text recognition that ships with Windows. Almost every PC al
    - If you turn it off from the tray (**Automatic detection** / *Detección automática*), press `Ctrl+Alt+P` to recognise manually.
    - Click **✕** in its top-right corner or press `Ctrl+Alt+H` to hide it. Drag it to move it; click a section title to collapse it.
    - **Search any Pokémon** at any time with `Ctrl+Alt+B` (or tray → **Search Pokémon…**): type a name and press `Enter` to see its card for the active profile's game.
+   - **Edit a profile instead of creating another**: with an active profile, `Ctrl+Alt+C` asks which region to recalibrate (or whether to create a new profile); rename it or apply a preset to it in **Settings → Profiles**.
    - **Type chart** for your game's generation with `Ctrl+Alt+T` (or tray → **Type chart**), with the opponent's types highlighted.
    - **Mega Evolutions and other forms** (Rotom, Deoxys, Giratina…) show the same name on screen, so press `Ctrl+Alt+F` to cycle through the forms available in that game; the card is recalculated and keeps that form while the Pokémon stays in battle.
 4. **Choose the card mode** (tray → **Card mode** / *Modo de la ficha*, `Ctrl+Alt+M` or *Ajustes*):

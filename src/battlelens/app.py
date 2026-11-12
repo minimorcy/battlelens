@@ -66,8 +66,8 @@ from .platform.ocr_setup import (
     ui_language_tag,
 )
 from .platform.single_instance import SingleInstance
-from .ui.settings import SettingsWindow
-from .ui.calibrator import CalibrationDialog, ask_profile
+from .ui.settings import REGION_ROWS, SettingsWindow
+from .ui.calibrator import CalibrationDialog, ask_calibration_target, ask_profile
 from .ui.icons import app_icon
 from .ui.overlay import Overlay
 from .ui.preset_wizard import PresetWizard
@@ -354,6 +354,8 @@ class Controller(QObject):
             w.region_requested.connect(self.calibrate_region)
             w.region_remove_requested.connect(self.remove_region)
             w.delete_profile_requested.connect(self.delete_profile)
+            w.rename_requested.connect(self.rename_profile)
+            w.apply_preset_requested.connect(self.apply_preset_to_active)
             w.open_data_requested.connect(lambda: os.startfile(self.data_dir))
             w.report_requested.connect(self.show_report)
             w.install_ocr_requested.connect(self.install_ocr)
@@ -605,7 +607,7 @@ class Controller(QObject):
     def _on_hotkey(self, name: str) -> None:
         {
             "recognize": self.recognize,
-            "calibrate": self.calibrate_new,
+            "calibrate": self.calibrate,
             "hide": self.hide_overlay,
             "toggle_mode": self.toggle_mode,
             "cycle_form": self.cycle_form,
@@ -973,6 +975,41 @@ class Controller(QObject):
             self.tray.notify(str(exc), warning=True)
             return None
 
+    def calibrate(self) -> None:
+        """Atajo de calibrar: con un perfil activo se elige qué recalibrar o crear otro (edit-existing-profiles D1)."""
+        profile = self.profiles.active
+        if profile is None:
+            self.calibrate_new()
+            return
+        if self.target is None:
+            self.tray.notify(_("Selecciona primero la ventana del emulador."), warning=True)
+            return
+        choice = self._ask_calibration_target(profile, allow_new=True)
+        if choice == "new":
+            self.calibrate_new()
+        elif choice is not None:
+            self.calibrate_region(choice)
+
+    def _ask_calibration_target(self, profile: Profile, allow_new: bool) -> str | None:
+        regions = {"rival": profile.region, "rival2": profile.rival2_region, "own": profile.own_region,
+                   "moves": profile.moves_region}
+        options = [(role, _(label), regions[role] is not None) for role, label, _removable in REGION_ROWS]
+        modal = self._modal_open
+        self._modal_open = True
+        try:
+            return ask_calibration_target(profile.name, options, allow_new)
+        finally:
+            self._modal_open = modal
+
+    def rename_profile(self, name: str) -> None:
+        """Nombre nuevo del perfil activo; mismo id y regiones (edit-existing-profiles D2)."""
+        profile = self.profiles.active
+        name = name.strip()
+        if profile is not None and name and name != profile.name:
+            self.profiles.save(replace(profile, name=name), activate=True)
+            self._save_state()
+        self._refresh_ui()  # con un nombre vacío, el campo vuelve al guardado
+
     def calibrate_new(self) -> None:
         image = self._capture_for_calibration()
         if image is None:
@@ -1031,10 +1068,7 @@ class Controller(QObject):
         if answer is None:
             return
         name, game_id = answer
-        h, w = image.shape[:2]
-        regions = to_profile_regions(wizard.preset, wizard.viewport, w, h)
-        v = wizard.viewport
-        game_area = Region.from_pixels(v.x, v.y, v.width, v.height, w, h) if v is not None else None
+        regions, game_area = self._preset_regions(wizard, image)
         profile = Profile(name, regions["rival"], game=game_id, own_region=regions.get("own"),
                           moves_region=regions.get("moves"), game_area=game_area)
         self.profiles.save(profile, activate=True)
@@ -1042,6 +1076,54 @@ class Controller(QObject):
         self._save_state()
         self._refresh_ui()
         self.tray.notify(_("Perfil «{name}» creado y activo.", name=name))
+
+    @staticmethod
+    def _preset_regions(wizard: PresetWizard, image) -> tuple[dict[str, Region], Region | None]:
+        """Regiones del preset elegido en el asistente y la imagen del juego, como fracciones de la captura."""
+        h, w = image.shape[:2]
+        regions = to_profile_regions(wizard.preset, wizard.viewport, w, h)
+        v = wizard.viewport
+        game_area = Region.from_pixels(v.x, v.y, v.width, v.height, w, h) if v is not None else None
+        return regions, game_area
+
+    def apply_preset_to_active(self) -> None:
+        """Reaplica un preset al perfil activo: mismas id y nombre, regiones y juego del preset (D3)."""
+        profile = self.profiles.active
+        if profile is None:
+            return
+        image = self._capture_for_calibration()
+        if image is None:
+            return
+        self._modal_open = True
+        try:
+            self._apply_preset_with(profile, image)
+        finally:
+            self._modal_open = False
+
+    def _apply_preset_with(self, profile: Profile, image) -> None:
+        lang = self.config.language
+        games = [(g.id, g.name(lang)) for g in self.pokedex.games if preset_for(g.id)]
+        wizard = PresetWizard(image, games, profile.game, self._preset_reading)
+        if not wizard.exec() or wizard.action is None:
+            return
+        if wizard.action == "manual":  # a mano, pero sobre este perfil: no se crea otro
+            choice = self._ask_calibration_target(profile, allow_new=False)
+            if choice is not None:
+                self.calibrate_region(choice)
+            return
+        regions, game_area = self._preset_regions(wizard, image)
+        rival2 = profile.rival2_region  # los presets no lo traen: se lleva a la nueva imagen del juego
+        if rival2 is not None and profile.game_area is not None and game_area is not None:
+            rival2 = rival2.remap(profile.game_area, game_area)
+        updated = replace(profile, region=regions["rival"], own_region=regions.get("own"),
+                          moves_region=regions.get("moves"), rival2_region=rival2, game=wizard.game_id,
+                          game_area=game_area)
+        self.profiles.save(updated, activate=True)
+        self.battle.reset()  # la huella cambia de forma al cambiar las regiones
+        self.moves_watcher.reset()
+        self._save_state()
+        self._refresh_ui()
+        self.tray.notify(_("«{name}»: preset aplicado.", name=profile.name))
 
     def _calibrate_new_with(self, image) -> None:
         """Calibración a mano de un perfil nuevo: el rival y, opcionalmente, tu Pokémon y el menú de ataques."""

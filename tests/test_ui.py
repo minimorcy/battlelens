@@ -634,3 +634,32 @@ def test_ficha_por_delante_del_emulador_a_pantalla_completa(qapp, overlay, dex):
     overlay.keep_on_top()
     assert z_order().index(card) < z_order().index(emu)
     emulator.close()
+
+
+def test_dialogo_de_que_recalibrar(qapp):
+    from battlelens.ui.calibrator import CalibrationTargetDialog
+
+    d = CalibrationTargetDialog("Espada", [("rival", "Rival", True), ("own", "Tu Pokémon", False)])
+    assert d.buttons["rival"].text().endswith("✓") and d.buttons["own"].text() == "Tu Pokémon"
+    d.buttons["own"].click()
+    assert d.choice == "own" and d.result() == 1
+    d = CalibrationTargetDialog("Espada", [("rival", "Rival", True)], allow_new=False)
+    assert CalibrationTargetDialog.NEW not in d.buttons
+
+
+def test_ajustes_renombrar_y_aplicar_preset(qapp):
+    from battlelens.core.config import Config
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.ui.settings import SettingsWindow
+
+    profile = Profile("Espada", Region(0.6, 0.05, 0.2, 0.05))
+    d = SettingsWindow(Config(), lambda: [], lambda: None, lambda: ([profile], profile.id), lambda: [])
+    d.refresh()
+    assert d.name_edit.text() == "Espada"
+    renamed, presets = [], []
+    d.rename_requested.connect(renamed.append)
+    d.apply_preset_requested.connect(lambda: presets.append(True))
+    d.name_edit.setText("Espada (Eden)")
+    d.name_edit.editingFinished.emit()
+    d.apply_preset_button.click()
+    assert renamed == ["Espada (Eden)"] and presets == [True]

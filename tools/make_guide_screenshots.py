@@ -151,6 +151,17 @@ def main() -> int:
         save_stacked(search, search.edit.completer().popup(), "search.png", lang)
         search.close()
 
+        # ---- recalibrar el perfil activo (Ctrl+Alt+C con un perfil) ----
+        from battlelens.ui.calibrator import CalibrationTargetDialog
+        from battlelens.i18n import _ as tr
+        from battlelens.ui.settings import REGION_ROWS
+
+        calibrated = {"rival", "own", "moves"}
+        recalibrate = CalibrationTargetDialog(sword.name, [(r, tr(label), r in calibrated) for r, label, _x in REGION_ROWS])
+        recalibrate.show()
+        save(recalibrate, "recalibrate.png", lang)
+        recalibrate.close()
+
         # ---- tabla de tipos (con un Rapidash de Galar en la ficha) ----
         generation = dex.get_game(GAME).generation
         chart = dex.type_chart(generation)

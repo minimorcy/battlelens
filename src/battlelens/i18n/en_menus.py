@@ -8,6 +8,15 @@ EN: dict[str, str] = {
     "Buscar Pokémon": "Search Pokémon",
     "Nombre del Pokémon": "Pokémon name",
     "No encuentro ese Pokémon.": "Can't find that Pokémon.",
+    # ---- editar perfiles (edit-existing-profiles) ----
+    "¿Qué quieres recalibrar en «{name}»?": "What do you want to recalibrate in \"{name}\"?",
+    "Crear un perfil nuevo…": "Create a new profile…",
+    "Aplicar un preset…": "Apply a preset…",
+    "Nombre": "Name",
+    "Preset": "Preset",
+    "Sustituye las regiones por las del preset de su juego, sin crear otro perfil.":
+        "Replaces the regions with the preset ones for its game, without creating another profile.",
+    "«{name}»: preset aplicado.": "\"{name}\": preset applied.",
     # ---- tabla de tipos (ui/type_chart.py) ----
     "Tabla de tipos": "Type chart",
     "Tabla de tipos · Gen {generation}": "Type chart · Gen {generation}",

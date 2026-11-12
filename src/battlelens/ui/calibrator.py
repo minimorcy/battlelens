@@ -210,3 +210,51 @@ class ProfileDialog(QDialog):
 def ask_profile(default_name: str, games: list[Game], default_game: str | None, lang: str = "es"):
     dialog = ProfileDialog(default_name, games, default_game, lang)
     return dialog.result_value if dialog.exec() else None
+
+
+class CalibrationTargetDialog(QDialog):
+    """Atajo de calibrar con un perfil activo: qué región recalibrar o crear otro perfil (edit-existing-profiles D1).
+
+    `regions`: (rol, etiqueta, ya calibrada). Al cerrarse, `choice` es el rol, "new" o None (cancelado).
+    """
+
+    NEW = "new"
+
+    def __init__(self, profile_name: str, regions: list[tuple[str, str, bool]], allow_new: bool = True) -> None:
+        super().__init__(None, Qt.WindowType.WindowStaysOnTopHint)
+        self.setWindowTitle(_("Calibrar"))
+        self.setMinimumWidth(320)
+        self.choice: str | None = None
+        layout = QVBoxLayout(self)
+        title = QLabel(_("¿Qué quieres recalibrar en «{name}»?", name=profile_name))
+        title.setWordWrap(True)
+        layout.addWidget(title)
+        self.buttons: dict[str, QPushButton] = {}
+        for role, label, present in regions:
+            button = QPushButton(f"{label}   ✓" if present else label)
+            button.clicked.connect(lambda _=False, r=role: self._choose(r))
+            layout.addWidget(button)
+            self.buttons[role] = button
+        if allow_new:
+            layout.addSpacing(8)
+            new = QPushButton(_("Crear un perfil nuevo…"))
+            new.clicked.connect(lambda: self._choose(self.NEW))
+            layout.addWidget(new)
+            self.buttons[self.NEW] = new
+        cancel = QDialogButtonBox(QDialogButtonBox.StandardButton.Cancel)
+        cancel.rejected.connect(self.reject)
+        layout.addWidget(cancel)
+
+    def showEvent(self, event) -> None:
+        super().showEvent(event)
+        self.activateWindow()  # el atajo llega con el emulador delante
+
+    def _choose(self, choice: str) -> None:
+        self.choice = choice
+        self.accept()
+
+
+def ask_calibration_target(profile_name: str, regions: list[tuple[str, str, bool]], allow_new: bool = True):
+    dialog = CalibrationTargetDialog(profile_name, regions, allow_new)
+    return dialog.choice if dialog.exec() else None
+

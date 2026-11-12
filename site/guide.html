@@ -184,14 +184,14 @@
           </ul>
           <p><b>Juegos con preset:</b> Rojo/Azul/Amarillo, Oro/Plata/Cristal, Rubí/Zafiro/Esmeralda, Rojo Fuego/Verde Hoja, Diamante/Perla/Platino, HeartGold/SoulSilver, Negro/Blanco (y 2) y Espada/Escudo.</p>
           <p class="tip">El <b>juego</b> del perfil importa: decide las formas regionales (Alola, Galar, Hisui, Paldea), los tipos de esa generación y su tabla de eficacias. Puedes cambiarlo en <i>Ajustes › Perfiles → Juego</i>.</p>
-          <p class="tip">Un perfil creado con preset recuerda dónde estaba la imagen del juego, así que puedes jugar a <b>pantalla completa</b>, maximizado o en ventana: las regiones siguen a la imagen. Los perfiles creados antes de la versión 0.4 no lo saben; si cambias el tamaño de la ventana, vuelve a crearlos con un preset.</p>
+          <p class="tip">Un perfil creado con preset recuerda dónde estaba la imagen del juego, así que puedes jugar a <b>pantalla completa</b>, maximizado o en ventana: las regiones siguen a la imagen. Los perfiles creados antes de la versión 0.4 no lo saben; si cambias el tamaño de la ventana, usa <b>Aplicar un preset…</b> en ese perfil (ver <a href="#modificar-perfil">Modificar un perfil</a>).</p>
         </section>
 
         <section class="g-section" id="calibrar">
           <h2>Calibrar a mano</h2>
           <p>Para juegos sin preset, o si el preset no encaja:</p>
           <ol class="steps-list">
-            <li>En un combate, pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> (o <i>Ajustes › Perfiles → Calibrar a mano…</i>).</li>
+            <li>En un combate, pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> (o <i>Ajustes › Perfiles → Calibrar a mano…</i>). Si ya tienes un perfil activo, elige <b>Crear un perfil nuevo…</b> (ver <a href="#modificar-perfil">Modificar un perfil</a>).</li>
             <li>Dibuja con el ratón un rectángulo que cubra el <b>nombre del rival</b>. Cuanto más ajustado, mejor; no pasa nada si incluye el nivel.</li>
             <li>Pulsa <kbd>Enter</kbd> para confirmar (<kbd>Esc</kbd> cancela).</li>
             <li>Después, haz lo mismo con el <b>nombre de tu Pokémon</b> y con el <b>menú de ataques</b>. Son opcionales: <kbd>Esc</kbd> o <b>Saltar</b> pasan al siguiente. Si el menú de ataques no está a la vista, ábrelo en el emulador (menú de <i>Luchar</i>) y pulsa <b>Volver a capturar</b>.</li>
@@ -201,6 +201,20 @@
             <img src="assets/guide/es/calibrate.jpg" width="758" height="521" loading="lazy" alt="Calibración a mano con un recuadro amarillo sobre el nombre del rival">
           </figure>
           <p class="tip">Si vas a usar el modo <b>Competitivo</b>, incluye el <b>nivel</b> en el recuadro: BattleLens lo necesita para calcular las estadísticas reales y los movimientos probables.</p>
+
+          <h3 id="modificar-perfil">Modificar un perfil</h3>
+          <p>No hace falta crear otro perfil para retocar uno que ya tienes:</p>
+          <div class="pair">
+            <figure class="shot">
+              <img src="assets/guide/es/recalibrate.png" width="320" height="242" loading="lazy" alt="Diálogo para elegir qué región recalibrar en el perfil activo o crear un perfil nuevo">
+            </figure>
+            <dl class="defs">
+              <dt><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> con un perfil activo</dt><dd>Pregunta qué quieres <b>recalibrar</b> en ese perfil (Rival, 2.º rival, Tu Pokémon o Menú de ataques; las ya calibradas llevan ✓) o si quieres <b>crear un perfil nuevo</b>. Dibujas solo esa región y el resto del perfil se queda igual.</dd>
+              <dt>Nombre</dt><dd>En <i>Ajustes › Perfiles → Perfil activo</i>, escribe el nombre nuevo y sal del campo: se guarda al momento.</dd>
+              <dt>Aplicar un preset…</dt><dd>En la misma tarjeta, abre el asistente de preset sobre ese perfil y sustituye sus regiones y su juego por los del preset, sin crear otro perfil. Conserva el nombre y el 2.º rival. Las regiones opcionales que el preset no trae se quitan; vuelve a calibrarlas si las usabas.</dd>
+              <dt>Recalibrar…</dt><dd>Junto a cada región, en la misma tarjeta, hace lo mismo que el atajo para esa región.</dd>
+            </dl>
+          </div>
         </section>
 
         <section class="g-section" id="ficha">
@@ -255,7 +269,7 @@
           <h2>Tu Pokémon, tus movimientos y dobles</h2>
           <p>Además del rival, cada perfil puede leer tres cosas más. Configúralas en <i>Ajustes › Perfiles</i> (o bandeja → <i>Perfil activo → Gestionar perfiles…</i>), en la tarjeta <b>Perfil activo</b>:</p>
           <figure class="shot">
-            <img src="assets/guide/es/settings-profiles.png" width="880" height="855" loading="lazy" alt="Ajustes, sección Perfiles, con las regiones del perfil activo">
+            <img src="assets/guide/es/settings-profiles.png" width="880" height="981" loading="lazy" alt="Ajustes, sección Perfiles, con las regiones del perfil activo">
           </figure>
           <dl class="defs">
             <dt>Tu Pokémon</dt><dd>Con su nombre calibrado, la ficha muestra <b>«Contra tu X»</b>: lo que le hacen tus tipos, lo que te hacen los suyos y un veredicto (<b>Ventaja / Neutral / Desventaja</b>). Si tu Pokémon tiene mote, no se puede reconocer.</dd>
@@ -578,14 +592,14 @@
           </ul>
           <p><b>Games with a preset:</b> Red/Blue/Yellow, Gold/Silver/Crystal, Ruby/Sapphire/Emerald, FireRed/LeafGreen, Diamond/Pearl/Platinum, HeartGold/SoulSilver, Black/White (and 2) and Sword/Shield.</p>
           <p class="tip">The profile's <b>game</b> matters: it decides regional forms (Alola, Galar, Hisui, Paldea), that generation's types and its type chart. You can change it in <i>Settings › Profiles → Game</i>.</p>
-          <p class="tip">A profile created from a preset remembers where the game image was, so you can play <b>fullscreen</b>, maximized or windowed: the regions follow the image. Profiles created before version 0.4 don't know this; if you change the window size, create them again from a preset.</p>
+          <p class="tip">A profile created from a preset remembers where the game image was, so you can play <b>fullscreen</b>, maximized or windowed: the regions follow the image. Profiles created before version 0.4 don't know this; if you change the window size, use <b>Apply a preset…</b> on that profile (see <a href="#edit-profile">Edit a profile</a>).</p>
         </section>
 
         <section class="g-section" id="calibrate">
           <h2>Calibrate manually</h2>
           <p>For games without a preset, or if the preset doesn't fit:</p>
           <ol class="steps-list">
-            <li>During a battle, press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> (or <i>Settings › Profiles → Calibrate manually…</i>).</li>
+            <li>During a battle, press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> (or <i>Settings › Profiles → Calibrate manually…</i>). If you already have an active profile, choose <b>Create a new profile…</b> (see <a href="#edit-profile">Edit a profile</a>).</li>
             <li>Drag a rectangle over the <b>opponent's name</b>. The tighter, the better; it's fine if it includes the level.</li>
             <li>Press <kbd>Enter</kbd> to confirm (<kbd>Esc</kbd> cancels).</li>
             <li>Then do the same for <b>your Pokémon's name</b> and the <b>moves menu</b>. They're optional: <kbd>Esc</kbd> or <b>Skip</b> moves on. If the moves menu isn't on screen, open it in the emulator (the <i>Fight</i> menu) and click <b>Capture again</b>.</li>
@@ -595,6 +609,20 @@
             <img src="assets/guide/en/calibrate.jpg" width="758" height="505" loading="lazy" alt="Manual calibration with a yellow box over the opponent's name">
           </figure>
           <p class="tip">If you'll use <b>Competitive</b> mode, include the <b>level</b> in the box: BattleLens needs it for the actual stats and the likely moves.</p>
+
+          <h3 id="edit-profile">Edit a profile</h3>
+          <p>You don't need a new profile to tweak one you already have:</p>
+          <div class="pair">
+            <figure class="shot">
+              <img src="assets/guide/en/recalibrate.png" width="320" height="242" loading="lazy" alt="Dialog to choose which region of the active profile to recalibrate or create a new profile">
+            </figure>
+            <dl class="defs">
+              <dt><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> with an active profile</dt><dd>Asks what you want to <b>recalibrate</b> in that profile (Opponent, 2nd opponent, Your Pokémon or Moves menu; calibrated ones show ✓) or whether to <b>create a new profile</b>. You draw only that region and the rest of the profile stays the same.</dd>
+              <dt>Name</dt><dd>In <i>Settings › Profiles → Active profile</i>, type the new name and leave the field: it's saved right away.</dd>
+              <dt>Apply a preset…</dt><dd>On the same card, opens the preset wizard on that profile and replaces its regions and game with the preset ones, without creating another profile. It keeps the name and the 2nd opponent. Optional regions the preset doesn't include are removed; calibrate them again if you used them.</dd>
+              <dt>Recalibrate…</dt><dd>Next to each region, on the same card, does the same as the shortcut for that region.</dd>
+            </dl>
+          </div>
         </section>
 
         <section class="g-section" id="card">
@@ -649,7 +677,7 @@
           <h2>Your Pokémon, your moves and doubles</h2>
           <p>Besides the opponent, each profile can read three more things. Set them up in <i>Settings › Profiles</i> (or tray → <i>Active profile → Manage profiles…</i>), in the <b>Active profile</b> panel:</p>
           <figure class="shot">
-            <img src="assets/guide/en/settings-profiles.png" width="880" height="855" loading="lazy" alt="Settings, Profiles section, with the active profile's regions">
+            <img src="assets/guide/en/settings-profiles.png" width="880" height="981" loading="lazy" alt="Settings, Profiles section, with the active profile's regions">
           </figure>
           <dl class="defs">
             <dt>Your Pokémon</dt><dd>With its name calibrated, the card shows <b>"Against your X"</b>: what your types do to it, what its types do to you and a verdict (<b>Advantage / Neutral / Disadvantage</b>). A nicknamed Pokémon can't be recognized.</dd>

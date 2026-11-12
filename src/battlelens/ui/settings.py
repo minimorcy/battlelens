@@ -234,6 +234,8 @@ class SettingsWindow(QWidget):
     region_requested = pyqtSignal(str)
     region_remove_requested = pyqtSignal(str)
     delete_profile_requested = pyqtSignal()
+    rename_requested = pyqtSignal(str)  # nombre nuevo del perfil activo
+    apply_preset_requested = pyqtSignal()  # reaplicar un preset al perfil activo
     open_data_requested = pyqtSignal()
     report_requested = pyqtSignal()
     install_ocr_requested = pyqtSignal()
@@ -587,7 +589,15 @@ class SettingsWindow(QWidget):
         self.game_combo.setMinimumWidth(260)
         self.game_combo.activated.connect(self._on_game_activated)
         self.active_card = _Card(_("Perfil activo"))
+        self.name_edit = QLineEdit()
+        self.name_edit.setMinimumWidth(260)
+        self.name_edit.editingFinished.connect(lambda: self.rename_requested.emit(self.name_edit.text()))
+        self.active_card.add_row(_("Nombre"), self.name_edit)
         self.active_card.add_row(_("Juego"), self.game_combo, _("Decide las formas regionales y la tabla de tipos."))
+        self.apply_preset_button = _button(_("Aplicar un preset…"))
+        self.apply_preset_button.clicked.connect(self.apply_preset_requested)
+        self.active_card.add_row(_("Preset"), self.apply_preset_button,
+                                 _("Sustituye las regiones por las del preset de su juego, sin crear otro perfil."))
         self.region_rows: dict[str, tuple[QLabel, QPushButton, QPushButton | None]] = {}
         for role, label, removable in REGION_ROWS:
             status = _label("", "badge-missing")
@@ -872,6 +882,8 @@ class SettingsWindow(QWidget):
         self.active_card.setVisible(active is not None)
         if active is None:
             return
+        if not self.name_edit.hasFocus():  # no pisar lo que se está escribiendo
+            self.name_edit.setText(active.name)
         self.game_combo.clear()
         for game_id, label in [(None, _("Sin especificar")), *self._get_games()]:
             self.game_combo.addItem(label, game_id)
