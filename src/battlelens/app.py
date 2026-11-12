@@ -41,7 +41,7 @@ from .core.profiles import Profile, ProfileStore, Region
 from .core.presets import preset_for, to_profile_regions
 from .core.report import ReportInputs, issue_form_url, write_report
 from .core.storage import app_data_dir
-from .i18n import N_, _, resolve_language, set_language
+from .i18n import N_, _, get_language, resolve_language, set_language
 from .pipeline import (
     GameAreaTracker,
     RecognitionPipeline,
@@ -72,6 +72,7 @@ from .ui.icons import app_icon
 from .ui.overlay import Overlay
 from .ui.preset_wizard import PresetWizard
 from .ui.report import ReportDialog
+from .ui.search import SearchDialog
 from .ui.start import StartDialog
 from .ui.tray import Tray
 from .stream.payload import build_cards
@@ -132,6 +133,8 @@ class Controller(QObject):
         self.overlay = Overlay(pokedex, config.language, config.auto_hide_seconds, mode=config.overlay_mode)
         self.overlay.hidden = {mode: config.hidden_sections(mode) for mode in ("normal", "competitive")}
         self._last_battle = None  # (clave, juego, niveles) de la última ficha, para redibujarla
+        self._searched = False  # la última ficha viene del buscador (no va al stream)
+        self._search: SearchDialog | None = None  # buscador abierto (solo uno a la vez)
         self._form_choice: dict[int, str] = {}  # especie -> forma elegida con el atajo (add-alternate-forms D4)
         # Modo stream: fuente de navegador para OBS (spec stream-mode)
         self.stream_state = StreamState(config.stream_card_mode)
@@ -163,6 +166,7 @@ class Controller(QObject):
             {name: hk.text for name, hk in bindings.items()},
         )
         self.tray.recognize_requested.connect(self.recognize)
+        self.tray.search_requested.connect(self.search_pokemon)
         self.tray.auto_detect_toggled.connect(self.set_auto_detect)
         self.tray.mode_selected.connect(self.set_mode)
         self.tray.set_mode(config.overlay_mode)
@@ -207,6 +211,7 @@ class Controller(QObject):
             ("toggle_mode", config.hotkey_toggle_mode),
             ("cycle_form", config.hotkey_cycle_form),
             ("toggle_stream", config.hotkey_toggle_stream),
+            ("search", config.hotkey_search),
         ):
             try:
                 bindings[name] = parse_hotkey(text)
@@ -370,9 +375,9 @@ class Controller(QObject):
         save_config(self.data_dir / "config.toml", new)
         self.config = new
         if (new.hotkey_recognize, new.hotkey_calibrate, new.hotkey_hide, new.hotkey_toggle_mode,
-                new.hotkey_cycle_form, new.hotkey_toggle_stream) != (
+                new.hotkey_cycle_form, new.hotkey_toggle_stream, new.hotkey_search) != (
             old.hotkey_recognize, old.hotkey_calibrate, old.hotkey_hide, old.hotkey_toggle_mode, old.hotkey_cycle_form,
-            old.hotkey_toggle_stream
+            old.hotkey_toggle_stream, old.hotkey_search
         ):
             self.hotkeys.stop()
             bindings, invalid = self._parse_hotkeys(new)
@@ -593,6 +598,7 @@ class Controller(QObject):
             "toggle_mode": self.toggle_mode,
             "cycle_form": self.cycle_form,
             "toggle_stream": self.toggle_stream_card,
+            "search": self.search_pokemon,
         }[name]()
 
     # ---- modos de ficha (spec display-modes) ---------------------------------------
@@ -615,7 +621,7 @@ class Controller(QObject):
     def _redraw_last_battle(self) -> None:
         if self._last_battle is not None and self.overlay.isVisible():
             key, game, levels = self._last_battle
-            self._show_battle(key, game, self._target_rect(), levels)
+            self._show_battle(key, game, self._target_rect(), levels, self._searched)
 
     def cycle_form(self) -> None:
         """Siguiente forma del primer rival que tenga otras en el juego (spec battle-overlay)."""
@@ -766,9 +772,13 @@ class Controller(QObject):
             log.info("Detección automática: %s (niveles %s)", key, levels)
             self._show_battle(key, profile.game, self._target_rect(), levels)
 
-    def _show_battle(self, key, game: str | None, rect, levels=(None, None, None)) -> None:
-        """Muestra las tarjetas de los rivales de la clave (rival, rival2, own) y la comparativa."""
+    def _show_battle(self, key, game: str | None, rect, levels=(None, None, None), searched: bool = False) -> None:
+        """Muestra las tarjetas de los rivales de la clave (rival, rival2, own) y la comparativa.
+
+        Una ficha buscada (spec pokemon-search) no se publica en el stream: es una consulta privada.
+        """
         self._last_battle = (key, game, levels)
+        self._searched = searched
         rival, rival2, own = key
         lang = self.config.language
         pairs = [(sid, lvl) for sid, lvl in zip((rival, rival2), levels[:2]) if sid is not None]
@@ -782,8 +792,37 @@ class Controller(QObject):
         own_view = self.pokedex.view(own, game, lang) if own is not None else None
         own_moves, probable = self._own_moves(own_view, levels[2]) if own_view is not None else ([], False)
         self.overlay.show_battle(rivals, own_view, rect, [lvl for _, lvl in pairs], levels[2], own_moves, probable)
-        self._stream_args = (rivals, own_view, [lvl for _, lvl in pairs], own_moves, probable)
-        self._publish_stream()
+        if not searched:
+            self._stream_args = (rivals, own_view, [lvl for _, lvl in pairs], own_moves, probable)
+            self._publish_stream()
+
+    def search_pokemon(self) -> None:
+        """Buscador con atajo global: ficha de cualquier especie fuera del combate (spec pokemon-search)."""
+        if self._search is not None:  # ya abierto: el atajo lo trae delante en vez de abrir otro
+            self._search.raise_()
+            self._search.activateWindow()
+            return
+        lang = get_language()
+        profile = self.profiles.active
+        game = profile.game if profile is not None else None
+        entries = sorted(
+            (name, [(self.pokedex.type_name(t, lang), t) for t in types], (sid, form))
+            for name, types, sid, form in self.pokedex.search_entries(game, lang)
+        )
+        dialog = self._search = SearchDialog(entries, self.pipeline.matcher)
+        self._modal_open = True  # pausa la detección automática mientras se escribe
+        try:
+            accepted = dialog.exec()
+        finally:
+            self._modal_open = False
+            self._search = None
+        if accepted and dialog.choice is not None:
+            sid, form = dialog.choice
+            if form is None:
+                self._form_choice.pop(sid, None)  # nombre escrito a mano: la forma automática del juego
+            else:
+                self._form_choice[sid] = form
+            self._show_battle((sid, None, None), game, self._target_rect(), searched=True)
 
     def _on_auto_failure(self, exc: Exception) -> None:
         self._busy = False

@@ -139,6 +139,7 @@ def test_guardar_secciones_redibuja_la_ficha(qapp, tmp_path, monkeypatch, dex):
     config = Config(hotkey_recognize="Ctrl+Alt+Shift+F20", hotkey_calibrate="Ctrl+Alt+Shift+F21",
                     hotkey_hide="Ctrl+Alt+Shift+F22", hotkey_toggle_mode="Ctrl+Alt+Shift+F18",
                     hotkey_cycle_form="Ctrl+Alt+Shift+F17", hotkey_toggle_stream="Ctrl+Alt+Shift+F16",
+                    hotkey_search="Ctrl+Alt+Shift+F15",
                     updates_check=False, detection_enabled=False)
     c = Controller(qapp, config, dex)
     try:

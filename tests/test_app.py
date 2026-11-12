@@ -32,6 +32,7 @@ def controller(qapp, tmp_path, monkeypatch):
         hotkey_toggle_mode="Ctrl+Alt+Shift+F18",
         hotkey_cycle_form="Ctrl+Alt+Shift+F17",
         hotkey_toggle_stream="Ctrl+Alt+Shift+F16",
+        hotkey_search="Ctrl+Alt+Shift+F15",
         detection_enabled=False,
         hidden_sections_normal=(),  # ficha completa: los tests miran todas las secciones
         hidden_sections_competitive=(),
@@ -214,6 +215,7 @@ def auto_controller(qapp, tmp_path, monkeypatch):
         hotkey_toggle_mode="Ctrl+Alt+Shift+F18",
         hotkey_cycle_form="Ctrl+Alt+Shift+F17",
         hotkey_toggle_stream="Ctrl+Alt+Shift+F16",
+        hotkey_search="Ctrl+Alt+Shift+F15",
         detection_enabled=True,
         detection_interval_ms=200,
         detection_hide_after_seconds=1.0,
@@ -766,3 +768,39 @@ def test_dobles_en_el_orden_de_la_pantalla(controller, monkeypatch, rival2_x, ex
     monkeypatch.setattr(controller.overlay, "show_battle", lambda rivals, *a: shown.append([v.name for v in rivals]))
     controller._show_battle((4, 1, None), "sword-shield", None, (12, 14, None))  # rival Charmander, 2.º Bulbasaur
     assert shown == [expected]
+
+
+def test_buscar_pokemon_muestra_su_ficha_sin_tocar_el_stream(qapp, controller, monkeypatch):
+    from battlelens import app
+    from battlelens.core.profiles import Profile, Region
+
+    opened = []
+
+    class FakeDialog:
+        def __init__(self, entries, matcher):
+            assert ("Rotom Lavado", [("Eléctrico", "electric"), ("Agua", "water")], (479, "rotom-wash")) in entries
+            self.choice = (479, "rotom-wash")  # como elegir la sugerencia «Rotom Lavado»
+            self.raised = 0
+            opened.append(self)
+
+        def exec(self):
+            controller.search_pokemon()  # el atajo otra vez con el buscador abierto
+            return 1
+
+        def raise_(self):
+            self.raised += 1
+
+        def activateWindow(self):
+            pass
+
+    monkeypatch.setattr(app, "SearchDialog", FakeDialog)
+    controller.profiles.save(Profile("Platino", Region(0.6, 0.05, 0.2, 0.05), game="platinum"))
+    controller.search_pokemon()  # como Ctrl+Alt+B
+    qapp.processEvents()
+    assert len(opened) == 1 and opened[0].raised == 1 and controller._search is None  # un solo buscador
+    assert controller.overlay.isVisible() and _card_names(controller, "species-name") == ["Rotom Lavado"]
+    assert controller._last_battle[1] == "platinum"
+    controller.cycle_form()
+    qapp.processEvents()
+    assert _card_names(controller, "species-name") != ["Rotom Lavado"]
+    assert controller._stream_args is None and not controller._modal_open

@@ -511,6 +511,26 @@ class Pokedex:
             )
         return None
 
+    def search_entries(self, game_id: str | None, lang: str) -> list[tuple[str, tuple[str, ...], int, str]]:
+        """(nombre, tipos, especie, forma) de cada forma disponible en el juego, como las muestra `view`
+        con esa forma elegida (spec pokemon-search)."""
+        game = self.get_game(game_id)
+        generation = game.generation if game else CURRENT_GENERATION
+        entries, seen = [], set()
+        for species in self:
+            forms = {f.identifier: f for f in species.forms}
+            for identifier in self.form_cycle(species.id, game_id):
+                form = forms.get(identifier)
+                name = form.name(lang) if form else species.name(lang)
+                # shortcut: PokéAPI repite algún nombre (Zygarde 10%; Darmanitan de Galar Daruma en es/it) y queda
+                # la primera forma; las demás siguen con Ctrl+Alt+F. Corregir el nombre en el dataset si molesta.
+                if name.casefold() in seen:
+                    continue
+                seen.add(name.casefold())
+                types = form.types if form else species.types_in(generation)
+                entries.append((name, types, species.id, identifier))
+        return entries
+
     def form_cycle(self, species_id: int, game_id: str | None = None) -> tuple[str, ...]:
         """Forma mostrada sin elegir seguida de las demás disponibles en el juego (add-alternate-forms D3)."""
         species = self.get_species(species_id)

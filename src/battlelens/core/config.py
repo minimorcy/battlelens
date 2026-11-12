@@ -36,6 +36,8 @@ toggle_mode = {hotkey_toggle_mode}
 cycle_form = {hotkey_cycle_form}
 # Muestra u oculta la ficha del stream (modo stream).
 toggle_stream = {hotkey_toggle_stream}
+# Abre el buscador para ver la ficha de cualquier Pokémon.
+search = {hotkey_search}
 
 [recognition]
 # Puntuación mínima (0-100) para dar por reconocido un nombre.
@@ -121,6 +123,7 @@ class Config:
     overlay_mode: str = "normal"
     hotkey_cycle_form: str = "Ctrl+Alt+F"
     hotkey_toggle_stream: str = "Ctrl+Alt+S"
+    hotkey_search: str = "Ctrl+Alt+B"
     stream_enabled: bool = False
     stream_port: int = 17320
     stream_card_mode: str = "normal"
@@ -166,6 +169,7 @@ class Config:
             overlay_mode=ov.get("mode", default.overlay_mode),
             hotkey_cycle_form=hk.get("cycle_form", default.hotkey_cycle_form),
             hotkey_toggle_stream=hk.get("toggle_stream", default.hotkey_toggle_stream),
+            hotkey_search=hk.get("search", default.hotkey_search),
             stream_enabled=st.get("enabled", default.stream_enabled),
             stream_port=st.get("port", default.stream_port),
             stream_card_mode=st.get("card_mode", default.stream_card_mode),
@@ -190,6 +194,8 @@ class Config:
             raise ConfigError(_("{name} debe ser un texto", name="hotkeys.cycle_form"))
         if not isinstance(self.hotkey_toggle_stream, str):
             raise ConfigError(_("{name} debe ser un texto", name="hotkeys.toggle_stream"))
+        if not isinstance(self.hotkey_search, str):
+            raise ConfigError(_("{name} debe ser un texto", name="hotkeys.search"))
         if not isinstance(self.stream_enabled, bool):
             raise ConfigError(_("{key} debe ser true o false", key="stream.enabled"))
         if not isinstance(self.stream_port, int) or isinstance(self.stream_port, bool) or not 1024 <= self.stream_port <= 65535:

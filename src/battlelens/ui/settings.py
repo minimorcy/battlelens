@@ -45,6 +45,7 @@ HOTKEY_FIELDS = (
     ("hotkey_toggle_mode", N_("Cambiar de modo")),
     ("hotkey_cycle_form", N_("Cambiar de forma")),
     ("hotkey_toggle_stream", N_("Ficha del stream")),
+    ("hotkey_search", N_("Buscar Pokémon")),
 )
 MODE_LABELS = {"normal": N_("Normal (aventura y captura)"), "competitive": N_("Competitivo (combate)")}
 # Idioma de la interfaz: «Español» y «English» son nombres de idioma y no se traducen.
@@ -740,6 +741,7 @@ class SettingsWindow(QWidget):
             hotkey_toggle_mode=self.hotkey_edits["hotkey_toggle_mode"].text().strip(),
             hotkey_cycle_form=self.hotkey_edits["hotkey_cycle_form"].text().strip(),
             hotkey_toggle_stream=self.hotkey_edits["hotkey_toggle_stream"].text().strip(),
+            hotkey_search=self.hotkey_edits["hotkey_search"].text().strip(),
             stream_enabled=self.stream_enabled.isChecked(),
             stream_port=int(self.stream_port.value()),
             stream_card_mode=self.stream_mode.currentData(),

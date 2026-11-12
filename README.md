@@ -42,6 +42,7 @@ BattleLens uses the text recognition that ships with Windows. Almost every PC al
 3. **In every battle the card appears by itself** next to the emulator as soon as the opponent's name is visible (**automatic detection**), and hides a few seconds after the battle ends. It only appears when the opponent's **level** is read next to its name, as on the battle screen, so it doesn't pop up in the Pokédex or on your Pokémon's summary (turn it off in **Settings → Recognition → Only on the battle screen** if your regions don't include the level).
    - If you turn it off from the tray (**Automatic detection** / *Detección automática*), press `Ctrl+Alt+P` to recognise manually.
    - Click **✕** in its top-right corner or press `Ctrl+Alt+H` to hide it. Drag it to move it; click a section title to collapse it.
+   - **Search any Pokémon** at any time with `Ctrl+Alt+B` (or tray → **Search Pokémon…**): type a name and press `Enter` to see its card for the active profile's game.
    - **Mega Evolutions and other forms** (Rotom, Deoxys, Giratina…) show the same name on screen, so press `Ctrl+Alt+F` to cycle through the forms available in that game; the card is recalculated and keeps that form while the Pokémon stays in battle.
 4. **Choose the card mode** (tray → **Card mode** / *Modo de la ficha*, `Ctrl+Alt+M` or *Ajustes*):
    - **Normal** (default): a compact card for adventuring and catching, with types, weaknesses, what it's strong against, highlighted **catch difficulty**, evolution and stat total.
@@ -79,6 +80,7 @@ Everything can be changed from tray → **Settings…** (*Ajustes…*) (changes 
 | `hotkeys.toggle_mode` | `Ctrl+Alt+M` | Switch mode |
 | `hotkeys.cycle_form` | `Ctrl+Alt+F` | Cycle the opponent's form (Mega Evolutions, Rotom…) |
 | `hotkeys.toggle_stream` | `Ctrl+Alt+S` | Show/hide the stream card |
+| `hotkeys.search` | `Ctrl+Alt+B` | Search for a Pokémon |
 | `stream.enabled` | `false` | Stream mode: browser source for OBS |
 | `stream.port` | `17320` | Local port of the OBS source (`http://localhost:17320/`) |
 | `stream.card_mode` | `normal` | Stream card: `normal` or `competitive`, independent of yours |

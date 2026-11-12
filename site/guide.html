@@ -73,6 +73,7 @@
           <li><a href="#modos">Normal y Competitivo</a></li>
           <li><a href="#equipo">Tu Pokémon, tus movimientos y dobles</a></li>
           <li><a href="#formas">Megas y otras formas</a></li>
+          <li><a href="#buscar">Buscar un Pokémon</a></li>
           <li><a href="#a-medida">Tu ficha a medida</a></li>
           <li><a href="#ajustes">Resto de ajustes</a></li>
           <li><a href="#directo">Directo con OBS</a></li>
@@ -145,10 +146,11 @@
           <h2>El menú de la bandeja</h2>
           <p>BattleLens no tiene ventana principal: vive en la bandeja del sistema, junto al reloj (si no lo ves, mira en la flecha <b>^</b>). Haz clic en el icono para abrir el menú; con <b>doble clic</b> se abren los Ajustes.</p>
           <figure class="shot">
-            <img src="assets/guide/es/tray.png" width="350" height="268" loading="lazy" alt="Menú de BattleLens en la bandeja del sistema">
+            <img src="assets/guide/es/tray.png" width="351" height="292" loading="lazy" alt="Menú de BattleLens en la bandeja del sistema">
           </figure>
           <dl class="defs">
             <dt>Reconocer ahora</dt><dd>Lee el nombre del rival en ese momento. Útil si tienes la detección automática apagada.</dd>
+            <dt>Buscar Pokémon…</dt><dd>Abre la ficha de cualquier Pokémon, sin estar en combate. Ver <a href="#buscar">Buscar un Pokémon</a>.</dd>
             <dt>Detección automática</dt><dd>Vigila el combate y muestra la ficha sola. Activada por defecto.</dd>
             <dt>Modo de la ficha</dt><dd>Normal (aventura y captura) o Competitivo (combate). Ver <a href="#modos">Normal y Competitivo</a>.</dd>
             <dt>Modo stream (OBS) · Copiar URL para OBS</dt><dd>Ficha para tu directo. Ver <a href="#directo">Directo con OBS</a>.</dd>
@@ -279,6 +281,20 @@
           </div>
         </section>
 
+        <section class="g-section" id="buscar">
+          <h2>Buscar un Pokémon</h2>
+          <figure class="shot">
+            <img src="assets/guide/es/search.png" width="320" height="104" loading="lazy" alt="Buscador de Pokémon con sugerencias y sus tipos">
+          </figure>
+          <p>Pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> (o bandeja → <b>Buscar Pokémon…</b>) en cualquier momento, escribe un nombre y pulsa <kbd>Enter</kbd>: aparece su ficha, como la de un rival. Sirve para preparar un equipo o mirar al próximo líder sin salir del juego.</p>
+          <ul>
+            <li>Mientras escribes te sugiere nombres, con sus tipos en el juego del perfil activo. Cada forma sale aparte (Rapidash y Rapidash de Galar, Rotom Lavado, Mega-Charizard X…), solo si existe en ese juego, y al elegirla ves la ficha de esa forma. También vale el nombre en otro idioma, sin tildes o con una errata pequeña.</li>
+            <li>La ficha usa el juego del perfil activo (tipos y estadísticas de esa generación) y sale sobre el emulador. Sin perfil, usa los datos actuales y sale en la pantalla principal.</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> cambia de forma y <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> de modo, igual que en combate. La ficha del stream no cambia: la búsqueda es solo para ti.</li>
+            <li><kbd>Esc</kbd> cierra el buscador. Si estás en pantalla completa exclusiva, puede que no aparezca delante: usa la <a href="#emulador">ventana sin bordes</a>.</li>
+          </ul>
+        </section>
+
         <section class="g-section" id="a-medida">
           <h2>Tu ficha a medida</h2>
           <p>En <i>Ajustes › Ficha</i> eliges qué secciones ves en cada modo. De fábrica la ficha es mínima: <b>Normal</b> solo con las eficacias y <b>Competitivo</b> con eficacias y estadísticas. El nombre, los tipos y la captura se ven siempre. La ficha del stream sigue la misma elección.</p>
@@ -327,6 +343,7 @@
               <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd></td><td>Cambiar entre Normal y Competitivo</td></tr>
               <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd></td><td>Cambiar la forma del rival</td></tr>
               <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd></td><td>Mostrar u ocultar la ficha del stream</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd></td><td>Buscar un Pokémon</td></tr>
             </tbody>
           </table>
           <p class="note">Todos necesitan un modificador (Ctrl, Alt, Shift o Win): las teclas F solas las usan los emuladores para los estados guardados.</p>
@@ -432,6 +449,7 @@
           <li><a href="#modes">Normal and Competitive</a></li>
           <li><a href="#team">Your Pokémon, your moves and doubles</a></li>
           <li><a href="#forms">Megas and other forms</a></li>
+          <li><a href="#search">Search for a Pokémon</a></li>
           <li><a href="#customize">Make the card yours</a></li>
           <li><a href="#settings">Other settings</a></li>
           <li><a href="#stream">Streaming with OBS</a></li>
@@ -504,10 +522,11 @@
           <h2>The tray menu</h2>
           <p>BattleLens has no main window: it lives in the system tray, next to the clock (if you can't see it, look under the <b>^</b> arrow). Click the icon to open the menu; <b>double-click</b> it to open Settings.</p>
           <figure class="shot">
-            <img src="assets/guide/en/tray.png" width="334" height="268" loading="lazy" alt="BattleLens menu in the system tray">
+            <img src="assets/guide/en/tray.png" width="335" height="292" loading="lazy" alt="BattleLens menu in the system tray">
           </figure>
           <dl class="defs">
             <dt>Recognize now</dt><dd>Reads the opponent's name right now. Handy if automatic detection is off.</dd>
+            <dt>Search Pokémon…</dt><dd>Opens the card of any Pokémon, outside battle too. See <a href="#search">Search for a Pokémon</a>.</dd>
             <dt>Automatic detection</dt><dd>Watches the battle and shows the card by itself. On by default.</dd>
             <dt>Card mode</dt><dd>Normal (adventure and catching) or Competitive (battle). See <a href="#modes">Normal and Competitive</a>.</dd>
             <dt>Stream mode (OBS) · Copy URL for OBS</dt><dd>A card for your stream. See <a href="#stream">Streaming with OBS</a>.</dd>
@@ -638,6 +657,20 @@
           </div>
         </section>
 
+        <section class="g-section" id="search">
+          <h2>Search for a Pokémon</h2>
+          <figure class="shot">
+            <img src="assets/guide/en/search.png" width="320" height="104" loading="lazy" alt="Pokémon search box with suggestions and their types">
+          </figure>
+          <p>Press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> (or tray → <b>Search Pokémon…</b>) at any time, type a name and press <kbd>Enter</kbd>: its card appears, just like an opponent's. Handy for planning a team or checking the next Gym Leader without leaving the game.</p>
+          <ul>
+            <li>It suggests names as you type, with their types in the active profile's game. Each form is listed on its own (Rapidash and Galarian Rapidash, Wash Rotom, Mega Charizard X…), only if it exists in that game, and picking one shows that form's card. A name in another language, without accents or with a small typo works too.</li>
+            <li>The card uses the active profile's game (that generation's types and stats) and shows over the emulator. Without a profile, it uses current data and shows on the main screen.</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> switches form and <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> switches mode, as in battle. The stream card doesn't change: searches are just for you.</li>
+            <li><kbd>Esc</kbd> closes the search box. In exclusive fullscreen it may not come to the front: use <a href="#emulator">borderless windowed</a>.</li>
+          </ul>
+        </section>
+
         <section class="g-section" id="customize">
           <h2>Make the card yours</h2>
           <p>In <i>Settings › Card</i> you choose which sections each mode shows. Out of the box the card is minimal: <b>Normal</b> shows only type matchups and <b>Competitive</b> shows matchups and stats. The name, types and catch rate are always shown. The stream card follows the same choice.</p>
@@ -686,6 +719,7 @@
               <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd></td><td>Switch between Normal and Competitive</td></tr>
               <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd></td><td>Switch the opponent's form</td></tr>
               <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd></td><td>Show or hide the stream card</td></tr>
+              <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd></td><td>Search for a Pokémon</td></tr>
             </tbody>
           </table>
           <p class="note">They all need a modifier (Ctrl, Alt, Shift or Win): emulators use the plain F keys for save states.</p>

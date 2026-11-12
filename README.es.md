@@ -42,6 +42,7 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
 3. **En cada combate, la ficha aparece sola** junto al emulador en cuanto se ve el nombre del rival (**detección automática**) y se oculta unos segundos después de terminar el combate. Solo aparece si se lee el **nivel** junto al nombre del rival, como en la pantalla de combate, así que no salta en la Pokédex ni en los datos de tus Pokémon (desactívalo en **Ajustes › Reconocimiento → Solo en la pantalla de combate** si tus regiones no incluyen el nivel).
    - Si la desactivas desde la bandeja (**Detección automática**), pulsa `Ctrl+Alt+P` para reconocer a mano.
    - Pulsa **✕** en su esquina superior derecha o `Ctrl+Alt+H` para ocultarla. Arrástrala para moverla; un clic en el título de una sección la pliega.
+   - **Busca cualquier Pokémon** en cualquier momento con `Ctrl+Alt+B` (o bandeja → **Buscar Pokémon…**): escribe un nombre y pulsa `Enter` para ver su ficha con el juego del perfil activo.
    - Las **megaevoluciones y otras formas** (Rotom, Deoxys, Giratina…) muestran el mismo nombre en pantalla, así que pulsa `Ctrl+Alt+F` para alternar entre las formas disponibles en ese juego. La ficha se recalcula y mantiene esa forma mientras el Pokémon siga en combate.
 4. **Elige el modo de la ficha** (bandeja → **Modo de la ficha**, `Ctrl+Alt+M` o Ajustes):
    - **Normal** (por defecto): ficha compacta para la aventura y la captura, con tipos, debilidades, contra qué es fuerte, **dificultad de captura** destacada, evolución y total de estadísticas.
@@ -79,6 +80,7 @@ Todo se puede cambiar desde bandeja → **Ajustes…** (los cambios se aplican a
 | `hotkeys.toggle_mode` | `Ctrl+Alt+M` | Cambiar de modo |
 | `hotkeys.cycle_form` | `Ctrl+Alt+F` | Alternar la forma del rival (megaevoluciones, Rotom…) |
 | `hotkeys.toggle_stream` | `Ctrl+Alt+S` | Mostrar/ocultar la ficha del stream |
+| `hotkeys.search` | `Ctrl+Alt+B` | Buscar un Pokémon |
 | `stream.enabled` | `false` | Modo stream: fuente de navegador para OBS |
 | `stream.port` | `17320` | Puerto local de la fuente para OBS (`http://localhost:17320/`) |
 | `stream.card_mode` | `normal` | Ficha del stream: `normal` o `competitive`, independiente de la tuya |

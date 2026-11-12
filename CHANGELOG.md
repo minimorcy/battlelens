@@ -2,6 +2,16 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versionado [SemVer](https://semver.org/lang/es/).
 
+## [Unreleased]
+
+### Añadido
+- Buscador de Pokémon: pulsa `Ctrl+Alt+B` (o bandeja → «Buscar Pokémon…») en cualquier momento, escribe un nombre y verás su ficha con el juego del perfil activo. Sugiere nombres mientras escribes, con sus tipos en píldoras y una entrada por forma (Rapidash y Rapidash de Galar, megaevoluciones…) según el juego, y acepta nombres en otros idiomas, sin tildes o con erratas pequeñas. La búsqueda no cambia la ficha del stream. El atajo se cambia en Ajustes › Atajos.
+
+### English
+
+**Added**
+- Pokémon search: press `Ctrl+Alt+B` (or tray → "Search Pokémon…") at any time, type a name and see its card for the active profile's game. It suggests names as you type, with their types as pills and one entry per form (Rapidash and Galarian Rapidash, Mega Evolutions…) for the game, and accepts names in other languages, without accents or with small typos. Searches don't change the stream card. Change the shortcut in Settings → Shortcuts.
+
 ## [0.5.0] - 2026-11-12
 
 ### Añadido

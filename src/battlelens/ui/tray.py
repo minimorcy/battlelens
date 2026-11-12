@@ -17,6 +17,7 @@ from .icons import app_icon
 
 class Tray(QObject):
     recognize_requested = pyqtSignal()
+    search_requested = pyqtSignal()
     auto_detect_toggled = pyqtSignal(bool)
     mode_selected = pyqtSignal(str)  # "normal" | "competitive"
     window_selected = pyqtSignal(object)  # WindowInfo
@@ -64,6 +65,7 @@ class Tray(QObject):
     def set_hotkey_hints(self, hotkey_texts: dict[str, str]) -> None:
         self._hotkeys = hotkey_texts
         self._recognize_action.setText(_("Reconocer ahora") + self._hint("recognize"))
+        self._search_action.setText(_("Buscar Pokémon…") + self._hint("search"))
 
     def show_update(self, version: str) -> None:
         self.update_action.setText(_("Descargar BattleLens {version}…", version=version))
@@ -106,6 +108,8 @@ class Tray(QObject):
         m = self.menu
         recognize = self._recognize_action = m.addAction(_("Reconocer ahora") + self._hint("recognize"))
         recognize.triggered.connect(self.recognize_requested)
+        search = self._search_action = m.addAction(_("Buscar Pokémon…") + self._hint("search"))
+        search.triggered.connect(self.search_requested)
         self.auto_detect_action = m.addAction(_("Detección automática"))
         self.auto_detect_action.setCheckable(True)
         self.auto_detect_action.toggled.connect(self.auto_detect_toggled)

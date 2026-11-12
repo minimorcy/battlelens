@@ -48,6 +48,27 @@ def save(widget, name: str, lang: str) -> None:
     print(path.relative_to(ROOT))
 
 
+def save_stacked(top, bottom, name: str, lang: str) -> None:
+    """Captura de una ventana con su lista desplegable debajo (son dos ventanas distintas)."""
+    from PyQt6.QtGui import QColor, QPainter, QPixmap
+    from PyQt6.QtWidgets import QApplication
+
+    for _ in range(5):
+        QApplication.processEvents()
+    first, second = top.grab(), bottom.grab()
+    canvas = QPixmap(max(first.width(), second.width()), first.height() + second.height())  # píxeles reales
+    canvas.fill(QColor("#14161d"))
+    first.setDevicePixelRatio(1)
+    second.setDevicePixelRatio(1)
+    painter = QPainter(canvas)
+    painter.drawPixmap(0, 0, first)
+    painter.drawPixmap(0, first.height(), second)
+    painter.end()
+    path = OUT / lang / name
+    canvas.save(str(path))
+    print(path.relative_to(ROOT))
+
+
 def sync_html_sizes() -> None:
     """Actualiza width/height de las capturas en guide.html (tamaño lógico = la mitad de la imagen)."""
     import re
@@ -69,6 +90,7 @@ def main() -> int:
     os.environ.setdefault("QT_SCALE_FACTOR", "2")
     sys.path.insert(0, str(ROOT / "src"))
     from PyQt6.QtCore import QRect
+    from PyQt6.QtTest import QTest
     from PyQt6.QtWidgets import QApplication, QWidget
 
     app = QApplication([])
@@ -82,7 +104,9 @@ def main() -> int:
     from battlelens.ui.calibrator import CalibrationDialog
     from battlelens.ui.overlay import Overlay
     from battlelens.ui.preset_wizard import PresetWizard
+    from battlelens.core.matcher import NameMatcher
     from battlelens.ui.settings import SettingsWindow
+    from battlelens.ui.search import SearchDialog
     from battlelens.ui.start import StartDialog
     from battlelens.ui.tray import Tray
 
@@ -104,7 +128,7 @@ def main() -> int:
 
         # ---- bandeja ----
         tray = Tray(lambda: windows, lambda: window, lambda: profiles,
-                    {"recognize": "Ctrl+Alt+P", "toggle_mode": "Ctrl+Alt+M"})
+                    {"recognize": "Ctrl+Alt+P", "toggle_mode": "Ctrl+Alt+M", "search": "Ctrl+Alt+B"})
         tray.set_auto_detect(True)
         tray.set_mode("normal")
         tray.set_stream(True, "http://localhost:17320/")
@@ -116,6 +140,15 @@ def main() -> int:
         start.show()
         save(start, "start.png", lang)
         start.close()
+
+        # ---- buscador ----
+        entries = sorted((n, [(dex.type_name(t, lang), t) for t in types], (sid, f))
+                         for n, types, sid, f in dex.search_entries(GAME, lang))
+        search = SearchDialog(entries, NameMatcher(dex))
+        search.show()
+        QTest.keyClicks(search.edit, "rapidash")  # abre las sugerencias, con los tipos en píldoras
+        save_stacked(search, search.edit.completer().popup(), "search.png", lang)
+        search.close()
 
         # ---- ajustes ----
         config = Config(language=lang, interface_language=lang, stream_enabled=True)

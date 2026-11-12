@@ -3,6 +3,11 @@
 EN: dict[str, str] = {
     # ---- bandeja (ui/tray.py) ----
     "Reconocer ahora": "Recognize now",
+    "Buscar Pokémon…": "Search Pokémon…",
+    # ---- buscador (ui/search.py) ----
+    "Buscar Pokémon": "Search Pokémon",
+    "Nombre del Pokémon": "Pokémon name",
+    "No encuentro ese Pokémon.": "Can't find that Pokémon.",
     "Descargar BattleLens {version}…": "Download BattleLens {version}…",
     "Copiar URL para OBS ({url})": "Copy URL for OBS ({url})",
     "Copiar URL para OBS": "Copy URL for OBS",

@@ -91,6 +91,7 @@ def test_controlador_crea_el_informe(qapp, tmp_path, monkeypatch):
     config = Config(hotkey_recognize="Ctrl+Alt+Shift+F20", hotkey_calibrate="Ctrl+Alt+Shift+F21",
                     hotkey_hide="Ctrl+Alt+Shift+F22", hotkey_toggle_mode="Ctrl+Alt+Shift+F18",
                     hotkey_cycle_form="Ctrl+Alt+Shift+F17", hotkey_toggle_stream="Ctrl+Alt+Shift+F16",
+                    hotkey_search="Ctrl+Alt+Shift+F15",
                     updates_check=False, detection_enabled=False)
     controller = Controller(qapp, config, Pokedex.load())
     try:
