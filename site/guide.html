@@ -147,7 +147,7 @@
           <h2>El menú de la bandeja</h2>
           <p>BattleLens no tiene ventana principal: vive en la bandeja del sistema, junto al reloj (si no lo ves, mira en la flecha <b>^</b>). Haz clic en el icono para abrir el menú; con <b>doble clic</b> se abren los Ajustes.</p>
           <figure class="shot">
-            <img src="assets/guide/es/tray.png" width="351" height="316" loading="lazy" alt="Menú de BattleLens en la bandeja del sistema">
+            <img src="assets/guide/es/tray.png" width="351" height="340" loading="lazy" alt="Menú de BattleLens en la bandeja del sistema">
           </figure>
           <dl class="defs">
             <dt>Reconocer ahora</dt><dd>Lee el nombre del rival en ese momento. Útil si tienes la detección automática apagada.</dd>
@@ -158,6 +158,7 @@
             <dt>Modo stream (OBS) · Copiar URL para OBS</dt><dd>Ficha para tu directo. Ver <a href="#directo">Directo con OBS</a>.</dd>
             <dt>Ventana del emulador</dt><dd>La ventana que BattleLens mira. Puede estar tapada por otras ventanas.</dd>
             <dt>Perfil activo</dt><dd>Cambia de perfil o abre <i>Gestionar perfiles…</i>. Al cambiar de juego, su perfil se activa solo.</dd>
+            <dt>Modificar o crear perfil…</dt><dd>Lo mismo que <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd>: recalibrar una región del perfil activo o crear uno nuevo. Ver <a href="#modificar-perfil">Modificar un perfil</a>.</dd>
             <dt>Nuevo perfil con un preset…</dt><dd>La forma más rápida de configurar un juego.</dd>
             <dt>Informar de un problema…</dt><dd>Prepara un ZIP para adjuntarlo en GitHub. Ver <a href="#problemas">Si algo no va bien</a>.</dd>
           </dl>
@@ -314,13 +315,13 @@
         <section class="g-section" id="tabla-tipos">
           <h2>Tabla de tipos</h2>
           <figure class="shot">
-            <img src="assets/guide/es/type-chart.png" width="504" height="476" loading="lazy" alt="Tabla de tipos de la generación 8 con las columnas Psíquico y Hada resaltadas">
+            <img src="assets/guide/es/type-chart.png" width="504" height="476" loading="lazy" alt="Tabla de tipos de la generación 8 con las columnas Psíquico y Hada del rival y la fila Fuego de tu Pokémon resaltadas">
           </figure>
           <p>Pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd> (o bandeja → <b>Tabla de tipos</b>) para tener la chuleta de tipos encima del juego. Vuelve a pulsarlo, o haz clic en su <b>✕</b>, para ocultarla.</p>
           <ul>
             <li>Cada fila es el tipo que <b>ataca</b> y cada columna el que <b>defiende</b>: <b>×2</b> en verde, <b>×½</b> en rojo y <b>×0</b> en gris. Las casillas vacías son ×1. Pasa el ratón por una columna para ver el nombre completo.</li>
             <li>Es la tabla de la <b>generación del juego</b> del perfil activo: en la Gen 1 salen 15 tipos (y Fantasma no afecta a Psíquico), de la Gen 2 a la 5 no hay Hada y Acero resiste Fantasma y Siniestro. Sin perfil, la tabla actual.</li>
-            <li>Con una ficha en pantalla, se <b>resaltan las columnas de los tipos del rival</b> (o del Pokémon buscado): de un vistazo ves qué le pega fuerte.</li>
+            <li>Con una ficha en pantalla, se <b>resaltan las columnas de los tipos del rival</b> (o del Pokémon buscado), y en combates dobles las de los dos rivales a la vez. Si tu perfil lee <b>tu Pokémon</b>, sus tipos se resaltan en <b>amarillo como filas</b>: las casillas donde se cruzan, con borde amarillo, son lo que tus ataques de tu tipo le hacen al rival. La leyenda de arriba indica qué color es de quién.</li>
             <li>Arrástrala a donde quieras; la primera vez sale a la izquierda del emulador. Para cambiar su tamaño, arrastra el <b>tirador de la esquina inferior derecha</b> o usa <kbd>Ctrl</kbd> + rueda del ratón encima (del 60 % al 200 %). Recuerda dónde la dejaste y su tamaño.</li>
             <li>El OCR no la ve, así que puede tapar el nombre del rival.</li>
           </ul>
@@ -555,7 +556,7 @@
           <h2>The tray menu</h2>
           <p>BattleLens has no main window: it lives in the system tray, next to the clock (if you can't see it, look under the <b>^</b> arrow). Click the icon to open the menu; <b>double-click</b> it to open Settings.</p>
           <figure class="shot">
-            <img src="assets/guide/en/tray.png" width="335" height="316" loading="lazy" alt="BattleLens menu in the system tray">
+            <img src="assets/guide/en/tray.png" width="335" height="340" loading="lazy" alt="BattleLens menu in the system tray">
           </figure>
           <dl class="defs">
             <dt>Recognize now</dt><dd>Reads the opponent's name right now. Handy if automatic detection is off.</dd>
@@ -566,6 +567,7 @@
             <dt>Stream mode (OBS) · Copy URL for OBS</dt><dd>A card for your stream. See <a href="#stream">Streaming with OBS</a>.</dd>
             <dt>Emulator window</dt><dd>The window BattleLens watches. Other windows can cover it.</dd>
             <dt>Active profile</dt><dd>Switch profiles or open <i>Manage profiles…</i>. When you change games, its profile activates by itself.</dd>
+            <dt>Edit or create profile…</dt><dd>Same as <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd>: recalibrate a region of the active profile or create a new one. See <a href="#edit-profile">Edit a profile</a>.</dd>
             <dt>New profile from a preset…</dt><dd>The quickest way to set up a game.</dd>
             <dt>Report a problem…</dt><dd>Prepares a ZIP to attach on GitHub. See <a href="#troubleshooting">Troubleshooting</a>.</dd>
           </dl>
@@ -722,13 +724,13 @@
         <section class="g-section" id="type-chart">
           <h2>Type chart</h2>
           <figure class="shot">
-            <img src="assets/guide/en/type-chart.png" width="504" height="476" loading="lazy" alt="Generation 8 type chart with the Psychic and Fairy columns highlighted">
+            <img src="assets/guide/en/type-chart.png" width="504" height="476" loading="lazy" alt="Generation 8 type chart with the opponent's Psychic and Fairy columns and your Pokémon's Fire row highlighted">
           </figure>
           <p>Press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd> (or tray → <b>Type chart</b>) to keep the type cheat sheet over the game. Press it again, or click its <b>✕</b>, to hide it.</p>
           <ul>
             <li>Each row is the <b>attacking</b> type and each column the <b>defending</b> one: <b>×2</b> in green, <b>×½</b> in red and <b>×0</b> in grey. Empty cells are ×1. Hover over a column to see its full name.</li>
             <li>It's the chart for the <b>generation of the active profile's game</b>: Gen 1 has 15 types (and Ghost doesn't affect Psychic), Gens 2 to 5 have no Fairy and Steel resists Ghost and Dark. Without a profile, the current chart.</li>
-            <li>With a card on screen, the <b>columns of the opponent's types are highlighted</b> (or the searched Pokémon's): you see at a glance what hits it hard.</li>
+            <li>With a card on screen, the <b>columns of the opponent's types are highlighted</b> (or the searched Pokémon's), and in double battles both opponents' at once. If your profile reads <b>your Pokémon</b>, its types are highlighted in <b>yellow as rows</b>: the cells where they cross, with a yellow border, are what your own-type attacks do to the opponent. The legend at the top tells you which color is whose.</li>
             <li>Drag it wherever you like; the first time it shows left of the emulator. To resize it, drag the <b>grip in the bottom-right corner</b> or use <kbd>Ctrl</kbd> + mouse wheel over it (60% to 200%). It remembers where you left it and its size.</li>
             <li>The OCR can't see it, so it can cover the opponent's name.</li>
           </ul>

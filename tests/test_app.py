@@ -817,9 +817,13 @@ def test_tabla_de_tipos_con_el_juego_y_los_tipos_de_la_ficha(qapp, controller):
     assert chart.isVisible() and chart.generation == 1 and len(chart.types) == 15 and not chart.highlight
 
     controller._show_battle((94, None, None), "red-blue", None)  # Gengar en Gen 1: Fantasma/Veneno
-    assert chart.highlight == {"ghost", "poison"}
+    assert chart.highlight == {"ghost", "poison"} and not chart.highlight_rows
+    controller._show_battle((94, 74, 6), "red-blue", None)  # dobles con Geodude y tu Charizard
+    assert chart.highlight == {"ghost", "poison", "rock", "ground"}
+    assert chart.highlight_rows == {"fire", "flying"}  # tus tipos: filas (atacas)
+    chart.grab()  # pinta filas, columnas, cruces y leyenda
     controller.hide_overlay()
-    assert not chart.highlight
+    assert not chart.highlight and not chart.highlight_rows
     controller.toggle_type_chart()
     assert not chart.isVisible()
 
@@ -940,3 +944,13 @@ def test_preset_a_mano_recalibra_sin_crear_perfil(controller, monkeypatch):
     monkeypatch.setattr(controller, "calibrate_region", recalibrated.append)
     controller._apply_preset_with(profile, np.zeros((720, 1280, 3), dtype=np.uint8))
     assert asked == [False] and recalibrated == ["rival"] and len(controller.profiles.profiles) == 1
+
+
+def test_bandeja_modificar_o_crear_perfil(controller, monkeypatch):
+    calls = []
+    monkeypatch.setattr(controller, "calibrate", lambda: calls.append("calibrate"))
+    controller.tray.calibrate_requested.disconnect()
+    controller.tray.calibrate_requested.connect(controller.calibrate)
+    assert "Ctrl+Alt+Shift+F21" in controller.tray._calibrate_action.text()  # pista del atajo de calibrar
+    controller.tray._calibrate_action.trigger()
+    assert calls == ["calibrate"]

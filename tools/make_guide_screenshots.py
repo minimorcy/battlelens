@@ -129,7 +129,8 @@ def main() -> int:
 
         # ---- bandeja ----
         tray = Tray(lambda: windows, lambda: window, lambda: profiles,
-                    {"recognize": "Ctrl+Alt+P", "toggle_mode": "Ctrl+Alt+M", "search": "Ctrl+Alt+B"})
+                    {"recognize": "Ctrl+Alt+P", "toggle_mode": "Ctrl+Alt+M", "search": "Ctrl+Alt+B",
+                     "type_chart": "Ctrl+Alt+T", "calibrate": "Ctrl+Alt+C"})
         tray.set_auto_detect(True)
         tray.set_mode("normal")
         tray.set_stream(True, "http://localhost:17320/")
@@ -162,12 +163,12 @@ def main() -> int:
         save(recalibrate, "recalibrate.png", lang)
         recalibrate.close()
 
-        # ---- tabla de tipos (con un Rapidash de Galar en la ficha) ----
+        # ---- tabla de tipos (Rapidash de Galar contra tu Scorbunny) ----
         generation = dex.get_game(GAME).generation
         chart = dex.type_chart(generation)
         type_chart = TypeChartWindow()
         type_chart.set_chart(chart, {t: dex.type_name(t, lang) for t in chart}, generation)
-        type_chart.set_highlight(("psychic", "fairy"))
+        type_chart.set_highlight(("psychic", "fairy"), ("fire",))
         type_chart.show()
         save(type_chart, "type-chart.png", lang)
         type_chart.close()

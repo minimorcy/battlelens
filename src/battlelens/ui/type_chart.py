@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from PyQt6.QtCore import QPoint, QPointF, QRect, QRectF, Qt, pyqtSignal
-from PyQt6.QtGui import QColor, QFont, QGuiApplication, QMouseEvent, QPainter, QPen, QWheelEvent
+from PyQt6.QtGui import QColor, QFont, QFontMetrics, QGuiApplication, QMouseEvent, QPainter, QPen, QWheelEvent
 from PyQt6.QtWidgets import QToolTip, QWidget
 
 from ..i18n import _
@@ -24,6 +24,8 @@ WHEEL_STEP = 0.1
 _DRAG_THRESHOLD = 4
 CELL_COLORS = {2.0: theme.GOOD, 0.5: theme.BAD, 0.0: "#3a3d4a"}
 CELL_TEXT = {2.0: "#10131a", 0.5: "#ffffff", 0.0: "#e8e8ee"}
+RIVAL_TINT = QColor(255, 255, 255, 34)  # columnas: tipos del rival (defiende)
+OWN_COLOR = theme.ACCENT  # filas: tipos de tu Pokémon (ataca)
 
 
 def abbreviation(label: str) -> str:
@@ -49,7 +51,8 @@ class TypeChartWindow(QWidget):
         self.labels: dict[str, str] = {}
         self.chart: dict[str, dict[str, float]] = {}
         self.generation = 0
-        self.highlight: frozenset[str] = frozenset()
+        self.highlight: frozenset[str] = frozenset()  # columnas: tipos de los rivales
+        self.highlight_rows: frozenset[str] = frozenset()  # filas: tipos de tu Pokémon
         self.saved_pos: QPoint | None = None
         self.scale = 1.0
         self._base = QRect()
@@ -74,8 +77,10 @@ class TypeChartWindow(QWidget):
         self.setFixedSize(round(self._base.width() * self.scale), round(self._base.height() * self.scale))
         self.update()
 
-    def set_highlight(self, types: Iterable[str]) -> None:
-        self.highlight = frozenset(types)
+    def set_highlight(self, defending: Iterable[str], attacking: Iterable[str] = ()) -> None:
+        """Columnas de los tipos del rival y filas de los de tu Pokémon; el cruce es tu ataque contra él."""
+        self.highlight = frozenset(defending)
+        self.highlight_rows = frozenset(attacking)
         self.update()
 
     def cell(self, attacker: str, defender: str) -> str:
@@ -159,6 +164,7 @@ class TypeChartWindow(QWidget):
                    _("Tabla de tipos · Gen {generation}", generation=self.generation))
         p.setPen(QColor(theme.TEXT_MUTED))
         p.drawText(self._close_rect(), Qt.AlignmentFlag.AlignCenter, "✕")
+        self._legend(p)
 
         small = QFont(self.font())
         small.setPixelSize(9)
@@ -169,21 +175,28 @@ class TypeChartWindow(QWidget):
                    Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, _("Defiende →") + "\n" + _("Ataca ↓"))
 
         n = len(self.types)
-        for col, defender in enumerate(self.types):  # columnas resaltadas: los tipos de la ficha
+        p.setPen(Qt.PenStyle.NoPen)
+        for col, defender in enumerate(self.types):  # columnas resaltadas: los tipos del rival
             if defender in self.highlight:
                 x = origin.x() + col * CELL
-                p.setPen(Qt.PenStyle.NoPen)
-                p.setBrush(QColor(255, 255, 255, 34))
+                p.setBrush(RIVAL_TINT)
                 p.drawRoundedRect(QRectF(x, origin.y() - COL_HEAD_H, CELL, COL_HEAD_H + n * CELL + 2), 4, 4)
+        for row, attacker in enumerate(self.types):  # filas resaltadas: los tipos de tu Pokémon
+            if attacker in self.highlight_rows:
+                own = QColor(OWN_COLOR)
+                own.setAlpha(40)
+                p.setBrush(own)
+                p.drawRoundedRect(QRectF(PAD - 4, origin.y() + row * CELL, ROW_HEAD_W - 4 + n * CELL + 6, CELL), 4, 4)
 
         for col, defender in enumerate(self.types):
             x = origin.x() + col * CELL
             self._pill(p, QRectF(x + 1, origin.y() - COL_HEAD_H + 4, CELL - 2, 16), defender,
-                       abbreviation(self.labels.get(defender, defender)), defender in self.highlight)
+                       abbreviation(self.labels.get(defender, defender)),
+                       "#ffffff" if defender in self.highlight else None)
         for row, attacker in enumerate(self.types):
             y = origin.y() + row * CELL
             self._pill(p, QRectF(PAD, y + 3, ROW_HEAD_W - 8, CELL - 6), attacker,
-                       self.labels.get(attacker, attacker), False)
+                       self.labels.get(attacker, attacker), OWN_COLOR if attacker in self.highlight_rows else None)
             for col, defender in enumerate(self.types):
                 rect = QRectF(origin.x() + col * CELL + 1, y + 1, CELL - 2, CELL - 2)
                 factor = self.chart[attacker][defender]
@@ -197,15 +210,44 @@ class TypeChartWindow(QWidget):
                     p.setPen(Qt.PenStyle.NoPen)
                     p.setBrush(QColor(255, 255, 255, 8))
                     p.drawRoundedRect(rect, 3, 3)
+                if attacker in self.highlight_rows and defender in self.highlight:  # tu ataque contra el rival
+                    p.setPen(QPen(QColor(OWN_COLOR), 2))
+                    p.setBrush(Qt.BrushStyle.NoBrush)
+                    p.drawRoundedRect(rect.adjusted(-0.5, -0.5, 0.5, 0.5), 3, 3)
         grip = self._grip_rect()  # tres rayas en diagonal, como el tirador de una ventana
         p.setPen(QPen(QColor(theme.TEXT_MUTED), 1.2))
         for offset in (4, 8, 12):
             p.drawLine(grip.right() - offset, grip.bottom(), grip.right(), grip.bottom() - offset)
         p.end()
 
+    def _legend(self, p: QPainter) -> None:
+        """«▮ Rival · ▮ Tú» a la derecha del título, solo con algo resaltado."""
+        items = []
+        if self.highlight:
+            items.append((QColor(255, 255, 255, 120), _("Rival")))
+        if self.highlight_rows:
+            items.append((QColor(OWN_COLOR), _("Tú")))
+        if not items:
+            return
+        font = QFont(self.font())
+        font.setPixelSize(10)
+        font.setWeight(QFont.Weight.DemiBold)
+        p.setFont(font)
+        metrics = QFontMetrics(font)
+        right = self._close_rect().left() - 10
+        y = PAD + (TITLE_H - 6) // 2
+        for color, label in reversed(items):
+            width = metrics.horizontalAdvance(label)
+            p.setPen(QColor(theme.TEXT_MUTED))
+            p.drawText(QRect(right - width, y - 8, width, 16), Qt.AlignmentFlag.AlignVCenter, label)
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(color)
+            p.drawRoundedRect(QRectF(right - width - 14, y - 4, 9, 9), 2, 2)
+            right -= width + 26
+
     @staticmethod
-    def _pill(p: QPainter, rect: QRectF, type_id: str, text: str, outlined: bool) -> None:
-        p.setPen(QPen(QColor("#ffffff"), 1.5) if outlined else Qt.PenStyle.NoPen)
+    def _pill(p: QPainter, rect: QRectF, type_id: str, text: str, outline: str | None) -> None:
+        p.setPen(QPen(QColor(outline), 1.5) if outline else Qt.PenStyle.NoPen)
         p.setBrush(QColor(theme.TYPE_COLORS.get(type_id, "#555")))
         p.drawRoundedRect(rect, rect.height() / 2, rect.height() / 2)
         p.setPen(QColor("#1b1b1b" if type_id in theme.DARK_TEXT_TYPES else "#ffffff"))

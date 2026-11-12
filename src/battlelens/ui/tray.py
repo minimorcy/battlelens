@@ -18,6 +18,7 @@ from .icons import app_icon
 class Tray(QObject):
     recognize_requested = pyqtSignal()
     search_requested = pyqtSignal()
+    calibrate_requested = pyqtSignal()  # modificar o crear perfil, como el atajo de calibrar
     type_chart_requested = pyqtSignal()
     auto_detect_toggled = pyqtSignal(bool)
     mode_selected = pyqtSignal(str)  # "normal" | "competitive"
@@ -68,6 +69,7 @@ class Tray(QObject):
         self._recognize_action.setText(_("Reconocer ahora") + self._hint("recognize"))
         self._search_action.setText(_("Buscar Pokémon…") + self._hint("search"))
         self._type_chart_action.setText(_("Tabla de tipos") + self._hint("type_chart"))
+        self._calibrate_action.setText(_("Modificar o crear perfil…") + self._hint("calibrate"))
 
     def show_update(self, version: str) -> None:
         self.update_action.setText(_("Descargar BattleLens {version}…", version=version))
@@ -138,6 +140,8 @@ class Tray(QObject):
         self._windows_menu.aboutToShow.connect(self._populate_windows)
         self._profiles_menu = m.addMenu(_("Perfil activo"))
         self._profiles_menu.aboutToShow.connect(self._populate_profiles)
+        calibrate = self._calibrate_action = m.addAction(_("Modificar o crear perfil…") + self._hint("calibrate"))
+        calibrate.triggered.connect(self.calibrate_requested)
         m.addAction(_("Nuevo perfil con un preset…")).triggered.connect(self.preset_requested)
         m.addSeparator()
         self.install_ocr_action = m.addAction(_("Instalar OCR de Windows…"))

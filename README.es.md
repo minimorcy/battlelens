@@ -44,7 +44,7 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
    - Pulsa **✕** en su esquina superior derecha o `Ctrl+Alt+H` para ocultarla. Arrástrala para moverla; un clic en el título de una sección la pliega.
    - **Busca cualquier Pokémon** en cualquier momento con `Ctrl+Alt+B` (o bandeja → **Buscar Pokémon…**): escribe un nombre y pulsa `Enter` para ver su ficha con el juego del perfil activo.
    - **Modifica un perfil en vez de crear otro**: con un perfil activo, `Ctrl+Alt+C` pregunta qué región recalibrar (o si crear un perfil nuevo); renómbralo o aplícale un preset en **Ajustes › Perfiles**.
-   - **Tabla de tipos** de la generación de tu juego con `Ctrl+Alt+T` (o bandeja → **Tabla de tipos**), con los tipos del rival resaltados.
+   - **Tabla de tipos** de la generación de tu juego con `Ctrl+Alt+T` (o bandeja → **Tabla de tipos**), con los tipos del rival (columnas) y los tuyos (filas) resaltados.
    - Las **megaevoluciones y otras formas** (Rotom, Deoxys, Giratina…) muestran el mismo nombre en pantalla, así que pulsa `Ctrl+Alt+F` para alternar entre las formas disponibles en ese juego. La ficha se recalcula y mantiene esa forma mientras el Pokémon siga en combate.
 4. **Elige el modo de la ficha** (bandeja → **Modo de la ficha**, `Ctrl+Alt+M` o Ajustes):
    - **Normal** (por defecto): ficha compacta para la aventura y la captura, con tipos, debilidades, contra qué es fuerte, **dificultad de captura** destacada, evolución y total de estadísticas.

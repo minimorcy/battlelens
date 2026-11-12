@@ -11,6 +11,7 @@ EN: dict[str, str] = {
     # ---- editar perfiles (edit-existing-profiles) ----
     "¿Qué quieres recalibrar en «{name}»?": "What do you want to recalibrate in \"{name}\"?",
     "Crear un perfil nuevo…": "Create a new profile…",
+    "Modificar o crear perfil…": "Edit or create profile…",
     "Aplicar un preset…": "Apply a preset…",
     "Nombre": "Name",
     "Preset": "Preset",

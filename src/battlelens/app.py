@@ -177,6 +177,7 @@ class Controller(QObject):
         )
         self.tray.recognize_requested.connect(self.recognize)
         self.tray.search_requested.connect(self.search_pokemon)
+        self.tray.calibrate_requested.connect(self.calibrate)
         self.tray.type_chart_requested.connect(self.toggle_type_chart)
         self.tray.auto_detect_toggled.connect(self.set_auto_detect)
         self.tray.mode_selected.connect(self.set_mode)
@@ -808,7 +809,8 @@ class Controller(QObject):
         own_view = self.pokedex.view(own, game, lang) if own is not None else None
         own_moves, probable = self._own_moves(own_view, levels[2]) if own_view is not None else ([], False)
         self.overlay.show_battle(rivals, own_view, rect, [lvl for _, lvl in pairs], levels[2], own_moves, probable)
-        self.type_chart.set_highlight(t for view in rivals for t in view.types)  # tras mostrarla: su hide la limpia
+        self.type_chart.set_highlight((t for view in rivals for t in view.types),  # tras mostrarla: su hide la limpia
+                                      own_view.types if own_view is not None else ())
         if not searched:
             self._stream_args = (rivals, own_view, [lvl for _, lvl in pairs], own_moves, probable)
             self._publish_stream()

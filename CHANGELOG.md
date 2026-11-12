@@ -6,19 +6,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ### Añadido
 - Buscador de Pokémon: pulsa `Ctrl+Alt+B` (o bandeja → «Buscar Pokémon…») en cualquier momento, escribe un nombre y verás su ficha con el juego del perfil activo. Sugiere nombres mientras escribes, con sus tipos en píldoras y una entrada por forma (Rapidash y Rapidash de Galar, megaevoluciones…) según el juego, y acepta nombres en otros idiomas, sin tildes o con erratas pequeñas. La búsqueda no cambia la ficha del stream. El atajo se cambia en Ajustes › Atajos.
-- Tabla de tipos: `Ctrl+Alt+T` (o bandeja → «Tabla de tipos») muestra una chuleta flotante con la tabla de la generación del juego del perfil activo (15, 17 o 18 tipos y sus excepciones). Con una ficha en pantalla, resalta las columnas de los tipos del rival. Se reescala con el tirador de su esquina o con `Ctrl` + rueda y recuerda su sitio y tamaño. El OCR no la ve.
+- Tabla de tipos: `Ctrl+Alt+T` (o bandeja → «Tabla de tipos») muestra una chuleta flotante con la tabla de la generación del juego del perfil activo (15, 17 o 18 tipos y sus excepciones). Con una ficha en pantalla, resalta las columnas de los tipos del rival (de los dos en dobles) y, si el perfil lee tu Pokémon, sus tipos como filas en amarillo, con las casillas de cruce marcadas. Se reescala con el tirador de su esquina o con `Ctrl` + rueda y recuerda su sitio y tamaño. El OCR no la ve.
 
 ### Cambiado
-- Modificar un perfil en vez de crear otro: con un perfil activo, `Ctrl+Alt+C` pregunta qué región recalibrar (Rival, 2.º rival, Tu Pokémon o Menú de ataques) o si crear un perfil nuevo. En Ajustes › Perfiles → Perfil activo se puede cambiar el nombre y reaplicar un preset («Aplicar un preset…») conservando el perfil.
+- Modificar un perfil en vez de crear otro: con un perfil activo, `Ctrl+Alt+C` pregunta qué región recalibrar (Rival, 2.º rival, Tu Pokémon o Menú de ataques) o si crear un perfil nuevo. En Ajustes › Perfiles → Perfil activo se puede cambiar el nombre y reaplicar un preset («Aplicar un preset…») conservando el perfil. La bandeja tiene «Modificar o crear perfil…», que hace lo mismo que el atajo.
 
 ### English
 
 **Added**
 - Pokémon search: press `Ctrl+Alt+B` (or tray → "Search Pokémon…") at any time, type a name and see its card for the active profile's game. It suggests names as you type, with their types as pills and one entry per form (Rapidash and Galarian Rapidash, Mega Evolutions…) for the game, and accepts names in other languages, without accents or with small typos. Searches don't change the stream card. Change the shortcut in Settings → Shortcuts.
-- Type chart: `Ctrl+Alt+T` (or tray → "Type chart") shows a floating cheat sheet with the chart for the active profile's game generation (15, 17 or 18 types and their exceptions). With a card on screen, it highlights the opponent's type columns. Resize it with its corner grip or `Ctrl` + mouse wheel; it remembers its place and size. The OCR can't see it.
+- Type chart: `Ctrl+Alt+T` (or tray → "Type chart") shows a floating cheat sheet with the chart for the active profile's game generation (15, 17 or 18 types and their exceptions). With a card on screen, it highlights the opponent's type columns (both opponents' in doubles) and, if the profile reads your Pokémon, its types as yellow rows, with the crossing cells marked. Resize it with its corner grip or `Ctrl` + mouse wheel; it remembers its place and size. The OCR can't see it.
 
 **Changed**
-- Edit a profile instead of creating another: with an active profile, `Ctrl+Alt+C` asks which region to recalibrate (Opponent, 2nd opponent, Your Pokémon or Moves menu) or whether to create a new profile. In Settings → Profiles → Active profile you can rename it and re-apply a preset ("Apply a preset…") keeping the profile.
+- Edit a profile instead of creating another: with an active profile, `Ctrl+Alt+C` asks which region to recalibrate (Opponent, 2nd opponent, Your Pokémon or Moves menu) or whether to create a new profile. In Settings → Profiles → Active profile you can rename it and re-apply a preset ("Apply a preset…") keeping the profile. The tray has "Edit or create profile…", which does the same as the shortcut.
 
 ## [0.5.0] - 2026-11-12
 
