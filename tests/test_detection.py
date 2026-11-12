@@ -107,3 +107,11 @@ def test_huellas_de_distinta_forma_son_distintas():
     detector = BattleDetector(fingerprint_distance, hide_after_seconds=4.0)
     detector.on_frame(a, 0.0)
     detector.on_frame(b, 0.5)  # no lanza ValueError
+
+
+def test_solo_cuentan_los_rivales_con_nivel():
+    from battlelens.core.detection import default_has_rival, with_levels_only
+
+    assert with_levels_only((25, 7, 4), (12, None, 15)) == (25, None, 4)  # combate: el 2.º sin nivel no cuenta
+    pokedex = with_levels_only((None, 173, None), (None, None, None))  # Pokédex: un nombre sin nivel
+    assert pokedex == (None, None, None) and not default_has_rival(pokedex)

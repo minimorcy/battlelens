@@ -32,14 +32,14 @@ BattleLens uses the text recognition that ships with Windows. Almost every PC al
 
 ### Usage
 
-1. Find the BattleLens icon in the system tray (next to the clock) and choose **Emulator window** (*Ventana del emulador*).
+1. When BattleLens opens, the **start screen** asks for the **Emulator window** (*Ventana del emulador*), your game's profile and the card mode, then **Start**. You can change them later from the icon in the system tray (next to the clock), and turn the start screen off in **Settings → General**.
 2. **Set up the game** (once per game), during a battle:
    - **With a preset** (easiest): tray → **New profile from a preset…** (*Nuevo perfil con un preset…*). BattleLens finds the game image in the emulator window and draws where it will read the opponent's name, yours and the moves menu, with what it reads in each box. If the boxes sit on the names, click **Save profile**; if not, **Adjust the game image** or **Calibrate manually**. Presets: Red/Blue/Yellow, Gold/Silver/Crystal, Ruby/Sapphire/Emerald, FireRed/LeafGreen, Diamond/Pearl/Platinum, HeartGold/SoulSilver, Black/White (2) and Sword/Shield.
    - **Manually**: press `Ctrl+Alt+C`, draw a rectangle around the **opponent's name** (the tighter, the better) and press `Enter`. Then do the same, optionally, for **your Pokémon's name** and the **moves menu** (*Capture again* takes a new screenshot once you open the Fight menu; `Esc` skips the step). BattleLens suggests the profile name and the game from the window title.
    - With the game set, the card uses its **regional forms** (Alola, Galar, Hisui, Paldea) and the types and type chart of **its generation**.
    - When you switch games, the matching profile **is activated automatically**.
    - To change a profile's game: **Settings → Profiles** (*Ajustes › Perfiles*) → **Game**.
-3. **In every battle the card appears by itself** next to the emulator as soon as the opponent's name is visible (**automatic detection**), and hides a few seconds after the battle ends.
+3. **In every battle the card appears by itself** next to the emulator as soon as the opponent's name is visible (**automatic detection**), and hides a few seconds after the battle ends. It only appears when the opponent's **level** is read next to its name, as on the battle screen, so it doesn't pop up in the Pokédex or on your Pokémon's summary (turn it off in **Settings → Recognition → Only on the battle screen** if your regions don't include the level).
    - If you turn it off from the tray (**Automatic detection** / *Detección automática*), press `Ctrl+Alt+P` to recognise manually.
    - Click **✕** in its top-right corner or press `Ctrl+Alt+H` to hide it. Drag it to move it; click a section title to collapse it.
    - **Mega Evolutions and other forms** (Rotom, Deoxys, Giratina…) show the same name on screen, so press `Ctrl+Alt+F` to cycle through the forms available in that game; the card is recalculated and keeps that form while the Pokémon stays in battle.

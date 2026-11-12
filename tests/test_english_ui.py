@@ -150,3 +150,15 @@ def test_cambio_de_idioma_en_caliente(qapp, tmp_path, monkeypatch, dex):
         controller.hotkeys.stop()
         controller.tray.hide()
         controller.overlay.close()
+
+
+def test_pantalla_de_inicio_en_ingles(qapp, english):
+    from battlelens.core.profiles import Profile, Region
+    from battlelens.ui.start import StartDialog
+
+    profile = Profile("Sword", Region(0.1, 0.1, 0.2, 0.05))
+    dialog = StartDialog(lambda: [], lambda: None, lambda: ([profile], profile.id), "normal", True, True)
+    texts = _texts(dialog)
+    assert "Before you play" in texts and "Start" in texts and "New profile from a preset…" in texts
+    assert not _spanish(texts), _spanish(texts)
+    dialog.close()

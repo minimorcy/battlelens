@@ -2,6 +2,22 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versionado [SemVer](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Añadido
+- Pantalla de inicio al abrir la app: eliges la ventana del emulador, el perfil (o creas uno con un preset), el modo de la ficha y la detección automática, y pulsas «Empezar». Se puede quitar en Ajustes › General.
+
+### Cambiado
+- La detección automática solo muestra la ficha si lee el nivel junto al nombre del rival, como en la pantalla de combate: ya no salta en la Pokédex ni en los datos de tus Pokémon. Se desactiva en Ajustes › Reconocimiento → «Solo en la pantalla de combate» (para regiones sin el nivel).
+
+### English
+
+**Added**
+- Start screen when the app opens: pick the emulator window, the profile (or create one from a preset), the card mode and automatic detection, then click "Start". It can be turned off in Settings → General.
+
+**Changed**
+- Automatic detection only shows the card when it reads the level next to the opponent's name, as on the battle screen: it no longer pops up in the Pokédex or on your Pokémon's summary. Turn it off in Settings → Recognition → "Only on the battle screen" (for regions without the level).
+
 ## [0.4.0] - 2026-10-16
 
 ### Añadido

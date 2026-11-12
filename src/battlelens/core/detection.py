@@ -32,6 +32,12 @@ def default_has_rival(key: Hashable | None) -> bool:
     return True
 
 
+def with_levels_only(key: tuple, levels: tuple) -> tuple:
+    """(rival, 2.º rival, tu Pokémon) sin los rivales leídos sin nivel: en combate el nivel va junto al
+    nombre; en la Pokédex o en los datos del Pokémon sale el nombre, pero no el nivel (detection.require_level)."""
+    return (*(sid if level is not None else None for sid, level in zip(key[:2], levels[:2])), *key[2:])
+
+
 @dataclass
 class _Shown:
     key: Hashable

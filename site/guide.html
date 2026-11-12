@@ -65,6 +65,7 @@
           <li><a href="#rapido">Empieza en 3 minutos</a></li>
           <li><a href="#instalar">Instalar</a></li>
           <li><a href="#emulador">Prepara el emulador</a></li>
+          <li><a href="#inicio">La pantalla de inicio</a></li>
           <li><a href="#bandeja">El menú de la bandeja</a></li>
           <li><a href="#perfil">Configurar tu juego con un preset</a></li>
           <li><a href="#calibrar">Calibrar a mano</a></li>
@@ -87,7 +88,7 @@
           <ol class="quick">
             <li><b>Instala</b> BattleLens y ábrelo: aparece un icono junto al reloj.</li>
             <li><b>Abre tu emulador</b> (en ventana o a pantalla completa <a href="#emulador">sin bordes</a>) y entra en un combate, con los nombres en pantalla.</li>
-            <li>Bandeja → <b>Ventana del emulador</b> → elige tu emulador.</li>
+            <li>En la <a href="#inicio">pantalla de inicio</a> que sale al abrir BattleLens, elige tu emulador en <b>Ventana del emulador</b>.</li>
             <li>Bandeja → <b>Nuevo perfil con un preset…</b> → comprueba que los recuadros caen sobre los nombres → <b>Guardar perfil</b>.</li>
             <li><b>Juega.</b> En cada combate la ficha del rival aparece sola y se oculta al terminar.</li>
           </ol>
@@ -123,6 +124,21 @@
             <dt>Otros</dt><dd>Si tu emulador no tiene esta opción, su pantalla completa suele ser ya sin bordes.</dd>
           </dl>
           <p class="tip">¿No sabes cuál usa? Con el emulador a pantalla completa, pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> en un combate. Si la ficha no aparece y en ventana sí, es pantalla completa exclusiva. Mientras tanto, la ventana maximizada siempre funciona.</p>
+        </section>
+
+        <section class="g-section" id="inicio">
+          <h2>La pantalla de inicio</h2>
+          <p>Cada vez que abres BattleLens aparece una pantalla para dejarlo todo listo antes de jugar:</p>
+          <figure class="shot">
+            <img src="assets/guide/es/start.png" width="590" height="467" loading="lazy" alt="Pantalla de inicio con la ventana del emulador, el perfil, el modo de la ficha y la detección automática">
+          </figure>
+          <dl class="defs">
+            <dt>Ventana del emulador</dt><dd>La ventana en la que se ve el juego. Si acabas de abrir el emulador, pulsa <b>↻</b> para actualizar la lista. Si el título dice el juego, se activa solo su perfil.</dd>
+            <dt>Perfil</dt><dd>El de tu juego. ¿Aún no tienes? <b>Nuevo perfil con un preset…</b> lo crea sin salir de aquí (entra antes en un combate).</dd>
+            <dt>Modo de la ficha</dt><dd><a href="#modos">Normal o Competitivo</a>.</dd>
+            <dt>Detección automática</dt><dd>La ficha aparece sola en cada combate.</dd>
+          </dl>
+          <p>Pulsa <b>Empezar</b> y a jugar. Todo se puede cambiar luego desde la bandeja o en Ajustes. Si no quieres verla, apaga <b>Mostrar al abrir la app</b> (o <i>Ajustes › General → Pantalla de inicio</i>).</p>
         </section>
 
         <section class="g-section" id="bandeja">
@@ -178,7 +194,7 @@
             <li>Revisa el nombre y el juego propuestos y acepta.</li>
           </ol>
           <figure class="shot">
-            <img src="assets/guide/es/calibrate.jpg" width="836" height="505" loading="lazy" alt="Calibración a mano con un recuadro amarillo sobre el nombre del rival">
+            <img src="assets/guide/es/calibrate.jpg" width="758" height="521" loading="lazy" alt="Calibración a mano con un recuadro amarillo sobre el nombre del rival">
           </figure>
           <p class="tip">Si vas a usar el modo <b>Competitivo</b>, incluye el <b>nivel</b> en el recuadro: BattleLens lo necesita para calcular las estadísticas reales y los movimientos probables.</p>
         </section>
@@ -284,15 +300,16 @@
           <figure class="shot">
             <img src="assets/guide/es/settings-general.png" width="880" height="600" loading="lazy" alt="Ajustes, sección General">
           </figure>
-          <p><b>Idioma de la interfaz</b> (menús, avisos y textos de la ficha): automático según Windows, español o inglés. <b>Buscar actualizaciones</b> una vez al día. <b>Abrir carpeta</b> de datos (configuración, perfiles, registro) y <b>Crear informe…</b> si algo falla.</p>
+          <p><b>Idioma de la interfaz</b> (menús, avisos y textos de la ficha): automático según Windows, español o inglés. <b>Buscar actualizaciones</b> una vez al día. <b>Pantalla de inicio</b> al abrir la app (ver <a href="#inicio">La pantalla de inicio</a>). <b>Abrir carpeta</b> de datos (configuración, perfiles, registro) y <b>Crear informe…</b> si algo falla.</p>
 
           <h3>Reconocimiento</h3>
           <figure class="shot">
-            <img src="assets/guide/es/settings-recognition.png" width="880" height="600" loading="lazy" alt="Ajustes, sección Reconocimiento">
+            <img src="assets/guide/es/settings-recognition.png" width="880" height="670" loading="lazy" alt="Ajustes, sección Reconocimiento">
           </figure>
           <dl class="defs">
             <dt>Umbral de reconocimiento</dt><dd>Lo seguro que debe estar BattleLens para dar un nombre por bueno (80 por defecto). Bájalo si no reconoce nombres que se leen bien; súbelo si confunde Pokémon.</dd>
             <dt>Guardar recortes de depuración</dt><dd>Guarda cada recorte y lo que leyó el OCR. Útil para <a href="#problemas">diagnosticar</a>.</dd>
+            <dt>Solo en la pantalla de combate</dt><dd>La ficha sale sola solo si se lee el <b>nivel</b> junto al nombre del rival, como en la barra de vida del combate. Así no salta en la Pokédex ni en los datos de tus Pokémon. Viene activada; desactívala si tus regiones no incluyen el nivel. <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> funciona siempre.</dd>
             <dt>Intervalo de vigilancia</dt><dd>Cada cuánto se mira la región del nombre (500 ms).</dd>
             <dt>Ocultar al terminar el combate tras</dt><dd>Segundos sin ver al rival hasta ocultar la ficha (4 s; 0 = nunca).</dd>
           </dl>
@@ -342,6 +359,7 @@
             <ul>
               <li>Comprueba en la bandeja que la <i>Ventana del emulador</i> es la correcta y que hay un <i>Perfil activo</i>.</li>
               <li>Comprueba que la <i>Detección automática</i> está activada, o pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>.</li>
+              <li>¿Tu región del rival no incluye el nivel? Con <i>Solo en la pantalla de combate</i> activado no saldrá sola: recalíbrala con el nivel dentro o desactiva esa opción en <i>Ajustes › Reconocimiento</i>.</li>
               <li>¿Has minimizado el emulador? BattleLens lee la ventana aunque esté tapada, pero no si está minimizada.</li>
               <li>¿Solo falla a pantalla completa? Si el emulador usa <b>pantalla completa exclusiva</b>, Windows no dibuja ninguna otra ventana encima. Cámbialo a <b>ventana sin bordes</b>: mira <a href="#emulador">Prepara el emulador</a>.</li>
             </ul>
@@ -402,6 +420,7 @@
           <li><a href="#quick-start">Get started in 3 minutes</a></li>
           <li><a href="#install">Install</a></li>
           <li><a href="#emulator">Set up your emulator</a></li>
+          <li><a href="#start">The start screen</a></li>
           <li><a href="#tray">The tray menu</a></li>
           <li><a href="#profile">Set up your game with a preset</a></li>
           <li><a href="#calibrate">Calibrate manually</a></li>
@@ -424,7 +443,7 @@
           <ol class="quick">
             <li><b>Install</b> BattleLens and open it: an icon appears next to the clock.</li>
             <li><b>Open your emulator</b> (windowed or in <a href="#emulator">borderless</a> fullscreen) and start a battle, with the names on screen.</li>
-            <li>Tray → <b>Emulator window</b> → pick your emulator.</li>
+            <li>On the <a href="#start">start screen</a> that opens with BattleLens, pick your emulator in <b>Emulator window</b>.</li>
             <li>Tray → <b>New profile from a preset…</b> → check the boxes sit on the names → <b>Save profile</b>.</li>
             <li><b>Play.</b> In every battle the opponent card pops up by itself and hides when the battle ends.</li>
           </ol>
@@ -460,6 +479,21 @@
             <dt>Others</dt><dd>If your emulator doesn't have this option, its fullscreen is usually borderless already.</dd>
           </dl>
           <p class="tip">Not sure which one it uses? With the emulator in fullscreen, press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> during a battle. If the card doesn't show up but does in a window, it's exclusive fullscreen. Meanwhile, a maximized window always works.</p>
+        </section>
+
+        <section class="g-section" id="start">
+          <h2>The start screen</h2>
+          <p>Every time you open BattleLens, a screen lets you get everything ready before you play:</p>
+          <figure class="shot">
+            <img src="assets/guide/en/start.png" width="560" height="483" loading="lazy" alt="Start screen with the emulator window, the profile, the card mode and automatic detection">
+          </figure>
+          <dl class="defs">
+            <dt>Emulator window</dt><dd>The window that shows the game. If you just opened the emulator, click <b>↻</b> to refresh the list. If the title names the game, its profile is activated automatically.</dd>
+            <dt>Profile</dt><dd>Your game's profile. Don't have one yet? <b>New profile from a preset…</b> creates it right there (start a battle first).</dd>
+            <dt>Card mode</dt><dd><a href="#modes">Normal or Competitive</a>.</dd>
+            <dt>Automatic detection</dt><dd>The card shows up by itself in every battle.</dd>
+          </dl>
+          <p>Click <b>Start</b> and play. You can change everything later from the tray or in Settings. If you don't want to see it, turn off <b>Show when the app opens</b> (or <i>Settings › General → Start screen</i>).</p>
         </section>
 
         <section class="g-section" id="tray">
@@ -621,15 +655,16 @@
           <figure class="shot">
             <img src="assets/guide/en/settings-general.png" width="880" height="600" loading="lazy" alt="Settings, General section">
           </figure>
-          <p><b>Interface language</b> (menus, notices and card labels): automatic from Windows, English or Spanish. <b>Check for updates</b> once a day. <b>Open folder</b> with your data (settings, profiles, log) and <b>Create report…</b> if something goes wrong.</p>
+          <p><b>Interface language</b> (menus, notices and card labels): automatic from Windows, English or Spanish. <b>Check for updates</b> once a day. <b>Start screen</b> when the app opens (see <a href="#start">The start screen</a>). <b>Open folder</b> with your data (settings, profiles, log) and <b>Create report…</b> if something goes wrong.</p>
 
           <h3>Recognition</h3>
           <figure class="shot">
-            <img src="assets/guide/en/settings-recognition.png" width="880" height="600" loading="lazy" alt="Settings, Recognition section">
+            <img src="assets/guide/en/settings-recognition.png" width="880" height="702" loading="lazy" alt="Settings, Recognition section">
           </figure>
           <dl class="defs">
             <dt>Recognition threshold</dt><dd>How sure BattleLens must be to accept a name (80 by default). Lower it if names that read fine aren't recognized; raise it if it mixes up Pokémon.</dd>
             <dt>Save debug crops</dt><dd>Saves every crop and what the OCR read. Useful for <a href="#troubleshooting">troubleshooting</a>.</dd>
+            <dt>Only on the battle screen</dt><dd>The card only shows up by itself if the <b>level</b> is read next to the opponent's name, as on the battle HP bar. That way it doesn't pop up in the Pokédex or on your Pokémon's summary. On by default; turn it off if your regions don't include the level. <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> always works.</dd>
             <dt>Polling interval</dt><dd>How often the name region is checked (500 ms).</dd>
             <dt>Hide when the battle ends, after</dt><dd>Seconds without seeing the opponent before hiding the card (4 s; 0 = never).</dd>
           </dl>
@@ -679,6 +714,7 @@
             <ul>
               <li>Check in the tray that the <i>Emulator window</i> is the right one and that there's an <i>Active profile</i>.</li>
               <li>Check that <i>Automatic detection</i> is on, or press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>.</li>
+              <li>Doesn't your opponent region include the level? With <i>Only on the battle screen</i> on, the card won't show up by itself: recalibrate it with the level inside or turn that option off in <i>Settings › Recognition</i>.</li>
               <li>Is the emulator minimized? BattleLens reads the window even when it's covered, but not when it's minimized.</li>
               <li>Does it only fail in fullscreen? If the emulator uses <b>exclusive fullscreen</b>, Windows draws no other window on top. Switch it to <b>borderless windowed</b>: see <a href="#emulator">Set up your emulator</a>.</li>
             </ul>

@@ -83,6 +83,7 @@ def main() -> int:
     from battlelens.ui.overlay import Overlay
     from battlelens.ui.preset_wizard import PresetWizard
     from battlelens.ui.settings import SettingsWindow
+    from battlelens.ui.start import StartDialog
     from battlelens.ui.tray import Tray
 
     dex = Pokedex.load()
@@ -109,6 +110,12 @@ def main() -> int:
         tray.set_stream(True, "http://localhost:17320/")
         tray.menu.adjustSize()
         save(tray.menu, "tray.png", lang)
+
+        # ---- pantalla de inicio ----
+        start = StartDialog(lambda: windows, lambda: window, lambda: profiles, "normal", True, True)
+        start.show()
+        save(start, "start.png", lang)
+        start.close()
 
         # ---- ajustes ----
         config = Config(language=lang, interface_language=lang, stream_enabled=True)

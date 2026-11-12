@@ -217,6 +217,7 @@ def auto_controller(qapp, tmp_path, monkeypatch):
         detection_enabled=True,
         detection_interval_ms=200,
         detection_hide_after_seconds=1.0,
+        detection_require_level=False,  # los fotogramas sintéticos solo llevan el nombre
     )
     c = Controller(qapp, config, Pokedex.load())
     yield c
@@ -718,3 +719,35 @@ def test_ctrl_c_cierra_la_app_y_los_errores_se_registran(qapp, monkeypatch, capl
     assert quits == [1] and "Error no controlado" not in caplog.text
     app_module._log_unhandled(ValueError, ValueError("x"), None)
     assert quits == [1] and "Error no controlado" in caplog.text
+
+
+def test_pantalla_de_inicio_aplica_perfil_modo_y_deteccion(controller, monkeypatch):
+    from battlelens.core.config import load_config
+    from battlelens.core.profiles import Profile, Region
+
+    for name in ("Rojo Fuego", "Espada"):
+        controller.profiles.save(Profile(name, Region(0.6, 0.05, 0.3, 0.08)), activate=True)
+    profiles, active = controller._profiles_snapshot()
+    other = next(p.id for p in profiles if p.id != active)
+    controller.show_start_screen()
+    dialog = controller._start
+    assert dialog.profile_id == active and not dialog.auto_detect  # la detección viene apagada en el fixture
+    dialog.profile_combo.setCurrentIndex(dialog.profile_combo.findData(other))
+    dialog.mode_combo.setCurrentIndex(dialog.mode_combo.findData("competitive"))
+    dialog.auto_toggle.setChecked(True)
+    dialog.show_toggle.setChecked(False)
+    dialog.accept()
+    assert controller.profiles.active_id == other and controller.config.overlay_mode == "competitive"
+    assert controller._watch_timer.isActive()
+    assert load_config(controller.data_dir / "config.toml").start_screen is False
+
+
+def test_deteccion_sin_nivel_no_muestra_la_ficha(controller, monkeypatch):
+    fp = np.zeros((12, 32), np.uint8)
+    shown = []
+    monkeypatch.setattr(controller, "_show_battle", lambda *a: shown.append(a[0]))
+    controller._on_auto_result(((None, 173, None), fp, None, (None, None, None)))  # Pokédex
+    assert shown == []
+    controller._busy = True
+    controller._on_auto_result(((25, None, None), fp + 50, type("P", (), {"game": None})(), (12, None, None)))
+    assert shown == [(25, None, None)]

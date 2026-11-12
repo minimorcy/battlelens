@@ -21,6 +21,8 @@ CONFIG_TEMPLATE = """\
 [interface]
 # Idioma de menús, avisos y textos de la ficha: "auto" (el de Windows), "es" o "en".
 language = {interface_language}
+# Al abrir la app, pantalla de inicio para elegir la ventana del emulador, el perfil y el modo de la ficha.
+start_screen = {start_screen}
 
 [hotkeys]
 # Combinaciones con al menos un modificador (Ctrl, Alt, Shift, Win).
@@ -48,6 +50,9 @@ enabled = {detection_enabled}
 interval_ms = {detection_interval_ms}
 # Segundos sin ver al rival hasta ocultar la ficha al terminar el combate (0 = no se oculta sola).
 hide_after_seconds = {detection_hide_after_seconds}
+# Solo muestra la ficha si lee el nivel junto al nombre del rival (como en la pantalla de combate): así no salta
+# en la Pokédex ni en los datos del Pokémon. Desactívalo si tus regiones no incluyen el nivel.
+require_level = {detection_require_level}
 
 [overlay]
 # Ficha "normal" (compacta: aventura y captura) o "competitive" (todos los datos de combate).
@@ -109,6 +114,8 @@ class Config:
     detection_enabled: bool = True
     detection_interval_ms: int = 500
     detection_hide_after_seconds: float = 4.0
+    detection_require_level: bool = True
+    start_screen: bool = True
     updates_check: bool = True
     hotkey_toggle_mode: str = "Ctrl+Alt+M"
     overlay_mode: str = "normal"
@@ -152,6 +159,8 @@ class Config:
             detection_enabled=det.get("enabled", default.detection_enabled),
             detection_interval_ms=det.get("interval_ms", default.detection_interval_ms),
             detection_hide_after_seconds=det.get("hide_after_seconds", default.detection_hide_after_seconds),
+            detection_require_level=det.get("require_level", default.detection_require_level),
+            start_screen=ui.get("start_screen", default.start_screen),
             updates_check=upd.get("check", default.updates_check),
             hotkey_toggle_mode=hk.get("toggle_mode", default.hotkey_toggle_mode),
             overlay_mode=ov.get("mode", default.overlay_mode),
@@ -199,6 +208,10 @@ class Config:
             raise ConfigError(_("{key} debe ser un número >= 0", key="overlay.auto_hide_seconds"))
         if not isinstance(self.detection_enabled, bool):
             raise ConfigError(_("{key} debe ser true o false", key="detection.enabled"))
+        if not isinstance(self.detection_require_level, bool):
+            raise ConfigError(_("{key} debe ser true o false", key="detection.require_level"))
+        if not isinstance(self.start_screen, bool):
+            raise ConfigError(_("{key} debe ser true o false", key="interface.start_screen"))
         if not isinstance(self.detection_interval_ms, int) or not 200 <= self.detection_interval_ms <= 5000:
             raise ConfigError(_("{key} debe ser un entero entre {low} y {high}", key="detection.interval_ms", low=200, high=5000))
         if not isinstance(self.detection_hide_after_seconds, (int, float)) or self.detection_hide_after_seconds < 0:

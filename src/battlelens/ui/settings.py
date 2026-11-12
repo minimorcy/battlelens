@@ -138,6 +138,22 @@ def _button(text: str, name: str = "") -> QPushButton:
     return button
 
 
+def fill_window_combo(combo: QComboBox, windows: list[WindowInfo], target: WindowInfo | None) -> None:
+    """Ventanas abiertas con la del emulador elegida (también en la pantalla de inicio)."""
+    combo.clear()
+    if target is not None and all(w.hwnd != target.hwnd for w in windows):
+        windows = [target, *windows]
+    if not windows:
+        combo.addItem(_("(no hay ventanas)"), None)
+    for info in windows:
+        combo.addItem(info.label, info)
+    index = next((i for i, w in enumerate(windows) if target is not None and w.hwnd == target.hwnd), -1)
+    if target is None and windows:
+        combo.insertItem(0, _("— selecciona una —"), None)
+        index = 0
+    combo.setCurrentIndex(max(index, 0))
+
+
 class _Card(QFrame):
     """Tarjeta con filas «etiqueta + explicación | control» separadas por una línea."""
 
@@ -329,10 +345,13 @@ class SettingsWindow(QWidget):
         for code, label in INTERFACE_LANGUAGE_LABELS:
             self.interface_language.addItem(_(label) if code == "auto" else label, code)
         self.updates = Toggle(_("Comprobar una vez al día si hay versión nueva"))
+        self.start_screen = Toggle(_("Mostrar la pantalla de inicio al abrir"))
         main = _Card()
         main.add_row(_("Idioma de la interfaz"), self.interface_language,
                      _("Menús, avisos y textos de la ficha. Los menús cambian al reiniciar."))
         main.add_row(_("Buscar actualizaciones"), self.updates, _("Comprobar una vez al día si hay versión nueva"))
+        main.add_row(_("Pantalla de inicio"), self.start_screen,
+                     _("Al abrir la app, elegir la ventana del emulador, el perfil y el modo de la ficha."))
         page.add(main)
 
         self.update_button = _button(_("Descargar versión nueva…"), "primary")
@@ -446,6 +465,7 @@ class SettingsWindow(QWidget):
         page.add(reading)
 
         self.detection_enabled = Toggle(_("Reconocer al rival automáticamente"))
+        self.require_level = Toggle(_("Solo en la pantalla de combate"))
         self.interval = QSpinBox()
         self.interval.setRange(200, 5000)
         self.interval.setSingleStep(100)
@@ -455,6 +475,9 @@ class SettingsWindow(QWidget):
         detection = _Card(_("Detección automática"))
         detection.add_row(_("Reconocer al rival automáticamente"), self.detection_enabled,
                           _("Al entrar en combate, sin pulsar el atajo."))
+        detection.add_row(_("Solo en la pantalla de combate"), self.require_level,
+                          _("Exige leer el nivel junto al nombre, para que no salte en la Pokédex ni en los datos "
+                            "del Pokémon. Desactívalo si tus regiones no incluyen el nivel."))
         detection.add_row(_("Intervalo de vigilancia"), self.interval, _("Cada cuánto se mira la región del nombre."))
         detection.add_row(_("Ocultar al terminar el combate tras"), self.hide_after,
                           _("Segundos sin ver al rival; 0 = no se oculta sola."))
@@ -629,6 +652,8 @@ class SettingsWindow(QWidget):
         self.auto_hide.setValue(config.auto_hide_seconds)
         self.debug.setChecked(config.debug)
         self.detection_enabled.setChecked(config.detection_enabled)
+        self.require_level.setChecked(config.detection_require_level)
+        self.start_screen.setChecked(config.start_screen)
         self.interval.setValue(config.detection_interval_ms)
         self.hide_after.setValue(config.detection_hide_after_seconds)
         self.stream_enabled.setChecked(config.stream_enabled)
@@ -654,7 +679,8 @@ class SettingsWindow(QWidget):
         widgets: dict[str, QWidget] = {f: e for f, e in self.hotkey_edits.items()}
         widgets.update({f"section:{mode}:{key}": t for (mode, key), t in self.section_toggles.items()})
         for name in ("interface_language", "language", "mode", "stream_mode", "threshold", "auto_hide", "debug",
-                     "detection_enabled", "interval", "hide_after", "stream_enabled", "stream_port", "updates"):
+                     "detection_enabled", "require_level", "interval", "hide_after", "stream_enabled", "stream_port",
+                     "updates", "start_screen"):
             widgets[name] = getattr(self, name)
         return widgets
 
@@ -726,6 +752,8 @@ class SettingsWindow(QWidget):
             detection_enabled=self.detection_enabled.isChecked(),
             detection_interval_ms=int(self.interval.value()),
             detection_hide_after_seconds=float(self.hide_after.value()),
+            detection_require_level=self.require_level.isChecked(),
+            start_screen=self.start_screen.isChecked(),
             updates_check=self.updates.isChecked(),
             hidden_sections_normal=self._hidden("normal"),
             hidden_sections_competitive=self._hidden("competitive"),
@@ -857,20 +885,7 @@ class SettingsWindow(QWidget):
                 remove.setVisible(present)
 
     def _populate_windows(self) -> None:
-        target = self._get_target()
-        windows = self._list_windows()
-        self.window_combo.clear()
-        if target is not None and all(w.hwnd != target.hwnd for w in windows):
-            windows = [target, *windows]
-        if not windows:
-            self.window_combo.addItem(_("(no hay ventanas)"), None)
-        for info in windows:
-            self.window_combo.addItem(info.label, info)
-        index = next((i for i, w in enumerate(windows) if target is not None and w.hwnd == target.hwnd), -1)
-        if target is None and windows:
-            self.window_combo.insertItem(0, _("— selecciona una —"), None)
-            index = 0
-        self.window_combo.setCurrentIndex(max(index, 0))
+        fill_window_combo(self.window_combo, self._list_windows(), self._get_target())
 
     def _on_window_activated(self, index: int) -> None:
         info = self.window_combo.itemData(index)

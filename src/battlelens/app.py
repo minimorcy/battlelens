@@ -30,7 +30,7 @@ from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from . import APP_NAME, __version__
 from .core.config import AppState, Config, ConfigError, load_config, save_config
-from .core.detection import Action, BattleDetector, RegionWatcher
+from .core.detection import Action, BattleDetector, RegionWatcher, with_levels_only
 from .core.games import GameDetector
 from .core.updates import Release, check_latest, due
 from .core.learnsets import Learnsets, LearnsetsMissingError
@@ -72,6 +72,7 @@ from .ui.icons import app_icon
 from .ui.overlay import Overlay
 from .ui.preset_wizard import PresetWizard
 from .ui.report import ReportDialog
+from .ui.start import StartDialog
 from .ui.tray import Tray
 from .stream.payload import build_cards
 from .stream.server import StreamServer, StreamState
@@ -294,6 +295,33 @@ class Controller(QObject):
 
     def _game_labels(self) -> list[tuple[str, str]]:
         return [(g.id, f"Gen {g.generation} · {g.name(self.config.language)}") for g in self.pokedex.games]
+
+    # ---- pantalla de inicio (add-start-screen) ----------------------------------
+
+    def show_start_screen(self) -> None:
+        dialog = self._start = StartDialog(windows.list_windows, lambda: self.target, self._profiles_snapshot,
+                                           self.config.overlay_mode, self._watch_timer.isActive(),
+                                           self.config.start_screen)
+        dialog.window_selected.connect(self.select_window)
+        dialog.preset_requested.connect(self._start_preset)
+        dialog.accepted.connect(self._apply_start)
+        dialog.show()
+
+    def _start_preset(self) -> None:
+        self.new_profile_from_preset()
+        self._start.refresh_profiles()
+
+    def _apply_start(self) -> None:
+        dialog = self._start
+        if dialog.profile_id is not None and dialog.profile_id != self.profiles.active_id:
+            self.select_profile(dialog.profile_id)
+        self.set_mode(dialog.mode)
+        if dialog.auto_detect != self._watch_timer.isActive():
+            self.set_auto_detect(dialog.auto_detect)
+        if dialog.show_at_start != self.config.start_screen:
+            self.config = replace(self.config, start_screen=dialog.show_at_start)
+            save_config(self.data_dir / "config.toml", self.config)
+            self._sync_settings("start_screen", dialog.show_at_start)
 
     def show_settings(self, section: str | None = None) -> None:
         """Ventana única y no modal (redesign-settings-window D5)."""
@@ -732,6 +760,8 @@ class Controller(QObject):
     def _on_auto_result(self, payload) -> None:
         self._busy = False
         key, fp, profile, levels = payload
+        if self.config.detection_require_level:
+            key = with_levels_only(key, levels)
         if self.battle.on_result(key, fp, time.monotonic()) is Action.SHOW:
             log.info("Detección automática: %s (niveles %s)", key, levels)
             self._show_battle(key, profile.game, self._target_rect(), levels)
@@ -1144,7 +1174,9 @@ def main(argv: list[str] | None = None) -> int:
     except (ConfigError, DatasetMissingError) as exc:
         return _fatal(str(exc))
 
-    controller = Controller(app, config, pokedex)  # noqa: F841 (mantiene vivos los objetos)
+    controller = Controller(app, config, pokedex)
+    if config.start_screen:
+        controller.show_start_screen()
     log.info("Aplicación iniciada")
     code = app.exec()
     instance.release()

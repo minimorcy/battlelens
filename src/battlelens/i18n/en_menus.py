@@ -196,4 +196,26 @@ EN: dict[str, str] = {
     'Mostrar todas': 'Show all',
     'Ficha completa': 'Full card',
     'Vuelve a mostrar todas las secciones.': 'Shows every section again.',
+    # ---- pantalla de inicio (ui/start.py) y nuevas opciones de Ajustes ----
+    "Actualizar la lista de ventanas": "Refresh the window list",
+    "La ventana en la que se ve el juego.": "The window that shows the game.",
+    "Dónde están los nombres en la pantalla de tu juego.": "Where the names are on your game's screen.",
+    "La ficha aparece sola en cada combate.": "The card shows up by itself in every battle.",
+    "Mostrar al abrir la app": "Show when the app opens",
+    "Empezar": "Start",
+    "Antes de jugar": "Before you play",
+    "Perfil": "Profile",
+    "Elige el emulador y el perfil de tu juego. Puedes cambiarlo luego desde la "
+    "bandeja o en Ajustes.":
+        "Pick the emulator and your game's profile. You can change them later from the tray or in Settings.",
+    "(sin perfiles: crea uno con un preset)": "(no profiles: create one from a preset)",
+    "Mostrar la pantalla de inicio al abrir": "Show the start screen when opening",
+    "Pantalla de inicio": "Start screen",
+    "Al abrir la app, elegir la ventana del emulador, el perfil y el modo de la ficha.":
+        "When the app opens, pick the emulator window, the profile and the card mode.",
+    "Solo en la pantalla de combate": "Only on the battle screen",
+    "Exige leer el nivel junto al nombre, para que no salte en la Pokédex ni en los datos "
+    "del Pokémon. Desactívalo si tus regiones no incluyen el nivel.":
+        "Requires reading the level next to the name, so it doesn't pop up in the Pokédex or on the "
+        "Pokémon's summary. Turn it off if your regions don't include the level.",
 }
