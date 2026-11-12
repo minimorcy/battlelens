@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-12
+
 ### Añadido
 - Buscador de Pokémon: pulsa `Ctrl+Alt+B` (o bandeja → «Buscar Pokémon…») en cualquier momento, escribe un nombre y verás su ficha con el juego del perfil activo. Sugiere nombres mientras escribes, con sus tipos en píldoras y una entrada por forma (Rapidash y Rapidash de Galar, megaevoluciones…) según el juego, y acepta nombres en otros idiomas, sin tildes o con erratas pequeñas. La búsqueda no cambia la ficha del stream. El atajo se cambia en Ajustes › Atajos.
 - Tabla de tipos: `Ctrl+Alt+T` (o bandeja → «Tabla de tipos») muestra una chuleta flotante con la tabla de la generación del juego del perfil activo (15, 17 o 18 tipos y sus excepciones). Con una ficha en pantalla, resalta las columnas de los tipos del rival (de los dos en dobles) y, si el perfil lee tu Pokémon, sus tipos como filas en amarillo, con las casillas de cruce marcadas. Se reescala con el tirador de su esquina o con `Ctrl` + rueda y recuerda su sitio y tamaño. El OCR no la ve.
