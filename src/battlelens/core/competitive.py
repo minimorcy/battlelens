@@ -4,7 +4,6 @@ habilidades que cambian la eficacia y datos de entrenamiento."""
 from __future__ import annotations
 
 import math
-from enum import Enum
 
 from ..i18n import N_
 from .abilities import ABILITY_NOTES, ABILITY_TYPE_EFFECTS, ability_effects  # noqa: F401 (reexportadas)
@@ -90,20 +89,6 @@ def stat_ranges(
 def view_ranges(view: SpeciesView, level: int, own: bool = False) -> dict[str, tuple[int, int]]:
     """Rangos de una vista con la fórmula de su juego (add-generation-stats D5)."""
     return stat_ranges(view.stats, level, view.pokemon, stat_formula(view.game_id, view.generation), own)
-
-
-class SpeedVerdict(Enum):
-    FASTER = N_("Eres más rápido")
-    SLOWER = N_("Es más rápido")
-    DEPENDS = N_("Depende de IVs/EVs")
-
-
-def compare_speed(own: tuple[int, int], rival: tuple[int, int]) -> SpeedVerdict:
-    if own[0] > rival[1]:
-        return SpeedVerdict.FASTER
-    if rival[0] > own[1]:
-        return SpeedVerdict.SLOWER
-    return SpeedVerdict.DEPENDS
 
 
 def weight_move_power(weight_kg: float | None) -> int | None:

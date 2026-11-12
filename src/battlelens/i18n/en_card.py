@@ -17,11 +17,6 @@ EN: dict[str, str] = {
     "Desventaja": "Disadvantage",
     "Tú": "You",
     "Él": "Them",
-    "Velocidad: {verdict} (tú {own_min}-{own_max}, él {rival_min}-{rival_max})":
-        "Speed: {verdict} (you {own_min}-{own_max}, them {rival_min}-{rival_max})",
-    "Eres más rápido": "You are faster",
-    "Es más rápido": "It is faster",
-    "Depende de IVs/EVs": "Depends on IVs/EVs",
     # ---- tus movimientos ----
     "Tus movimientos": "Your moves",
     "Tus movimientos (probables)": "Your moves (likely)",

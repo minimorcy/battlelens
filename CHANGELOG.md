@@ -11,6 +11,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ### Cambiado
 - Modificar un perfil en vez de crear otro: con un perfil activo, `Ctrl+Alt+C` pregunta qué región recalibrar (Rival, 2.º rival, Tu Pokémon o Menú de ataques) o si crear un perfil nuevo. En Ajustes › Perfiles → Perfil activo se puede cambiar el nombre y reaplicar un preset («Aplicar un preset…») conservando el perfil. La bandeja tiene «Modificar o crear perfil…», que hace lo mismo que el atajo.
 
+### Quitado
+- La comparación de velocidad («Eres más rápido», «Depende de IVs/EVs»…) de la sección «Contra tu…» de la ficha competitiva: sin conocer los IVs ni los EVs del rival podía equivocarse. Sus estadísticas reales a su nivel siguen en la ficha.
+
 ### English
 
 **Added**
@@ -19,6 +22,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 **Changed**
 - Edit a profile instead of creating another: with an active profile, `Ctrl+Alt+C` asks which region to recalibrate (Opponent, 2nd opponent, Your Pokémon or Moves menu) or whether to create a new profile. In Settings → Profiles → Active profile you can rename it and re-apply a preset ("Apply a preset…") keeping the profile. The tray has "Edit or create profile…", which does the same as the shortcut.
+
+**Removed**
+- The speed comparison ("You are faster", "Depends on IVs/EVs"…) from the competitive card's "Against your…" section: without knowing the opponent's IVs and EVs it could be wrong. Its actual stats at its level are still on the card.
 
 ## [0.5.0] - 2026-11-12
 

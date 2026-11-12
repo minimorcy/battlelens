@@ -23,7 +23,6 @@ from PyQt6.QtWidgets import (
 from ..core.abilities import ability_effects, multiplier_text
 from ..core.card_text import ability_effect_lines, matchup_note
 from ..core.competitive import (
-    compare_speed,
     stat_profile,
     view_ranges,
     weight_move_power,
@@ -337,7 +336,7 @@ class Overlay(QWidget):
         own: SpeciesView | None,
         target_rect: tuple[int, int, int, int] | None,
         rival_levels: list[int | None] | None = None,
-        own_level: int | None = None,
+        own_level: int | None = None,  # sin uso desde que se quitó la comparación de velocidad
         own_moves: list[Move] | None = None,
         own_moves_probable: bool = False,
     ) -> None:
@@ -355,7 +354,7 @@ class Overlay(QWidget):
         for index, (rival, level) in enumerate(zip(rivals, levels)):
             versus = matchup(own, rival, self.pokedex.type_chart(rival.generation)) if own else None
             closable = index == len(rivals) - 1  # un solo ✕, en la tarjeta de la derecha
-            card = self._card(rival, versus, level=level, own=own, own_level=own_level, closable=closable)
+            card = self._card(rival, versus, level=level, own=own, closable=closable)
             card.setFixedWidth(inner)
             self._cards.append(card)
             row.addWidget(card, 0, Qt.AlignmentFlag.AlignTop)
@@ -407,7 +406,6 @@ class Overlay(QWidget):
         versus: Matchup | None = None,
         level: int | None = None,
         own: SpeciesView | None = None,
-        own_level: int | None = None,
         closable: bool = False,
     ) -> QWidget:
         card = QWidget()
@@ -418,7 +416,7 @@ class Overlay(QWidget):
 
         self._header(view, level, layout, closable)
         if versus is not None:  # lo más consultado en cada turno: justo debajo de la cabecera
-            self._matchup_section(versus, layout, view, ranges, own, own_level)
+            self._matchup_section(versus, layout)
             self._own_moves_section(view, layout)
         self._effectiveness(view, layout)
         if self.competitive:
@@ -525,10 +523,6 @@ class Overlay(QWidget):
         self,
         m: Matchup,
         layout: QVBoxLayout,
-        rival: SpeciesView,
-        rival_ranges: dict[str, tuple[int, int]] | None,
-        own: SpeciesView | None,
-        own_level: int | None,
     ) -> None:
         verdict = _pill(_(m.verdict.value), bg=VERDICT_COLORS[m.verdict])
         verdict.setObjectName("verdict")
@@ -555,13 +549,6 @@ class Overlay(QWidget):
         block.add(grid)
         for note in notes:
             block.add(self._muted(note, size=10, name="matchup-ability-note"))
-        if self.competitive and rival_ranges and own is not None and own_level:
-            own_speed = view_ranges(own, own_level, own=True)["speed"]
-            speed = compare_speed(own_speed, rival_ranges["speed"])
-            text = _("Velocidad: {verdict} (tú {own_min}-{own_max}, él {rival_min}-{rival_max})",
-                     verdict=_(speed.value), own_min=own_speed[0], own_max=own_speed[1],
-                     rival_min=rival_ranges["speed"][0], rival_max=rival_ranges["speed"][1])
-            block.add(self._muted(text, name="speed"))
 
     def _own_moves_section(self, rival: SpeciesView, layout: QVBoxLayout) -> None:
         """«Tus movimientos»: los leídos del menú (o los probables) con su multiplicador contra el rival."""

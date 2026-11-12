@@ -49,17 +49,6 @@ Conocido el nivel, el sistema SHALL calcular para cada estadística el rango rea
 - **WHEN** se calcula Pikachu de nivel 5 en `legends-arceus`
 - **THEN** la Velocidad va de 61 a 168
 
-### Requirement: ¿Quién es más rápido?
-Si se conocen el nivel del rival y el de tu Pokémon, el sistema SHALL comparar sus rangos de Velocidad: «Eres más rápido» si tu mínimo supera su máximo, «Es más rápido» si su mínimo supera tu máximo y «Depende de IVs/EVs» en otro caso. Sin alguno de los niveles, MUST NOT mostrar la comparación.
-
-#### Scenario: Más rápido seguro
-- **WHEN** tu Pokémon es Jolteon de nivel 50 y el rival Snorlax de nivel 50
-- **THEN** se indica «Eres más rápido»
-
-#### Scenario: Depende
-- **WHEN** ambos son Pikachu de nivel 50
-- **THEN** se indica «Depende de IVs/EVs»
-
 ### Requirement: Habilidades que cambian la eficacia
 El sistema SHALL anotar en cada habilidad del rival los cambios de eficacia que provoca si la tiene, según una tabla de habilidades conocidas (entre otras: Levitación → Tierra ×0; Absorbe Fuego → Fuego ×0; Absorbe Agua, Colector y Piel Seca → Agua ×0; Absorbe Elec, Pararrayos y Electromotor → Eléctrico ×0; Herbívoro → Planta ×0; Ignífugo → Fuego ×½; Sebo → Fuego ×½ y Hielo ×½; Peluche → Fuego ×2; Superguarda → solo le afectan los ataques supereficaces; Filtro, Roca Sólida y Armadura Prisma → los supereficaces le hacen ×0,75).
 

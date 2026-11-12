@@ -376,12 +376,12 @@ def test_competitivo_sin_nivel_pide_recalibrar(qapp, overlay, dex):
     assert not _named(overlay, "range-hp")
 
 
-def test_competitivo_velocidad_y_movimientos_contra_ti(qapp, overlay, dex):
+def test_competitivo_movimientos_contra_ti_sin_velocidad(qapp, overlay, dex):
     # Rival Stufful Nv. 10 contra tu Gastly Nv. 10 (Fantasma/Veneno):
     # Vendetta (Siniestro) le hace ×2 y Placaje (Normal) ×0; los de estado no se marcan
     overlay.show_battle([dex.view(759, "sword-shield")], dex.view(92), None, [10], 10)
     qapp.processEvents()
-    assert _named(overlay, "speed") and "Velocidad:" in _named(overlay, "speed")[0]
+    assert not _named(overlay, "speed")  # sin IVs/EVs la comparación podía mentir
     assert sorted(_named(overlay, "move-vs-you")) == ["×0", "×2"]
 
 

@@ -63,7 +63,7 @@ SECTIONS = (
 )
 # Secciones de la ficha que se pueden ocultar (D8): nombre y qué muestra
 SECTION_LABELS = {
-    "matchup": (N_("Contra tu Pokémon"), N_("Ventaja, eficacias de un lado y otro y velocidad.")),
+    "matchup": (N_("Contra tu Pokémon"), N_("Ventaja y eficacias de un lado y otro.")),
     "own_moves": (N_("Tus movimientos"), N_("Cuánto hace cada uno de tus ataques al rival.")),
     "eff": (N_("Eficacias"), N_("Debilidades, resistencias e inmunidades del rival.")),
     "stats": (N_("Estadísticas"), N_("Base y rango a su nivel.")),

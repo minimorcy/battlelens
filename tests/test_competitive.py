@@ -1,9 +1,7 @@
 import pytest
 
 from battlelens.core.competitive import (
-    SpeedVerdict,
     ability_effects,
-    compare_speed,
     stat_profile,
     stat_ranges,
     weight_move_power,
@@ -66,16 +64,6 @@ def test_shedinja_siempre_un_ps(dex):
     assert stat_ranges(dex.get_species(292).stats, 37, "shedinja")["hp"] == (1, 1)
 
 
-def test_jolteon_mas_rapido_que_snorlax(dex):
-    jolteon = stat_ranges(dex.get_species(135).stats, 50)["speed"]
-    snorlax = stat_ranges(dex.get_species(143).stats, 50)["speed"]
-    assert compare_speed(jolteon, snorlax) is SpeedVerdict.FASTER
-    assert compare_speed(snorlax, jolteon) is SpeedVerdict.SLOWER
-
-
-def test_pikachu_contra_pikachu_depende(dex):
-    pika = stat_ranges(dex.get_species(25).stats, 50)["speed"]
-    assert compare_speed(pika, pika) is SpeedVerdict.DEPENDS
 
 
 # ---- habilidades y entrenamiento -----------------------------------------------------

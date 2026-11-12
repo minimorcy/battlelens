@@ -204,7 +204,7 @@ EN: dict[str, str] = {
     'Normal': 'Normal',
     'Competitivo': 'Competitive',
     'Contra tu Pokémon': 'Against your Pokémon',
-    'Ventaja, eficacias de un lado y otro y velocidad.': 'Advantage, effectiveness both ways and speed.',
+    'Ventaja y eficacias de un lado y otro.': 'Advantage, effectiveness both ways and speed.',
     'Cuánto hace cada uno de tus ataques al rival.': 'How effective each of your moves is against the opponent.',
     'Debilidades, resistencias e inmunidades del rival.': "The opponent's weaknesses, resistances and immunities.",
     'Estadísticas': 'Stats',
