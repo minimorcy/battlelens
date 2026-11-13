@@ -90,6 +90,10 @@ class TypeChartWindow(QWidget):
     # ---- ventana -----------------------------------------------------------
 
     def present(self, target_rect: tuple[int, int, int, int] | None) -> None:
+        if not self.isWindow():  # dentro del panel (spec panel-window)
+            self.show()
+            self.window().show()
+            return
         if self.saved_pos is None:
             self.saved_pos = self._initial_position(target_rect)
         self.move(self._clamp(self.saved_pos))
@@ -100,7 +104,7 @@ class TypeChartWindow(QWidget):
         self.keep_on_top()
 
     def keep_on_top(self) -> None:
-        if self.isVisible():
+        if self.isVisible() and self.isWindow():
             _bring_to_top(int(self.winId()))
 
     def _clamp(self, pos: QPoint) -> QPoint:
@@ -163,7 +167,8 @@ class TypeChartWindow(QWidget):
                    Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
                    _("Tabla de tipos · Gen {generation}", generation=self.generation))
         p.setPen(QColor(theme.TEXT_MUTED))
-        p.drawText(self._close_rect(), Qt.AlignmentFlag.AlignCenter, "✕")
+        if self.isWindow():  # dentro del panel no se cierra ni se reescala a mano
+            p.drawText(self._close_rect(), Qt.AlignmentFlag.AlignCenter, "✕")
         self._legend(p)
 
         small = QFont(self.font())
@@ -216,7 +221,7 @@ class TypeChartWindow(QWidget):
                     p.drawRoundedRect(rect.adjusted(-0.5, -0.5, 0.5, 0.5), 3, 3)
         grip = self._grip_rect()  # tres rayas en diagonal, como el tirador de una ventana
         p.setPen(QPen(QColor(theme.TEXT_MUTED), 1.2))
-        for offset in (4, 8, 12):
+        for offset in (4, 8, 12) if self.isWindow() else ():
             p.drawLine(grip.right() - offset, grip.bottom(), grip.right(), grip.bottom() - offset)
         p.end()
 
@@ -259,7 +264,7 @@ class TypeChartWindow(QWidget):
         return self._grip_rect().adjusted(-4, -4, 4, 4).contains(self._to_base(pos))
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
-        if event.button() == Qt.MouseButton.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton and self.isWindow():
             self._press_global = event.globalPosition().toPoint()
             self._press_offset = self._press_global - self.frameGeometry().topLeft()
             self._dragging = False
@@ -268,8 +273,9 @@ class TypeChartWindow(QWidget):
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
         if self._press_global is None:
-            on_grip = self._on_grip(event.position())
-            self.setCursor(Qt.CursorShape.SizeFDiagCursor if on_grip else Qt.CursorShape.OpenHandCursor)
+            if self.isWindow():
+                on_grip = self._on_grip(event.position())
+                self.setCursor(Qt.CursorShape.SizeFDiagCursor if on_grip else Qt.CursorShape.OpenHandCursor)
             type_id = self._type_at(self._to_base(event.position()))
             if type_id is not None:
                 QToolTip.showText(event.globalPosition().toPoint(), self.labels.get(type_id, type_id), self)
@@ -301,6 +307,6 @@ class TypeChartWindow(QWidget):
         self._resizing = False
 
     def wheelEvent(self, event: QWheelEvent) -> None:
-        if event.modifiers() & Qt.KeyboardModifier.ControlModifier and event.angleDelta().y():
+        if self.isWindow() and event.modifiers() & Qt.KeyboardModifier.ControlModifier and event.angleDelta().y():
             self.set_scale(self.scale + (WHEEL_STEP if event.angleDelta().y() > 0 else -WHEEL_STEP))
             self.changed.emit()

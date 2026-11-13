@@ -75,6 +75,7 @@
           <li><a href="#formas">Megas y otras formas</a></li>
           <li><a href="#buscar">Buscar un Pokémon</a></li>
           <li><a href="#tabla-tipos">Tabla de tipos</a></li>
+          <li><a href="#panel">Modo panel (dos pantallas)</a></li>
           <li><a href="#a-medida">Tu ficha a medida</a></li>
           <li><a href="#ajustes">Resto de ajustes</a></li>
           <li><a href="#directo">Directo con OBS</a></li>
@@ -153,6 +154,7 @@
             <dt>Reconocer ahora</dt><dd>Lee el nombre del rival en ese momento. Útil si tienes la detección automática apagada.</dd>
             <dt>Buscar Pokémon…</dt><dd>Abre la ficha de cualquier Pokémon, sin estar en combate. Ver <a href="#buscar">Buscar un Pokémon</a>.</dd>
             <dt>Tabla de tipos</dt><dd>Muestra u oculta la chuleta de tipos del juego. Ver <a href="#tabla-tipos">Tabla de tipos</a>.</dd>
+            <dt>Mostrar el panel</dt><dd>Solo en modo panel: vuelve a abrir la ventana del panel si la cerraste. Ver <a href="#panel">Modo panel</a>.</dd>
             <dt>Detección automática</dt><dd>Vigila el combate y muestra la ficha sola. Activada por defecto.</dd>
             <dt>Modo de la ficha</dt><dd>Normal (aventura y captura) o Competitivo (combate). Ver <a href="#modos">Normal y Competitivo</a>.</dd>
             <dt>Modo stream (OBS) · Copiar URL para OBS</dt><dd>Ficha para tu directo. Ver <a href="#directo">Directo con OBS</a>.</dd>
@@ -291,7 +293,7 @@
             </figure>
             <div>
               <p>Las <b>formas regionales</b> (Alola, Galar, Hisui, Paldea) se eligen solas según el juego del perfil.</p>
-              <p>Las <b>megaevoluciones y otras formas</b> (Rotom, Deoxys, Giratina…) muestran el mismo nombre en pantalla, así que BattleLens no puede distinguirlas. Pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> para pasar por las formas disponibles en ese juego: la ficha se recalcula y mantiene esa forma mientras el Pokémon siga en combate.</p>
+              <p>Las <b>megaevoluciones y otras formas</b> (Rotom, Deoxys, Giratina…) muestran el mismo nombre en pantalla, así que BattleLens no puede distinguirlas. Pulsa las flechas <b>◀ ▶</b> junto al nombre de la ficha, o <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>, para pasar por las formas disponibles en ese juego. Con el atajo cambia el primer rival que tenga otras formas; con las flechas, el de esa tarjeta: la ficha se recalcula y mantiene esa forma mientras el Pokémon siga en combate.</p>
               <p>La sección <b>Otras formas</b> (oculta de fábrica) las lista con sus tipos.</p>
             </div>
           </div>
@@ -326,15 +328,30 @@
           </ul>
         </section>
 
+        <section class="g-section" id="panel">
+          <h2>Modo panel (dos pantallas)</h2>
+          <p>Si juegas con dos pantallas, en <i>Ajustes › Ficha</i> elige <b>Mostrar la ficha en: Panel (ventana aparte)</b>. La ficha y la tabla de tipos dejan de flotar sobre el juego y pasan a una ventana normal que puedes llevar al otro monitor, agrandar o maximizar.</p>
+          <figure class="shot">
+            <img src="assets/guide/es/panel.png" width="940" height="470" loading="lazy" alt="Ventana del panel con la ficha competitiva de Machop a la izquierda y la tabla de tipos a la derecha con Lucha y Fuego resaltados">
+          </figure>
+          <ul>
+            <li>A la izquierda, la ficha del rival (o las dos en combates dobles), con desplazamiento si no cabe. A la derecha, la <a href="#tabla-tipos">tabla de tipos</a> resaltada, que crece con la ventana.</li>
+            <li>Fuera del combate el panel sigue abierto y muestra <b>Esperando combate…</b>.</li>
+            <li>Aparece solo al reconocer un rival sin quitarle el foco al juego, y no se pone encima de otras ventanas. Si lo cierras, vuelve con la siguiente ficha o desde la bandeja con <b>Mostrar el panel</b>.</li>
+            <li>Recuerda su posición y su tamaño. Atajos, modos, secciones y stream funcionan igual.</li>
+          </ul>
+        </section>
+
         <section class="g-section" id="a-medida">
           <h2>Tu ficha a medida</h2>
           <p>En <i>Ajustes › Ficha</i> eliges qué secciones ves en cada modo. De fábrica la ficha es mínima: <b>Normal</b> solo con las eficacias y <b>Competitivo</b> con eficacias y estadísticas. El nombre, los tipos y la captura se ven siempre. La ficha del stream sigue la misma elección.</p>
           <figure class="shot">
-            <img src="assets/guide/es/settings-card.png" width="880" height="1211" loading="lazy" alt="Ajustes, sección Ficha, con los interruptores de cada sección para Normal y Competitivo">
+            <img src="assets/guide/es/settings-card.png" width="880" height="1284" loading="lazy" alt="Ajustes, sección Ficha, con los interruptores de cada sección para Normal y Competitivo">
           </figure>
           <ul class="checks">
             <li><b>Mostrar todas</b> activa todas las secciones de golpe.</li>
             <li><b>Desplegar todas las secciones</b> abre las que hayas plegado con un clic en su título.</li>
+            <li><b>Mostrar la ficha en:</b> Overlay (sobre el juego, por defecto) o Panel (ventana aparte). Ver <a href="#panel">Modo panel</a>.</li>
             <li><b>Idioma de los datos Pokémon:</b> nombres, tipos, habilidades y movimientos en español, inglés, francés, alemán o italiano. Es independiente del idioma de los menús.</li>
             <li><b>Ocultar la ficha tras:</b> segundos hasta ocultarla aunque siga el combate (0 = nunca).</li>
           </ul>
@@ -446,7 +463,7 @@
         <section class="g-section" id="limites">
           <h2>Limitaciones</h2>
           <ul class="checks muted">
-            <li>Las megaevoluciones y formas no regionales no se distinguen por el nombre: elígelas con <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>. Gigamax no aparece porque no cambia tipos ni estadísticas.</li>
+            <li>Las megaevoluciones y formas no regionales no se distinguen por el nombre: elígelas con las flechas ◀ ▶ de la ficha o con <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>. Gigamax no aparece porque no cambia tipos ni estadísticas.</li>
             <li>Los <b>movimientos probables</b> son los de un Pokémon salvaje o de un entrenador corriente; líderes, rivales y equipos competitivos pueden llevar otros.</li>
             <li>La comparativa es <b>por tipos</b> (ataques con STAB) y tiene en cuenta las habilidades que cambian la eficacia; si solo alguna de sus habilidades lo hace, la ficha avisa («si tiene Levitación»). No cuenta objetos ni habilidades como Rompemoldes.</li>
             <li><b>Tus movimientos</b> usan su tipo y potencia del juego; los de tipo variable (Poder Oculto, Meteorobola…) muestran su tipo base.</li>
@@ -483,6 +500,7 @@
           <li><a href="#forms">Megas and other forms</a></li>
           <li><a href="#search">Search for a Pokémon</a></li>
           <li><a href="#type-chart">Type chart</a></li>
+          <li><a href="#panel-mode">Panel mode (two screens)</a></li>
           <li><a href="#customize">Make the card yours</a></li>
           <li><a href="#settings">Other settings</a></li>
           <li><a href="#stream">Streaming with OBS</a></li>
@@ -561,6 +579,7 @@
             <dt>Recognize now</dt><dd>Reads the opponent's name right now. Handy if automatic detection is off.</dd>
             <dt>Search Pokémon…</dt><dd>Opens the card of any Pokémon, outside battle too. See <a href="#search">Search for a Pokémon</a>.</dd>
             <dt>Type chart</dt><dd>Shows or hides the game's type cheat sheet. See <a href="#type-chart">Type chart</a>.</dd>
+            <dt>Show the panel</dt><dd>Panel mode only: reopens the panel window if you closed it. See <a href="#panel-mode">Panel mode</a>.</dd>
             <dt>Automatic detection</dt><dd>Watches the battle and shows the card by itself. On by default.</dd>
             <dt>Card mode</dt><dd>Normal (adventure and catching) or Competitive (battle). See <a href="#modes">Normal and Competitive</a>.</dd>
             <dt>Stream mode (OBS) · Copy URL for OBS</dt><dd>A card for your stream. See <a href="#stream">Streaming with OBS</a>.</dd>
@@ -699,7 +718,7 @@
             </figure>
             <div>
               <p><b>Regional forms</b> (Alola, Galar, Hisui, Paldea) are picked automatically from the profile's game.</p>
-              <p><b>Mega Evolutions and other forms</b> (Rotom, Deoxys, Giratina…) show the same name on screen, so BattleLens can't tell them apart. Press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> to cycle through the forms available in that game: the card is recalculated and keeps that form while the Pokémon stays in battle.</p>
+              <p><b>Mega Evolutions and other forms</b> (Rotom, Deoxys, Giratina…) show the same name on screen, so BattleLens can't tell them apart. Click the <b>◀ ▶</b> arrows next to the card's name, or press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>, to cycle through the forms available in that game. The shortcut switches the first opponent that has other forms; the arrows switch that card's opponent: the card is recalculated and keeps that form while the Pokémon stays in battle.</p>
               <p>The <b>Other forms</b> section (hidden out of the box) lists them with their types.</p>
             </div>
           </div>
@@ -734,15 +753,30 @@
           </ul>
         </section>
 
+        <section class="g-section" id="panel-mode">
+          <h2>Panel mode (two screens)</h2>
+          <p>If you play with two screens, in <i>Settings › Card</i> choose <b>Show the card in: Panel (separate window)</b>. The card and the type chart stop floating over the game and move into a regular window you can drag to your other monitor, enlarge or maximize.</p>
+          <figure class="shot">
+            <img src="assets/guide/en/panel.png" width="940" height="470" loading="lazy" alt="Panel window with Machop's competitive card on the left and the type chart on the right with Fighting and Fire highlighted">
+          </figure>
+          <ul>
+            <li>On the left, the opponent's card (or both in double battles), scrolling if it doesn't fit. On the right, the highlighted <a href="#type-chart">type chart</a>, which grows with the window.</li>
+            <li>Outside battles the panel stays open and shows <b>Waiting for a battle…</b>.</li>
+            <li>It appears by itself when an opponent is recognized, without taking focus from the game, and doesn't stay on top of other windows. If you close it, it comes back with the next card or from the tray with <b>Show the panel</b>.</li>
+            <li>It remembers its position and size. Shortcuts, modes, sections and streaming work the same.</li>
+          </ul>
+        </section>
+
         <section class="g-section" id="customize">
           <h2>Make the card yours</h2>
           <p>In <i>Settings › Card</i> you choose which sections each mode shows. Out of the box the card is minimal: <b>Normal</b> shows only type matchups and <b>Competitive</b> shows matchups and stats. The name, types and catch rate are always shown. The stream card follows the same choice.</p>
           <figure class="shot">
-            <img src="assets/guide/en/settings-card.png" width="880" height="1195" loading="lazy" alt="Settings, Card section, with a switch per section for Normal and Competitive">
+            <img src="assets/guide/en/settings-card.png" width="880" height="1268" loading="lazy" alt="Settings, Card section, with a switch per section for Normal and Competitive">
           </figure>
           <ul class="checks">
             <li><b>Show all</b> turns every section on at once.</li>
             <li><b>Expand all sections</b> reopens the ones you collapsed by clicking their title.</li>
+            <li><b>Show the card in:</b> Overlay (on top of the game, the default) or Panel (separate window). See <a href="#panel-mode">Panel mode</a>.</li>
             <li><b>Pokémon data language:</b> names, types, abilities and moves in English, Spanish, French, German or Italian. It's separate from the menu language.</li>
             <li><b>Hide the card after:</b> seconds until it hides even if the battle goes on (0 = never).</li>
           </ul>
@@ -854,7 +888,7 @@
         <section class="g-section" id="limitations">
           <h2>Limitations</h2>
           <ul class="checks muted">
-            <li>Mega Evolutions and non-regional forms can't be told apart by name: pick them with <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>. Gigantamax isn't listed because it doesn't change types or stats.</li>
+            <li>Mega Evolutions and non-regional forms can't be told apart by name: pick them with the card's ◀ ▶ arrows or <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>. Gigantamax isn't listed because it doesn't change types or stats.</li>
             <li><b>Likely moves</b> are those of a wild Pokémon or a regular trainer; leaders, rivals and competitive teams may carry others.</li>
             <li>The matchup is <b>type-based</b> (STAB attacks) and accounts for abilities that change effectiveness; if only some of its abilities do, the card warns you ("if it has Levitate"). Items and abilities like Mold Breaker aren't considered.</li>
             <li><b>Your moves</b> use their type and power in your game; variable-type moves (Hidden Power, Weather Ball…) show their base type.</li>

@@ -4,6 +4,18 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-13
+
+### Añadido
+- Flechas ◀ ▶ junto al nombre de la ficha para cambiar de forma con el ratón (Rotom, megaevoluciones…), útiles cuando el juego solo muestra el nombre de la especie. En combates dobles cambian la forma de esa tarjeta. `Ctrl+Alt+F` sigue funcionando.
+- Modo panel para jugar con dos pantallas: en Ajustes › Ficha → «Mostrar la ficha en: Panel», la ficha y la tabla de tipos pasan a una ventana normal (con marco, redimensionable, sin estar siempre encima) que puedes llevar al otro monitor. A la izquierda la ficha, a la derecha la tabla de tipos resaltada y ajustada al espacio; fuera del combate muestra «Esperando combate…». Recuerda su sitio y tamaño, y si la cierras vuelve con la siguiente ficha o con «Mostrar el panel» en la bandeja.
+
+### English
+
+**Added**
+- ◀ ▶ arrows next to the card's name to switch form with the mouse (Rotom, Mega Evolutions…), handy when the game only shows the species name. In double battles they switch that card's form. `Ctrl+Alt+F` still works.
+- Panel mode for two-screen setups: in Settings › Card → "Show the card in: Panel", the card and the type chart move into a regular window (framed, resizable, not always on top) you can put on your other monitor. The card is on the left and the highlighted type chart on the right, sized to fit; outside battles it shows "Waiting for a battle…". It remembers its position and size, and if you close it, it comes back with the next card or from "Show the panel" in the tray.
+
 ## [0.6.1] - 2026-11-13
 
 ### Corregido

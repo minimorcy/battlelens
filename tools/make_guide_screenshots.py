@@ -103,6 +103,7 @@ def main() -> int:
     from battlelens.platform.windows import WindowInfo
     from battlelens.ui.calibrator import CalibrationDialog
     from battlelens.ui.overlay import Overlay
+    from battlelens.ui.panel import PanelWindow
     from battlelens.ui.preset_wizard import PresetWizard
     from battlelens.core.matcher import NameMatcher
     from battlelens.ui.settings import SettingsWindow
@@ -230,6 +231,22 @@ def main() -> int:
         card("card-double.png", "normal", [(263, 8), (759, 10)], 813, 14,
              hidden=("own_moves", "evo", "forms"))
         card("card-form.png", "normal", [(479, 40)], hidden=("matchup", "own_moves", "evo"), form="rotom-wash")
+
+        # ---- modo panel: Machop contra tu Scorbunny, con la tabla al lado (spec panel-window) ----
+        overlay = Overlay(dex, lang, mode="competitive")
+        overlay.hidden = {"competitive": defaults.hidden_sections("competitive") - {"matchup"}}
+        type_chart = TypeChartWindow()
+        type_chart.set_chart(chart, {t: dex.type_name(t, lang) for t in chart}, generation)
+        panel = PanelWindow(overlay, type_chart)
+        panel.resize(940, 470)  # cabe en la pantalla lógica con QT_SCALE_FACTOR=2
+        panel.dock()
+        own_view = dex.view(813, GAME, lang)
+        rival = dex.view(66, GAME, lang)
+        overlay.show_battle([rival], own_view, None, [16], 15)
+        type_chart.set_highlight(rival.types, own_view.types)
+        QApplication.processEvents()
+        save(panel, "panel.png", lang)
+        panel.undock()
     sync_html_sizes()
     return 0
 

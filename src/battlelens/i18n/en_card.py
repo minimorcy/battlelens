@@ -72,6 +72,8 @@ EN: dict[str, str] = {
     "Evolución": "Evolution",
     "Otras formas": "Other forms",
     "{hotkey}: cambiar de forma": "{hotkey}: switch form",
+    "Forma anterior": "Previous form",
+    "Forma siguiente": "Next form",
     # ---- no reconocido ----
     "No reconocido": "Not recognized",
     "(vacío)": "(empty)",

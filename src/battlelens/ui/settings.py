@@ -27,7 +27,7 @@ from PyQt6.QtWidgets import (
 )
 
 from .. import APP_NAME, __version__
-from ..core.config import CARD_SECTIONS, LANGUAGES, MODES, Config
+from ..core.config import CARD_SECTIONS, DISPLAYS, LANGUAGES, MODES, Config
 from ..core.profiles import Profile
 from ..i18n import N_, _
 from ..platform.hotkeys import HotkeyParseError, parse_hotkey
@@ -49,6 +49,7 @@ HOTKEY_FIELDS = (
     ("hotkey_type_chart", N_("Tabla de tipos")),
 )
 MODE_LABELS = {"normal": N_("Normal (aventura y captura)"), "competitive": N_("Competitivo (combate)")}
+DISPLAY_LABELS = {"overlay": N_("Overlay (sobre el juego)"), "panel": N_("Panel (ventana aparte)")}
 # Idioma de la interfaz: «Español» y «English» son nombres de idioma y no se traducen.
 INTERFACE_LANGUAGE_LABELS = (("auto", N_("Automático (idioma de Windows)")), ("es", "Español"), ("en", "English"))
 # Secciones de la barra lateral: clave, glifo de Segoe Fluent Icons / MDL2, símbolo de reserva y título (D1)
@@ -384,6 +385,9 @@ class SettingsWindow(QWidget):
         self.mode = QComboBox()
         for code in MODES:
             self.mode.addItem(_(MODE_LABELS[code]), code)
+        self.display = QComboBox()
+        for code in DISPLAYS:
+            self.display.addItem(_(DISPLAY_LABELS[code]), code)
         self.language = QComboBox()
         for code in LANGUAGES:
             self.language.addItem(LANGUAGE_LABELS[code], code)
@@ -391,6 +395,8 @@ class SettingsWindow(QWidget):
         card = _Card()
         card.add_row(_("Modo de la ficha"), self.mode,
                      _("Normal es compacta (aventura y captura); Competitivo muestra todos los datos de combate."))
+        card.add_row(_("Mostrar la ficha en"), self.display,
+                     _("Panel: una ventana con la ficha y la tabla de tipos, para tenerla en otra pantalla."))
         card.add_row(_("Idioma de los datos Pokémon"), self.language, _("Nombres, tipos, movimientos y habilidades."))
         card.add_row(_("Ocultar la ficha tras"), self.auto_hide, _("Segundos; 0 = no se oculta sola."))
         page.add(card)
@@ -657,7 +663,8 @@ class SettingsWindow(QWidget):
         for field, _label_text in HOTKEY_FIELDS:
             self.hotkey_edits[field].setText(getattr(config, field))
         for combo, value in ((self.interface_language, config.interface_language), (self.language, config.language),
-                             (self.mode, config.overlay_mode), (self.stream_mode, config.stream_card_mode)):
+                             (self.mode, config.overlay_mode), (self.display, config.overlay_display),
+                             (self.stream_mode, config.stream_card_mode)):
             combo.setCurrentIndex(max(combo.findData(value), 0))
         self.threshold.setValue(round(config.threshold))
         self._threshold_value.setText(str(self.threshold.value()))
@@ -690,7 +697,7 @@ class SettingsWindow(QWidget):
     def _value_widgets(self) -> dict[str, QWidget]:
         widgets: dict[str, QWidget] = {f: e for f, e in self.hotkey_edits.items()}
         widgets.update({f"section:{mode}:{key}": t for (mode, key), t in self.section_toggles.items()})
-        for name in ("interface_language", "language", "mode", "stream_mode", "threshold", "auto_hide", "debug",
+        for name in ("interface_language", "language", "mode", "display", "stream_mode", "threshold", "auto_hide", "debug",
                      "detection_enabled", "require_level", "interval", "hide_after", "stream_enabled", "stream_port",
                      "updates", "start_screen"):
             widgets[name] = getattr(self, name)
@@ -758,6 +765,7 @@ class SettingsWindow(QWidget):
             stream_port=int(self.stream_port.value()),
             stream_card_mode=self.stream_mode.currentData(),
             overlay_mode=self.mode.currentData(),
+            overlay_display=self.display.currentData(),
             threshold=float(self.threshold.value()),
             debug=self.debug.isChecked(),
             language=self.language.currentData(),

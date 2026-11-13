@@ -45,7 +45,8 @@ BattleLens usa el reconocimiento de texto que trae Windows. Casi todos los equip
    - **Busca cualquier Pokémon** en cualquier momento con `Ctrl+Alt+B` (o bandeja → **Buscar Pokémon…**): escribe un nombre y pulsa `Enter` para ver su ficha con el juego del perfil activo.
    - **Modifica un perfil en vez de crear otro**: con un perfil activo, `Ctrl+Alt+C` pregunta qué región recalibrar (o si crear un perfil nuevo); renómbralo o aplícale un preset en **Ajustes › Perfiles**.
    - **Tabla de tipos** de la generación de tu juego con `Ctrl+Alt+T` (o bandeja → **Tabla de tipos**), con los tipos del rival (columnas) y los tuyos (filas) resaltados.
-   - Las **megaevoluciones y otras formas** (Rotom, Deoxys, Giratina…) muestran el mismo nombre en pantalla, así que pulsa `Ctrl+Alt+F` para alternar entre las formas disponibles en ese juego. La ficha se recalcula y mantiene esa forma mientras el Pokémon siga en combate.
+   - **¿Dos pantallas?** En **Ajustes › Ficha → Mostrar la ficha en: Panel**, la ficha y la tabla de tipos pasan a una ventana normal que puedes llevar al otro monitor, en vez de flotar sobre el juego.
+   - Las **megaevoluciones y otras formas** (Rotom, Deoxys, Giratina…) muestran el mismo nombre en pantalla, así que usa las flechas **◀ ▶** junto al nombre de la ficha o `Ctrl+Alt+F` para alternar entre las formas disponibles en ese juego. La ficha se recalcula y mantiene esa forma mientras el Pokémon siga en combate.
 4. **Elige el modo de la ficha** (bandeja → **Modo de la ficha**, `Ctrl+Alt+M` o Ajustes):
    - **Normal** (por defecto): ficha compacta para la aventura y la captura, con tipos, debilidades, contra qué es fuerte, **dificultad de captura** destacada, evolución y total de estadísticas.
    - **Competitivo**: todo lo anterior más el **nivel**, resistencias, **estadísticas reales a su nivel** (mínimo-máximo), **habilidades** con su descripción y su efecto («Levitación → Tierra ×0»), **movimientos probables** (los 4 últimos que aprende hasta su nivel en ese juego, marcando los que te hacen ×2) y datos de **entrenamiento** (EVs, peso para Patada Baja, perfil). Para leer el nivel, calibra la región del rival **incluyendo el nivel**.
@@ -79,6 +80,7 @@ Todo se puede cambiar desde bandeja → **Ajustes…** (los cambios se aplican a
 | `detection.interval_ms` | `500` | Cada cuánto se vigila la región del nombre |
 | `detection.hide_after_seconds` | `4` | Segundos sin ver al rival hasta ocultar la ficha (0 = nunca) |
 | `overlay.mode` | `normal` | Ficha `normal` (compacta) o `competitive` (completa) |
+| `overlay.display` | `overlay` | `overlay` (sobre el juego) o `panel` (ventana aparte con la ficha y la tabla de tipos) |
 | `hotkeys.toggle_mode` | `Ctrl+Alt+M` | Cambiar de modo |
 | `hotkeys.cycle_form` | `Ctrl+Alt+F` | Alternar la forma del rival (megaevoluciones, Rotom…) |
 | `hotkeys.toggle_stream` | `Ctrl+Alt+S` | Mostrar/ocultar la ficha del stream |
@@ -104,7 +106,7 @@ BattleLens comprueba una vez al día si hay una versión nueva. Si la hay, te av
 
 ### Limitaciones conocidas
 
-- Las **formas no regionales** (megaevoluciones, formas de Rotom…) no se distinguen por el nombre: elígelas con `Ctrl+Alt+F`. Gigamax no aparece porque no cambia tipos ni estadísticas.
+- Las **formas no regionales** (megaevoluciones, formas de Rotom…) no se distinguen por el nombre: elígelas con las flechas ◀ ▶ de la ficha o con `Ctrl+Alt+F`. Gigamax no aparece porque no cambia tipos ni estadísticas.
 - **Lectura del nivel:** el nivel solo se lee si la región calibrada lo incluye. BattleLens reintenta con más variantes y con la mitad derecha ampliada, y tolera dígitos leídos como letras («Nv. 1G»). Si aun así no lo lee, el modo Competitivo muestra la ficha sin movimientos probables ni estadísticas a su nivel. El modo Normal no lo necesita.
 - **Movimientos probables:** son los que llevaría un Pokémon salvaje o de un entrenador corriente; los líderes, los rivales y los equipos competitivos pueden llevar otros.
 - **Estadísticas a su nivel** con la fórmula de cada juego (Gen 1-2, Let's Go, Leyendas: Arceus y Gen 3 en adelante); Leyendas Z-A y Champions usan por ahora la de la Gen 3 en adelante.

@@ -433,6 +433,25 @@ def test_cambiar_de_forma_sin_formas_no_hace_nada(qapp, controller):
     assert _card_names(controller, "species-name") == ["Pidgey"]
 
 
+def test_flechas_de_forma_en_la_tarjeta(qapp, controller):
+    from PyQt6.QtWidgets import QPushButton
+
+    def arrow(name):
+        (button,) = [b for b in controller.overlay.findChildren(QPushButton) if b.objectName() == name]
+        return button
+
+    controller._show_battle((16, 479, None), "platinum", None)  # solo Rotom tiene otras formas
+    qapp.processEvents()
+    assert "Ctrl+Alt+Shift+F17" in arrow("form-next").toolTip()
+    arrow("form-prev").click()  # hacia atrás: de Rotom a su última forma
+    qapp.processEvents()
+    names = _card_names(controller, "species-name")
+    assert names[0] == "Pidgey" and names[1] not in ("Rotom", "Rotom Calor")
+    arrow("form-next").click()
+    qapp.processEvents()
+    assert _card_names(controller, "species-name") == ["Pidgey", "Rotom"]
+
+
 def test_movimientos_de_una_mega(qapp, controller):
     controller.set_mode("competitive")
     controller._show_battle((6, None, None), "x-y", None, (50, None, None))

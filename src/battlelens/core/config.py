@@ -61,6 +61,8 @@ require_level = {detection_require_level}
 [overlay]
 # Ficha "normal" (compacta: aventura y captura) o "competitive" (todos los datos de combate).
 mode = {overlay_mode}
+# Dónde se ve la ficha: "overlay" (flotando sobre el juego) o "panel" (ventana normal, p. ej. en otra pantalla).
+display = {overlay_display}
 # Idioma de la ficha: es, en, fr, de, it.
 language = {language}
 # Segundos hasta ocultar el overlay automáticamente (0 = no se oculta solo).
@@ -84,6 +86,7 @@ check = {updates_check}
 """
 LANGUAGES = ("es", "en", "fr", "de", "it")
 MODES = ("normal", "competitive")
+DISPLAYS = ("overlay", "panel")
 # Secciones de la ficha en cada modo, en el orden en que aparecen (claves de los bloques de ui/overlay.py)
 CARD_SECTIONS = {
     "normal": ("matchup", "own_moves", "eff", "evo", "forms"),
@@ -123,6 +126,7 @@ class Config:
     updates_check: bool = True
     hotkey_toggle_mode: str = "Ctrl+Alt+M"
     overlay_mode: str = "normal"
+    overlay_display: str = "overlay"
     hotkey_cycle_form: str = "Ctrl+Alt+F"
     hotkey_toggle_stream: str = "Ctrl+Alt+S"
     hotkey_search: str = "Ctrl+Alt+B"
@@ -170,6 +174,7 @@ class Config:
             updates_check=upd.get("check", default.updates_check),
             hotkey_toggle_mode=hk.get("toggle_mode", default.hotkey_toggle_mode),
             overlay_mode=ov.get("mode", default.overlay_mode),
+            overlay_display=ov.get("display", default.overlay_display),
             hotkey_cycle_form=hk.get("cycle_form", default.hotkey_cycle_form),
             hotkey_toggle_stream=hk.get("toggle_stream", default.hotkey_toggle_stream),
             hotkey_search=hk.get("search", default.hotkey_search),
@@ -192,6 +197,8 @@ class Config:
             raise ConfigError(_("{key} debe estar entre {low} y {high}", key="recognition.threshold", low=0, high=100))
         if self.overlay_mode not in MODES:
             raise ConfigError(_("{key} debe ser uno de: {values}", key="overlay.mode", values=", ".join(MODES)))
+        if self.overlay_display not in DISPLAYS:
+            raise ConfigError(_("{key} debe ser uno de: {values}", key="overlay.display", values=", ".join(DISPLAYS)))
         if not isinstance(self.hotkey_toggle_mode, str):
             raise ConfigError(_("{name} debe ser un texto", name="hotkeys.toggle_mode"))
         if not isinstance(self.hotkey_cycle_form, str):
@@ -272,6 +279,7 @@ class AppState:
     collapsed_sections: dict[str, list[str]] = field(default_factory=dict)
     type_chart_pos: list[int] | None = None  # tabla de tipos (spec type-chart): dónde la dejó el usuario
     type_chart_scale: float = 1.0
+    panel_geometry: list[int] | None = None  # modo panel (spec panel-window): [x, y, ancho, alto]
 
     @classmethod
     def load(cls, path: Path) -> AppState:

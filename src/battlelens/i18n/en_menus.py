@@ -35,6 +35,13 @@ EN: dict[str, str] = {
     "Modo de la ficha": "Card mode",
     "Normal (aventura y captura)": "Normal (adventure and catching)",
     "Competitivo (combate)": "Competitive (battle)",
+    "Mostrar el panel": "Show the panel",
+    "Overlay (sobre el juego)": "Overlay (on top of the game)",
+    "Panel (ventana aparte)": "Panel (separate window)",
+    "Mostrar la ficha en": "Show the card in",
+    "Panel: una ventana con la ficha y la tabla de tipos, para tenerla en otra pantalla.":
+        "Panel: a window with the card and the type chart, to keep on another screen.",
+    "Esperando combate…": "Waiting for a battle…",
     "Modo stream (OBS)": "Stream mode (OBS)",
     "Ventana del emulador": "Emulator window",
     "Perfil activo": "Active profile",

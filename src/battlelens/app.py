@@ -75,6 +75,7 @@ from .ui.report import ReportDialog
 from .ui.search import SearchDialog
 from .ui.start import StartDialog
 from .ui.tray import Tray
+from .ui.panel import PanelWindow
 from .ui.type_chart import TypeChartWindow
 from .stream.payload import build_cards
 from .stream.server import StreamServer, StreamState
@@ -145,6 +146,7 @@ class Controller(QObject):
             self.overlay.saved_pos = QPoint(*self.state.overlay_pos)
         self.overlay.moved.connect(self._on_overlay_moved)
         self.overlay.dismissed.connect(lambda: self.battle.on_hidden_by_user())
+        self.overlay.form_step.connect(lambda sid, step: self.cycle_form(step, sid))
         for mode, keys in (self.state.collapsed_sections or {}).items():  # bloques plegados (improve-card-visuals D11)
             self.overlay.collapsed[mode] = set(keys)
         self.overlay.collapsed_changed.connect(self._on_overlay_collapsed)
@@ -157,6 +159,10 @@ class Controller(QObject):
             self.type_chart.scale = float(scale)
         self.type_chart.changed.connect(self._on_type_chart_changed)
         self.overlay.became_hidden.connect(lambda: self.type_chart.set_highlight(()))
+        # Modo panel (spec panel-window): la ficha y la tabla en una ventana normal
+        self.panel = PanelWindow(self.overlay, self.type_chart)
+        self.panel.restore_geometry(self.state.panel_geometry)
+        self.panel.geometry_changed.connect(self._on_panel_geometry)
 
         # Detección automática del combate (spec battle-detection)
         self.battle = BattleDetector(fingerprint_distance, config.detection_hide_after_seconds)
@@ -179,6 +185,7 @@ class Controller(QObject):
         self.tray.search_requested.connect(self.search_pokemon)
         self.tray.calibrate_requested.connect(self.calibrate)
         self.tray.type_chart_requested.connect(self.toggle_type_chart)
+        self.tray.panel_requested.connect(self.panel.show)
         self.tray.auto_detect_toggled.connect(self.set_auto_detect)
         self.tray.mode_selected.connect(self.set_mode)
         self.tray.set_mode(config.overlay_mode)
@@ -204,6 +211,7 @@ class Controller(QObject):
             self._watch_timer.start()
 
         self._apply_stream(config)
+        self._set_display(config.overlay_display)
         self.hotkeys = HotkeyManager(bindings)
         self.hotkeys.triggered.connect(self._on_hotkey)
         failed = self.hotkeys.start() + invalid
@@ -415,6 +423,8 @@ class Controller(QObject):
             self._redraw_last_battle()
         if sections_changed:
             self._publish_stream(keep_visibility=True)
+        if new.overlay_display != old.overlay_display:
+            self._set_display(new.overlay_display)
         self._watch_timer.setInterval(new.detection_interval_ms)
         self.battle.hide_after_seconds = new.detection_hide_after_seconds
         if new.detection_enabled != old.detection_enabled:
@@ -639,19 +649,20 @@ class Controller(QObject):
             key, game, levels = self._last_battle
             self._show_battle(key, game, self._target_rect(), levels, self._searched)
 
-    def cycle_form(self) -> None:
-        """Siguiente forma del primer rival que tenga otras en el juego (spec battle-overlay)."""
+    def cycle_form(self, step: int = 1, species_id: int | None = None) -> None:
+        """Siguiente (o anterior) forma del rival indicado o, sin él, del primero que tenga otras en el
+        juego (spec battle-overlay). El atajo usa el primero; las flechas de la tarjeta, el suyo."""
         if self._last_battle is None or not self.overlay.isVisible():
             return
         (rival, rival2, _), game, _ = self._last_battle
         for sid in (rival, rival2):
-            if sid is None:
+            if sid is None or species_id not in (None, sid):
                 continue
             cycle = self.pokedex.form_cycle(sid, game)
             if len(cycle) > 1:
                 current = self._form_choice.get(sid, cycle[0])
                 index = cycle.index(current) if current in cycle else 0
-                self._form_choice[sid] = cycle[(index + 1) % len(cycle)]
+                self._form_choice[sid] = cycle[(index + step) % len(cycle)]
                 self._redraw_last_battle()
                 return
 
@@ -811,6 +822,8 @@ class Controller(QObject):
         rivals = [self.pokedex.view(sid, game, lang, self._form_choice.get(sid)) for sid, _ in pairs]
         own_view = self.pokedex.view(own, game, lang) if own is not None else None
         own_moves, probable = self._own_moves(own_view, levels[2]) if own_view is not None else ([], False)
+        if self.panel.docked:  # la tabla del panel, de la generación del juego actual
+            self._load_type_chart()
         self.overlay.show_battle(rivals, own_view, rect, [lvl for _, lvl in pairs], levels[2], own_moves, probable)
         self.type_chart.set_highlight((t for view in rivals for t in view.types),  # tras mostrarla: su hide la limpia
                                       own_view.types if own_view is not None else ())
@@ -823,15 +836,34 @@ class Controller(QObject):
         if self.type_chart.isVisible():
             self.type_chart.hide()
             return
+        self._load_type_chart()
+        if not self.overlay.isVisible():
+            self.type_chart.set_highlight(())
+        self.type_chart.present(self._target_rect())
+
+    def _load_type_chart(self) -> None:
+        """Tabla de la generación del perfil activo."""
         profile = self.profiles.active
         game = self.pokedex.get_game(profile.game if profile is not None else None)
         generation = game.generation if game is not None else CURRENT_GENERATION
         chart = self.pokedex.type_chart(generation)
         lang = get_language()
         self.type_chart.set_chart(chart, {t: self.pokedex.type_name(t, lang) for t in chart}, generation)
-        if not self.overlay.isVisible():
-            self.type_chart.set_highlight(())
-        self.type_chart.present(self._target_rect())
+        if self.panel.docked:
+            self.panel.fit_chart()
+
+    def _set_display(self, display: str) -> None:
+        """Ficha flotante («overlay») o en la ventana del panel (spec panel-window)."""
+        redraw = self._last_battle is not None and self.overlay.isVisible()
+        if display == "panel":
+            self._load_type_chart()
+            self.panel.dock()
+        else:
+            self.panel.undock()
+        self.tray.set_panel_mode(display == "panel")
+        if redraw:
+            key, game, levels = self._last_battle
+            self._show_battle(key, game, self._target_rect(), levels, self._searched)
 
     def search_pokemon(self) -> None:
         """Buscador con atajo global: ficha de cualquier especie fuera del combate (spec pokemon-search)."""
@@ -1242,6 +1274,9 @@ class Controller(QObject):
         self.state.type_chart_pos = [pos.x(), pos.y()] if pos is not None else None
         self.state.type_chart_scale = self.type_chart.scale
         self._save_state()
+
+    def _on_panel_geometry(self) -> None:
+        self.state.panel_geometry = self.panel.saved_geometry()  # se escribe al salir
 
     def _on_overlay_moved(self, x: int, y: int) -> None:
         self.state.overlay_pos = [x, y]

@@ -239,6 +239,7 @@ class _Block(QFrame):
 class Overlay(QWidget):
     moved = pyqtSignal(int, int)
     dismissed = pyqtSignal()  # el usuario la ha cerrado con el botón ✕
+    form_step = pyqtSignal(int, int)  # flechas ◀ ▶ de la cabecera: (especie, -1 o +1)
     became_hidden = pyqtSignal()  # se ha ocultado por cualquier motivo (✕, atajo, fin del combate, temporizador)
     collapsed_changed = pyqtSignal()  # se ha plegado o desplegado un bloque (guardar en state.json)
 
@@ -430,19 +431,34 @@ class Overlay(QWidget):
 
     # ---- secciones comunes ---------------------------------------------------
 
+    @staticmethod
+    def _round_button(text: str, name: str, tooltip: str, hover: str, width: int = 22, size: int = 12) -> QPushButton:
+        button = QPushButton(text)
+        button.setObjectName(name)
+        button.setToolTip(tooltip)
+        button.setCursor(Qt.CursorShape.PointingHandCursor)
+        button.setFixedSize(width, 22)
+        button.setStyleSheet(
+            f"#{name} {{ color:{theme.TEXT_MUTED}; background:transparent; border:none; border-radius:{width // 2}px;"
+            f" font-size:{size}px; font-weight:700; padding:0; }}"
+            f"#{name}:hover {{ color:{theme.TEXT}; background:{hover}; }}"
+        )
+        return button
+
     def _close_button(self) -> QPushButton:
         """✕ para cerrar la ficha: el resto de la ficha ya no la cierra con un clic (redesign-settings-window)."""
-        button = QPushButton("✕")
-        button.setObjectName("close-button")
-        button.setToolTip(_("Cerrar"))
-        button.setCursor(Qt.CursorShape.PointingHandCursor)
-        button.setFixedSize(22, 22)
-        button.setStyleSheet(
-            f"#close-button {{ color:{theme.TEXT_MUTED}; background:transparent; border:none; border-radius:11px;"
-            " font-size:12px; font-weight:700; padding:0; }"
-            f"#close-button:hover {{ color:{theme.TEXT}; background:{theme.rgba('#e5484d', 0.55)}; }}"
-        )
+        button = self._round_button("✕", "close-button", _("Cerrar"), theme.rgba("#e5484d", 0.55))
         button.clicked.connect(self.close_by_user)
+        return button
+
+    def _form_button(self, species_id: int, step: int) -> QPushButton:
+        """◀ ▶ junto al nombre: el juego no siempre dice la forma (Rotom), así se cambia con el ratón."""
+        tip = _("Forma anterior") if step < 0 else _("Forma siguiente")
+        if self.form_hotkey:
+            tip += f" ({self.form_hotkey})"
+        button = self._round_button("◀" if step < 0 else "▶", "form-prev" if step < 0 else "form-next", tip,
+                                    theme.rgba(theme.ACCENT, 0.35), width=18, size=16)
+        button.clicked.connect(lambda: self.form_step.emit(species_id, step))
         return button
 
     def close_by_user(self) -> None:
@@ -469,6 +485,9 @@ class Overlay(QWidget):
         name.setWordWrap(True)
         name.setStyleSheet(f"font-size:{20 if self.competitive else 18}px; font-weight:700;")
         top.addWidget(name, 1)
+        if view.other_forms:
+            for step in (-1, 1):
+                top.addWidget(self._form_button(view.species_id, step), alignment=Qt.AlignmentFlag.AlignTop)
         if self.competitive:
             lvl = QLabel(_("Nv. {level}", level=level) if level else _("Nv. ?"))
             lvl.setObjectName("level")
@@ -855,7 +874,8 @@ class Overlay(QWidget):
         self._fit_cards()
         top_left = self.pos()
         self._fit_to_screen(self._target_rect)
-        self.move(self._clamp(top_left, self.size()))
+        if self.isWindow():  # dentro del panel la coloca su layout (spec panel-window)
+            self.move(self._clamp(top_left, self.size()))
 
     def _block_at(self, pos: QPoint) -> str | None:
         widget = self.childAt(pos)
@@ -869,6 +889,8 @@ class Overlay(QWidget):
     # ---- posición y visibilidad -------------------------------------------
 
     def _available_height(self, target_rect: tuple[int, int, int, int] | None) -> int:
+        if not self.isWindow():  # dentro del panel: el alto de su columna
+            return self.parentWidget().height()
         point = physical_to_logical(target_rect[0], target_rect[1]) if target_rect else None
         screen = (QGuiApplication.screenAt(point) if point else None) or QGuiApplication.primaryScreen()
         return screen.availableGeometry().height() - 2 * MARGIN
@@ -907,6 +929,12 @@ class Overlay(QWidget):
     def _present(self, target_rect: tuple[int, int, int, int] | None) -> None:
         self._target_rect = target_rect
         self._fit_to_screen(target_rect)
+        if not self.isWindow():  # dentro del panel: sin colocar, ni excluir de la captura, ni poner encima
+            self.show()
+            self.window().show()
+            if self.auto_hide_seconds > 0:
+                self._hide_timer.start(int(self.auto_hide_seconds * 1000))
+            return
         self.move(self._position(target_rect))
         self.show()
         if not self._capture_excluded:
@@ -923,7 +951,7 @@ class Overlay(QWidget):
 
     def keep_on_top(self) -> None:
         """Vuelve a ponerla por delante (p. ej. del emulador a pantalla completa) si está visible."""
-        if self.isVisible():
+        if self.isVisible() and self.isWindow():
             _bring_to_top(int(self.winId()))
 
     def _position(self, target_rect: tuple[int, int, int, int] | None) -> QPoint:
@@ -963,7 +991,7 @@ class Overlay(QWidget):
         if self._press_global is None:
             return
         current = event.globalPosition().toPoint()
-        if not self._dragging and (current - self._press_global).manhattanLength() > _DRAG_THRESHOLD:
+        if not self._dragging and self.isWindow() and (current - self._press_global).manhattanLength() > _DRAG_THRESHOLD:
             self._dragging = True
             self.setCursor(Qt.CursorShape.ClosedHandCursor)
         if self._dragging:
