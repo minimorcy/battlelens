@@ -785,9 +785,12 @@ class Controller(QObject):
         key, fp, profile, levels = payload
         if self.config.detection_require_level:
             key = with_levels_only(key, levels)
-        if self.battle.on_result(key, fp, time.monotonic()) is Action.SHOW:
+        action = self.battle.on_result(key, fp, time.monotonic())
+        if action is Action.SHOW:
             log.info("Detección automática: %s (niveles %s)", key, levels)
             self._show_battle(key, profile.game, self._target_rect(), levels)
+        elif action is Action.HIDE:
+            self._end_battle()
 
     def _show_battle(self, key, game: str | None, rect, levels=(None, None, None), searched: bool = False) -> None:
         """Muestra las tarjetas de los rivales de la clave (rival, rival2, own) y la comparativa.

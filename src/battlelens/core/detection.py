@@ -67,6 +67,7 @@ class BattleDetector:
         self._last_attempt: np.ndarray | None = None
         self._shown: _Shown | None = None
         self._hidden_by_user = False
+        self._confirming = False
 
     @property
     def shown_key(self) -> Hashable | None:
@@ -89,9 +90,9 @@ class BattleDetector:
                 if self._shown.away_since is None:
                     self._shown.away_since = now
                 elif now - self._shown.away_since >= self.hide_after_seconds:
-                    self._shown = None
-                    self._hidden_by_user = False
-                    return Action.HIDE
+                    # La huella también cambia si se mueve el fondo (cámara): se confirma leyendo el nombre
+                    self._confirming = True
+                    return Action.RECOGNIZE
             else:
                 self._shown.away_since = None
 
@@ -101,7 +102,12 @@ class BattleDetector:
 
     def on_result(self, key: Hashable | None, fp: np.ndarray, now: float) -> Action:
         self._last_attempt = fp
+        confirming, self._confirming = self._confirming, False
         if not self._has_rival(key):
+            if confirming and self._shown is not None:  # tras el plazo, el rival ya no está: fin del combate
+                self._shown = None
+                self._hidden_by_user = False
+                return Action.HIDE
             return Action.NONE
         if self._shown is not None and self._shown.key == key:
             self._shown.fingerprint = fp

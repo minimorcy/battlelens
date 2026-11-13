@@ -64,8 +64,22 @@ def test_fin_del_combate_oculta(det):
     feed(det, [10, 10, 10])
     det.on_result(759, fp(10), 1.0)
     actions = feed(det, [200] * 10, start=1.5)  # escenario distinto durante 5 s
-    assert Action.HIDE in actions
+    assert Action.HIDE not in actions and actions[-1] == Action.RECOGNIZE  # antes de ocultar, se relee
+    assert det.on_result(None, fp(200), 6.5) == Action.HIDE
     assert det.shown_species is None
+
+
+def test_fondo_en_movimiento_con_el_rival_no_oculta(det):
+    det.on_result(759, fp(10), 0.0)
+    actions = feed(det, [200] * 10, start=0.5)  # la cámara mueve el fondo tras el nombre
+    assert Action.RECOGNIZE in actions
+    assert det.on_result(759, fp(200), 5.5) == Action.NONE  # el nombre sigue ahí
+    assert det.shown_species == 759
+
+
+def test_sin_rival_fuera_de_la_confirmacion_no_oculta(det):
+    det.on_result(759, fp(10), 0.0)
+    assert det.on_result(None, fp(200), 1.0) == Action.NONE  # p. ej. un cuadro de texto tapa el nombre
 
 
 def test_cambio_breve_no_oculta(det):
@@ -84,7 +98,8 @@ def test_cambio_de_barra_de_ps_con_reconocimiento_no_oculta(det):
 
 def test_mismo_rival_en_otro_combate_se_vuelve_a_mostrar(det):
     det.on_result(759, fp(10), 0.0)
-    feed(det, [200] * 10, start=0.5)  # se oculta
+    feed(det, [200] * 10, start=0.5)
+    assert det.on_result(None, fp(200), 5.5) == Action.HIDE  # la relectura no ve rival: se oculta
     assert det.on_result(759, fp(10), 6.0) == Action.SHOW
 
 

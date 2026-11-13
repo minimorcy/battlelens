@@ -4,6 +4,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-11-13
+
+### Corregido
+- La ficha ya no se oculta y vuelve a aparecer en mitad del combate cuando la cámara mueve el fondo detrás del nombre del rival: antes de ocultarla, la detección vuelve a leer el nombre y solo la oculta si el rival ya no está.
+
+### English
+
+**Fixed**
+- The card no longer hides and reappears mid-battle when the camera moves the background behind the opponent's name: before hiding it, detection reads the name again and only hides it if the opponent is gone.
+
 ## [0.6.0] - 2026-11-12
 
 ### Añadido
