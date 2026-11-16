@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib import resources
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
@@ -28,6 +30,7 @@ SECURITY_HEADERS = {
     "Content-Security-Policy": "default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:",
     "Referrer-Policy": "no-referrer",
 }
+TYPE_ICON_PATH = re.compile(r"^/type-icon/(\d{1,2})\.png$")  # solo un entero: nada de la petición llega a la ruta
 
 
 def read_static(name: str) -> bytes:
@@ -67,7 +70,7 @@ class StreamState:
             return {"seq": self._seq, "visible": self._visible, "mode": self.mode, "cards": self._cards}
 
 
-def _handler(state: StreamState):
+def _handler(state: StreamState, icons_dir: Path | None = None):
     class Handler(BaseHTTPRequestHandler):
         server_version = "BattleLens"
         sys_version = ""
@@ -96,6 +99,8 @@ def _handler(state: StreamState):
             elif path in STATIC_FILES:
                 name, content_type = STATIC_FILES[path]
                 self._send(200, read_static(name), content_type)
+            elif (icon := TYPE_ICON_PATH.fullmatch(path)) and icons_dir is not None                     and (file := icons_dir / f"{int(icon.group(1))}.png").is_file():
+                self._send(200, file.read_bytes(), "image/png")
             else:
                 self._send(404, b"Not found")
 
@@ -105,8 +110,9 @@ def _handler(state: StreamState):
 class StreamServer:
     """Arranca y para el servidor en un hilo aparte."""
 
-    def __init__(self, state: StreamState) -> None:
+    def __init__(self, state: StreamState, icons_dir: Path | None = None) -> None:
         self.state = state
+        self.icons_dir = icons_dir  # caché de los iconos de tipo (spec stream-mode)
         self._httpd: ThreadingHTTPServer | None = None
         self._thread: threading.Thread | None = None
         self.port: int | None = None
@@ -123,7 +129,7 @@ class StreamServer:
         """False si el puerto está ocupado (se registra el motivo)."""
         self.stop()
         try:
-            httpd = ThreadingHTTPServer((HOST, port), _handler(self.state))
+            httpd = ThreadingHTTPServer((HOST, port), _handler(self.state, self.icons_dir))
         except OSError as exc:
             log.warning("No se pudo abrir el puerto %s para el modo stream: %s", port, exc)
             return False

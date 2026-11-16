@@ -91,6 +91,9 @@ body {
 }
 .pill.dark { color: #1b1b1b; }
 .pill.soft { padding: 1px 7px; border-radius: 7px; border: 1px solid; color: var(--text); }
+.type-icon { width: 22px; height: 22px; display: block; }
+.type-icon.head { width: 28px; height: 28px; }
+.moves .type-icon { justify-self: center; }
 
 .capture { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 12px; }
 .capture.muted { color: var(--muted); font-weight: 400; font-size: 11px; }

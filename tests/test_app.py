@@ -973,3 +973,24 @@ def test_bandeja_modificar_o_crear_perfil(controller, monkeypatch):
     assert "Ctrl+Alt+Shift+F21" in controller.tray._calibrate_action.text()  # pista del atajo de calibrar
     controller.tray._calibrate_action.trigger()
     assert calls == ["calibrate"]
+
+
+def test_iconos_de_tipo_desde_ajustes(qapp, controller, tmp_path):
+    """Activar la opción descarga los que faltan; con los 18 se dibujan iconos; desactivarla vuelve a etiquetas."""
+    from dataclasses import replace
+
+    from test_type_icons import fill_cache
+
+    controller.tray.notify = lambda msg, warning=False: None
+    started = []
+    controller.type_icons.ensure = lambda: started.append(True)  # sin red
+    assert controller.type_icons.directory == tmp_path / "type-icons"
+    assert controller.overlay.type_icons is None
+    controller.apply_config(replace(controller.config, type_icons=True))
+    assert started and controller.overlay.type_icons is None  # aún no están todos: etiquetas
+    fill_cache(controller.type_icons.directory, controller.pokedex.type_numbers.values())
+    controller.type_icons.finished.emit()
+    assert controller.overlay.type_icons is controller.type_icons and len(controller.type_chart.icons) == 18
+    controller.apply_config(replace(controller.config, type_icons=False))
+    assert controller.overlay.type_icons is None and controller.type_chart.icons == {}
+    assert (controller.type_icons.directory / "10.png").exists()  # la caché no se borra

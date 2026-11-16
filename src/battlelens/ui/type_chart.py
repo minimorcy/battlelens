@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from PyQt6.QtCore import QPoint, QPointF, QRect, QRectF, Qt, pyqtSignal
-from PyQt6.QtGui import QColor, QFont, QFontMetrics, QGuiApplication, QMouseEvent, QPainter, QPen, QWheelEvent
+from PyQt6.QtGui import QColor, QFont, QFontMetrics, QGuiApplication, QMouseEvent, QPainter, QPen, QPixmap, QWheelEvent
 from PyQt6.QtWidgets import QToolTip, QWidget
 
 from ..i18n import _
@@ -49,6 +49,7 @@ class TypeChartWindow(QWidget):
         self.setCursor(Qt.CursorShape.OpenHandCursor)
         self.types: list[str] = []
         self.labels: dict[str, str] = {}
+        self.icons: dict[str, QPixmap] = {}  # iconos de tipo para las cabeceras (spec type-icons); vacío: nombres
         self.chart: dict[str, dict[str, float]] = {}
         self.generation = 0
         self.highlight: frozenset[str] = frozenset()  # columnas: tipos de los rivales
@@ -71,6 +72,10 @@ class TypeChartWindow(QWidget):
         n = len(self.types)
         self._base = QRect(0, 0, 2 * PAD + ROW_HEAD_W + n * CELL, PAD + TITLE_H + COL_HEAD_H + n * CELL + PAD)
         self.set_scale(self.scale)
+
+    def set_icons(self, icons: dict[str, QPixmap]) -> None:
+        self.icons = {t: pm for t, pm in icons.items() if pm is not None}
+        self.update()
 
     def set_scale(self, scale: float) -> None:
         self.scale = round(min(max(scale, MIN_SCALE), MAX_SCALE), 2)
@@ -146,6 +151,9 @@ class TypeChartWindow(QWidget):
         if origin.y() - COL_HEAD_H <= pos.y() < origin.y() and pos.x() >= origin.x():
             index = (pos.x() - origin.x()) // CELL
             return self.types[index] if index < len(self.types) else None
+        if self.icons and PAD <= pos.x() < origin.x() and pos.y() >= origin.y():  # filas: con iconos no hay nombre
+            index = (pos.y() - origin.y()) // CELL
+            return self.types[index] if index < len(self.types) else None
         return None
 
     # ---- pintado -----------------------------------------------------------
@@ -195,13 +203,21 @@ class TypeChartWindow(QWidget):
 
         for col, defender in enumerate(self.types):
             x = origin.x() + col * CELL
-            self._pill(p, QRectF(x + 1, origin.y() - COL_HEAD_H + 4, CELL - 2, 16), defender,
-                       abbreviation(self.labels.get(defender, defender)),
-                       "#ffffff" if defender in self.highlight else None)
+            if defender in self.icons:
+                self._icon(p, QRectF(x + 1, origin.y() - COL_HEAD_H + 3, CELL - 2, CELL - 2), self.icons[defender],
+                           "#ffffff" if defender in self.highlight else None)
+            else:
+                self._pill(p, QRectF(x + 1, origin.y() - COL_HEAD_H + 4, CELL - 2, 16), defender,
+                           abbreviation(self.labels.get(defender, defender)),
+                           "#ffffff" if defender in self.highlight else None)
         for row, attacker in enumerate(self.types):
             y = origin.y() + row * CELL
-            self._pill(p, QRectF(PAD, y + 3, ROW_HEAD_W - 8, CELL - 6), attacker,
-                       self.labels.get(attacker, attacker), OWN_COLOR if attacker in self.highlight_rows else None)
+            if attacker in self.icons:  # pegado a la tabla, como la cabecera de su fila
+                self._icon(p, QRectF(origin.x() - CELL - 2, y + 1, CELL - 2, CELL - 2), self.icons[attacker],
+                           OWN_COLOR if attacker in self.highlight_rows else None)
+            else:
+                self._pill(p, QRectF(PAD, y + 3, ROW_HEAD_W - 8, CELL - 6), attacker,
+                           self.labels.get(attacker, attacker), OWN_COLOR if attacker in self.highlight_rows else None)
             for col, defender in enumerate(self.types):
                 rect = QRectF(origin.x() + col * CELL + 1, y + 1, CELL - 2, CELL - 2)
                 factor = self.chart[attacker][defender]
@@ -257,6 +273,15 @@ class TypeChartWindow(QWidget):
         p.drawRoundedRect(rect, rect.height() / 2, rect.height() / 2)
         p.setPen(QColor("#1b1b1b" if type_id in theme.DARK_TEXT_TYPES else "#ffffff"))
         p.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
+
+    @staticmethod
+    def _icon(p: QPainter, rect: QRectF, pixmap: QPixmap, outline: str | None) -> None:
+        p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        p.drawPixmap(rect, pixmap, QRectF(pixmap.rect()))
+        if outline:
+            p.setPen(QPen(QColor(outline), 1.5))
+            p.setBrush(Qt.BrushStyle.NoBrush)
+            p.drawEllipse(rect.adjusted(-1, -1, 1, 1))
 
     # ---- ratón: arrastrar para mover, tirador o Ctrl+rueda para reescalar; el ✕ la cierra ----
 

@@ -48,4 +48,4 @@ El README (es/en) indica que los iconos no se distribuyen con la app, que se des
 
 ## Open Questions
 
-- ¿La cabecera lleva solo el icono o icono y nombre? Se decide con la primera captura.
+- ~~¿La cabecera lleva solo el icono o icono y nombre?~~ **Resuelto: icono y nombre.** Con capturas de las dos opciones (Pidgey contra Froakie, ficha Normal), el icono de 28 px con el nombre al lado, sin pastilla de color, es lo más legible: la cabecera dice el tipo también a quien no conoce los símbolos y se distingue del resto de secciones, que llevan solo el icono de 22 px. Meter el icono dentro de la pastilla sólida se descartó porque su color no coincide con el del icono (Normal, Volador). Con iconos, Eficacias admite hasta 7 por fila (antes 3 o 4 etiquetas).

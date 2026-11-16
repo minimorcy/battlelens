@@ -125,3 +125,136 @@ def test_pixmap_escalado_y_en_cache(qapp, tmp_path):
     assert icons.pixmap("fire", 22) is small
     assert icons.pixmap("fire").width() == 60
     assert icons.pixmap("stellar", 22) is None
+
+
+# ---- ficha, tabla y stream con iconos ------------------------------------------------
+
+@pytest.fixture(scope="module")
+def dex():
+    from battlelens.core.pokedex import Pokedex
+
+    return Pokedex.load()
+
+
+@pytest.fixture
+def full_icons(qapp, tmp_path, dex):
+    fill_cache(tmp_path, dex.type_numbers.values())
+    return TypeIcons(tmp_path, dex.type_numbers)
+
+
+def _card(dex, icons, moves=None):
+    from battlelens.core.learnsets import Learnsets
+    from battlelens.ui.overlay import Overlay
+
+    o = Overlay(dex, "es", mode="competitive")
+    o._available_height = lambda rect: 100_000
+    o.type_icons = icons
+    if moves is None:
+        moves = [Learnsets.get().move(i) for i in ("ember", "growl")]
+    # Pidgey de rival contra tu Scorbunny, con tus movimientos: todas las secciones con tipos
+    o.show_battle([dex.view(16, "sword-shield", "es")], dex.view(813, "sword-shield", "es"), None, [16], 15, moves)
+    return o
+
+
+def _labels(overlay, kind):
+    from PyQt6.QtWidgets import QLabel
+
+    return [w for w in overlay.findChildren(QLabel) if w.property("pill") == kind]
+
+
+def test_ficha_con_iconos_y_nombre_accesible(qapp, dex, full_icons):
+    o = _card(dex, full_icons)
+    icons = _labels(o, "icon")
+    names = [w.accessibleName() for w in icons]
+    assert names[:2] == ["Normal", "Volador"]  # cabecera, en orden
+    from PyQt6.QtWidgets import QLabel
+
+    assert [w.text() for w in o.findChildren(QLabel, "type-name")] == ["Normal", "Volador"]  # con su nombre
+    assert {"Roca", "Eléctrico", "Hielo", "Fuego"} <= set(names)  # Eficacias, «Contra tu…» y «Tus movimientos»
+    assert all(w.toolTip() == w.accessibleName() and not w.pixmap().isNull() for w in icons)
+    head, rest = icons[0].pixmap(), icons[-1].pixmap()
+    assert head.width() / head.devicePixelRatio() == 28 and rest.width() / rest.devicePixelRatio() == 22
+    assert _labels(o, "soft") == []  # ningún tipo queda como etiqueta
+    o.close()
+
+
+def test_sin_iconos_todo_con_etiquetas(qapp, dex):
+    o = _card(dex, None)
+    assert _labels(o, "icon") == []
+    assert "Volador" in [w.text() for w in _labels(o, "solid")]
+    o.close()
+
+
+def test_movimiento_sin_tipo_sigue_con_interrogacion(qapp, dex, full_icons):
+    from battlelens.core.learnsets import Move
+
+    unknown = Move(0, "x", {"es": "Desconocido"}, None, "status", None, None, None, 0, 0)
+    o = _card(dex, full_icons, [unknown])
+    assert "?" in [w.text() for w in _labels(o, "soft")]
+    o.close()
+
+
+def test_tabla_de_tipos_con_iconos(qapp, dex, full_icons):
+    from PyQt6.QtCore import QPoint
+
+    from battlelens.ui.type_chart import PAD, TypeChartWindow
+
+    w = TypeChartWindow()
+    chart = dex.type_chart(9)
+    w.set_chart(chart, {t: dex.type_name(t, "es") for t in chart}, 9)
+    w.set_icons({t: full_icons.pixmap(t) for t in chart})
+    assert set(w.icons) == set(chart)
+    origin = w._grid_origin()
+    assert w._type_at(QPoint(PAD + 1, origin.y() + 1)) == w.types[0]  # cabecera de fila: nombre en el tooltip
+    w.set_highlight(["fire"], ["water"])
+    assert not w.grab().isNull()  # se pinta con iconos y resaltado
+    w.set_icons({})
+    assert w._type_at(QPoint(PAD + 1, origin.y() + 1)) is None  # sin iconos la fila ya lleva el nombre
+
+
+def test_payload_del_stream_con_iconos(dex):
+    from battlelens.stream.payload import build_cards
+
+    (card,) = build_cards(dex, [dex.view(16, "sword-shield")], None, [16], type_icons=True)
+    assert [t["icon"] for t in card["types"]] == ["/type-icon/1.png", "/type-icon/3.png"]
+    (card,) = build_cards(dex, [dex.view(16, "sword-shield")], None, [16])
+    assert [t["icon"] for t in card["types"]] == [None, None]
+
+
+@pytest.fixture
+def icon_server(tmp_path):
+    from battlelens.stream.server import StreamServer, StreamState
+
+    icons = tmp_path / "type-icons"
+    icons.mkdir()
+    (icons / "10.png").write_bytes(b"\x89PNG\r\n\x1a\nfalso")
+    (tmp_path / "config.toml").write_text("secreto", encoding="utf-8")
+    srv = StreamServer(StreamState(), icons)
+    assert srv.start(0)
+    yield srv
+    srv.stop()
+
+
+def _get(srv, path):
+    import http.client
+
+    conn = http.client.HTTPConnection("127.0.0.1", srv.port, timeout=5)
+    conn.request("GET", path, headers={"Host": f"localhost:{srv.port}"})
+    response = conn.getresponse()
+    body = response.read()
+    conn.close()
+    return response, body
+
+
+def test_servidor_sirve_el_icono_en_cache(icon_server):
+    response, body = _get(icon_server, "/type-icon/10.png")
+    assert response.status == 200 and response.getheader("Content-Type") == "image/png"
+    assert body.startswith(b"\x89PNG")
+
+
+@pytest.mark.parametrize("path", ["/type-icon/11.png", "/type-icon/123.png", "/type-icon/../config.toml",
+                                  "/type-icon/%2e%2e/config.toml", "/type-icon/x.png", "/type-icon/10.png/",
+                                  "/type-icon/10.PNG", "/type-icon/-1.png"])
+def test_servidor_rechaza_rutas_no_validas(icon_server, path):
+    response, body = _get(icon_server, path)
+    assert response.status == 404 and b"secreto" not in body

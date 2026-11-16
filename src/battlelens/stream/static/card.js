@@ -25,8 +25,16 @@ function rgba(hex, alpha) {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
 
-// Pastilla sólida (tipos del propio Pokémon) o suave (el resto), como en la ficha privada.
+// Pastilla sólida (tipos del propio Pokémon) o suave (el resto), como en la ficha privada;
+// o el icono del tipo si llega su ruta (add-type-icons D5).
 function pill(type, solid) {
+  if (type.icon) {
+    const node = el("img", "type-icon" + (solid ? " head" : ""));
+    node.src = type.icon;
+    node.alt = type.label;
+    node.title = type.label;
+    return node;
+  }
   if (solid) {
     const node = el("span", "pill" + (type.dark ? " dark" : ""), type.label);
     node.style.background = type.color;

@@ -44,9 +44,11 @@ HIDDEN_FIELDS = {
 GROUP_TONES = {"weaknesses": "good", "strong": "bad", "resistances": "bad", "immunities": "neutral"}
 
 
-def _type(pokedex: Pokedex, type_id: str | None, lang: str) -> dict:
+def _type(pokedex: Pokedex, type_id: str | None, lang: str, icons: bool = False) -> dict:
     fill, border = theme.soft_type_colors(type_id)
+    number = pokedex.type_numbers.get(type_id or "") if icons else None
     return {
+        "icon": f"/type-icon/{number}.png" if number else None,  # servido desde la caché (spec stream-mode)
         "id": type_id,
         "label": pokedex.type_name(type_id, lang) if type_id else "?",
         "color": theme.TYPE_COLORS.get(type_id or "", "#555555"),
@@ -70,6 +72,7 @@ def _card(
     probable: bool,
     competitive: bool,
     lang: str,
+    icons: bool = False,
 ) -> dict:
     type_name = lambda t: pokedex.type_name(t, lang)  # noqa: E731
     chart = pokedex.type_chart(view.generation)
@@ -77,7 +80,7 @@ def _card(
         "name": view.name,
         "number": f"#{view.species_id:04d}",
         "level": (_("Nv. {level}", level=level) if level else _("Nv. ?")) if competitive else None,
-        "types": [_type(pokedex, t, lang) for t in view.types],
+        "types": [_type(pokedex, t, lang, icons) for t in view.types],
         "capture": None,
         "versus": None,
         "moves": None,
@@ -97,7 +100,7 @@ def _card(
 
         def side(pairs, effects, mine):
             return [
-                {**_type(pokedex, t, lang),
+                {**_type(pokedex, t, lang, icons),
                  "mult": multiplier_text(x) + ("*" if any(not e.certain for e in effects.get(t, ())) else ""),
                  "tone": _tone(x, mine)}
                 for t, x in pairs
@@ -115,7 +118,7 @@ def _card(
         if own_moves:
             items = []
             for move in own_moves:
-                item = {"name": move.name(lang), "type": _type(pokedex, move.type, lang), "mult": _("Estado"), "tone": "status"}
+                item = {"name": move.name(lang), "type": _type(pokedex, move.type, lang, icons), "mult": _("Estado"), "tone": "status"}
                 if move.category != "status" and move.type:
                     factor, effects = effective_multiplier(chart, move.type, view)
                     item["mult"] = multiplier_text(factor) + ("*" if any(not e.certain for e in effects) else "")
@@ -127,7 +130,7 @@ def _card(
             continue
         groups = {2.0: view.strong_against} if key == "strong" else view.matchups
         rows = [{"mult": theme.MULTIPLIER_LABELS[m], "tone": GROUP_TONES[key],
-                 "types": [_type(pokedex, t, lang) for t in groups[m]]}
+                 "types": [_type(pokedex, t, lang, icons) for t in groups[m]]}
                 for m in multipliers if groups[m]]
         if rows:
             card["groups"].append({"title": _(TITLES[key]), "rows": rows})
@@ -165,11 +168,12 @@ def build_cards(
     mode: str = "normal",
     lang: str = "es",
     hidden: frozenset[str] = frozenset(),
+    type_icons: bool = False,
 ) -> list[dict]:
     """Una tarjeta por rival, como la ficha privada en el modo de ficha del stream y sin las secciones ocultas."""
     levels = list(levels) + [None] * len(rivals)
     competitive = mode == "competitive"
-    cards = [_card(pokedex, view, level, own, list(own_moves or []), probable, competitive, lang)
+    cards = [_card(pokedex, view, level, own, list(own_moves or []), probable, competitive, lang, type_icons)
              for view, level in zip(rivals, levels)]
     for card in cards:
         for section, fields in HIDDEN_FIELDS.items():

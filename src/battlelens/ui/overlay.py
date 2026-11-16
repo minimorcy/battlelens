@@ -42,6 +42,7 @@ SCROLLBAR_WIDTH = 8  # barra de desplazamiento cuando la ficha no cabe en la pan
 CATEGORY_LABELS = {"physical": N_("Fís."), "special": N_("Esp."), "status": N_("Est.")}
 CAPTURE_COLORS = theme.CAPTURE_COLORS
 MOVE_TYPE_WIDTH = 78  # ancho fijo de la pastilla de tipo en las listas de movimientos
+ICON_SIZE, HEAD_ICON_SIZE = 22, 28  # iconos de tipo: resto de secciones y cabecera (add-type-icons D4)
 # Claves de los bloques plegables (improve-card-visuals D11)
 BLOCK_KEYS = ("matchup", "own_moves", "eff", "stats", "abilities", "moves", "training", "evo", "forms")
 
@@ -167,15 +168,25 @@ class _FlowRow(QWidget):
         grid.setColumnStretch(per_row, 1)
 
 
-class _Typed(QWidget):
-    """Pastilla suave de un tipo con su multiplicador como insignia aparte (D4)."""
+def _icon(pixmap, name: str) -> QLabel:
+    """Icono de tipo con su nombre como tooltip y descripción accesible (spec type-icons)."""
+    label = QLabel()
+    label.setPixmap(pixmap)
+    label.setProperty("pill", "icon")
+    label.setToolTip(name)
+    label.setAccessibleName(name)
+    return label
 
-    def __init__(self, type_label: str, type_id: str | None, mult: str, tone: str) -> None:
+
+class _Typed(QWidget):
+    """Pastilla suave (o icono) de un tipo con su multiplicador como insignia aparte (D4)."""
+
+    def __init__(self, pill: QLabel, mult: str, tone: str) -> None:
         super().__init__()
         row = QHBoxLayout(self)
         row.setContentsMargins(0, 0, 0, 0)
         row.setSpacing(3)
-        row.addWidget(_pill(type_label, type_id))
+        row.addWidget(pill)
         row.addWidget(_mult(mult, tone, "matchup-mult"))
 
 
@@ -256,6 +267,7 @@ class Overlay(QWidget):
         self.pokedex = pokedex
         self.language = language
         self.mode = mode
+        self.type_icons = None  # TypeIcons con los 18 en la caché, o None: etiquetas (spec type-icons)
         self.form_hotkey = ""  # atajo «Cambiar de forma», para la pista de «Otras formas»
         self._own_moves: tuple[list[Move], bool] = ([], False)  # «Tus movimientos» (spec own-moves)
         # Bloques plegados por modo de ficha (improve-card-visuals D11)
@@ -381,8 +393,30 @@ class Overlay(QWidget):
     def _type_label(self, type_id: str) -> str:
         return self.pokedex.type_name(type_id, self.language)
 
+    def _type_pill(self, type_id: str | None, solid: bool = False) -> QLabel:
+        """Icono del tipo si están disponibles; si no, su pastilla (sólida en la cabecera)."""
+        if type_id and self.type_icons is not None:
+            pixmap = self.type_icons.pixmap(type_id, HEAD_ICON_SIZE if solid else ICON_SIZE)
+            if pixmap is not None:
+                return _icon(pixmap, self._type_label(type_id))
+        return _pill(self._type_label(type_id) if type_id else "?", type_id, solid=solid)
+
     def _types_row(self, types, solid: bool = False) -> QWidget:
-        return _FlowRow([_pill(self._type_label(t), t, solid=solid) for t in types])
+        return _FlowRow([self._named_icon(t) if solid and self.type_icons else self._type_pill(t, solid)
+                         for t in types])
+
+    def _named_icon(self, type_id: str) -> QWidget:
+        """Cabecera con iconos: icono grande y nombre al lado, más legible que solo el icono (add-type-icons D4)."""
+        box = QWidget()
+        row = QHBoxLayout(box)
+        row.setContentsMargins(0, 0, 6, 0)
+        row.setSpacing(5)
+        row.addWidget(self._type_pill(type_id, solid=True))
+        name = QLabel(self._type_label(type_id))
+        name.setObjectName("type-name")
+        name.setStyleSheet("font-weight:600; font-size:12px;")
+        row.addWidget(name)
+        return box
 
     def _muted(self, text: str, size: int = 11, name: str | None = None, wrap: bool = True) -> QLabel:
         label = QLabel(text)
@@ -561,7 +595,7 @@ class Overlay(QWidget):
             for t, x in pairs:
                 found = effects.get(t, ())
                 mark = "*" if any(not e.certain for e in found) else ""
-                typed.append(_Typed(self._type_label(t), t, multiplier_text(x) + mark, _tone(x, mine)))
+                typed.append(_Typed(self._type_pill(t), multiplier_text(x) + mark, _tone(x, mine)))
                 notes += [matchup_note(e, self._type_label, self.language) for e in found]
             grid.addWidget(_FlowRow(typed, per_row=2), i, 1)
         grid.setColumnStretch(1, 1)
@@ -579,7 +613,7 @@ class Overlay(QWidget):
         grid = QGridLayout()
         grid.setVerticalSpacing(4)
         for i, move in enumerate(moves):
-            pill = _pill(self._type_label(move.type) if move.type else "?", move.type)
+            pill = self._type_pill(move.type)
             pill.setFixedWidth(MOVE_TYPE_WIDTH)
             pill.setAlignment(Qt.AlignmentFlag.AlignCenter)
             grid.addWidget(pill, i, 0)
@@ -620,8 +654,9 @@ class Overlay(QWidget):
                 mult.setFixedWidth(30)
                 row.addWidget(mult, alignment=Qt.AlignmentFlag.AlignTop)
                 # Dentro del bloque y con la columna del multiplicador, en Normal (300 px) caben 3 por fila
-                pills = [_pill(self._type_label(t), t) for t in types]
-                row.addWidget(_FlowRow(pills, per_row=4 if self.competitive else 3), 1)
+                pills = [self._type_pill(t) for t in types]
+                per_row = 7 if self.type_icons else 4 if self.competitive else 3  # los iconos ocupan menos
+                row.addWidget(_FlowRow(pills, per_row=per_row), 1)
                 block.add(row)
         for line in lines:
             block.add(self._muted(line, size=10, name="ability-effect-line"))
@@ -761,7 +796,7 @@ class Overlay(QWidget):
         grid.setVerticalSpacing(4)
         grid.setHorizontalSpacing(8)
         for i, move in enumerate(moves):
-            type_pill = _pill(self._type_label(move.type) if move.type else "?", move.type)
+            type_pill = self._type_pill(move.type)
             type_pill.setFixedWidth(MOVE_TYPE_WIDTH)
             type_pill.setAlignment(Qt.AlignmentFlag.AlignCenter)
             name = QLabel(move.name(self.language))

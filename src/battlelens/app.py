@@ -40,6 +40,7 @@ from .core.pokedex import CURRENT_GENERATION, DatasetMissingError, Pokedex
 from .core.profiles import Profile, ProfileStore, Region
 from .core.presets import preset_for, to_profile_regions
 from .core.report import ReportInputs, issue_form_url, write_report
+from .core.remote_images import TYPE_ICONS_DIR, TypeIcons
 from .core.storage import app_data_dir
 from .i18n import N_, _, get_language, resolve_language, set_language
 from .pipeline import (
@@ -134,13 +135,16 @@ class Controller(QObject):
 
         self.overlay = Overlay(pokedex, config.language, config.auto_hide_seconds, mode=config.overlay_mode)
         self.overlay.hidden = {mode: config.hidden_sections(mode) for mode in ("normal", "competitive")}
+        # Iconos de tipo (spec type-icons): se descargan a la caché solo con la opción activa
+        self.type_icons = TypeIcons(self.data_dir / TYPE_ICONS_DIR, pokedex.type_numbers)
+        self.type_icons.finished.connect(self._apply_type_icons)
         self._last_battle = None  # (clave, juego, niveles) de la última ficha, para redibujarla
         self._searched = False  # la última ficha viene del buscador (no va al stream)
         self._search: SearchDialog | None = None  # buscador abierto (solo uno a la vez)
         self._form_choice: dict[int, str] = {}  # especie -> forma elegida con el atajo (add-alternate-forms D4)
         # Modo stream: fuente de navegador para OBS (spec stream-mode)
         self.stream_state = StreamState(config.stream_card_mode)
-        self.stream_server = StreamServer(self.stream_state)
+        self.stream_server = StreamServer(self.stream_state, self.type_icons.directory)
         self._stream_args = None  # (rivales, tu Pokémon, niveles, movimientos, probables) de la última ficha
         if self.state.overlay_pos:
             self.overlay.saved_pos = QPoint(*self.state.overlay_pos)
@@ -210,6 +214,9 @@ class Controller(QObject):
         if auto:
             self._watch_timer.start()
 
+        self._apply_type_icons()
+        if config.type_icons:
+            self.type_icons.ensure()
         self._apply_stream(config)
         self._set_display(config.overlay_display)
         self.hotkeys = HotkeyManager(bindings)
@@ -425,6 +432,10 @@ class Controller(QObject):
             self._publish_stream(keep_visibility=True)
         if new.overlay_display != old.overlay_display:
             self._set_display(new.overlay_display)
+        if new.type_icons != old.type_icons:
+            if new.type_icons:
+                self.type_icons.ensure()
+            self._apply_type_icons()
         self._watch_timer.setInterval(new.detection_interval_ms)
         self.battle.hide_after_seconds = new.detection_hide_after_seconds
         if new.detection_enabled != old.detection_enabled:
@@ -480,7 +491,7 @@ class Controller(QObject):
         visible = self.stream_state.visible
         cards = build_cards(self.pokedex, rivals, own, levels, moves, probable,
                             self.config.stream_card_mode, self.config.language,
-                            self.config.hidden_sections(self.config.stream_card_mode))
+                            self.config.hidden_sections(self.config.stream_card_mode), self._type_icons_ready())
         self.stream_state.publish(cards)
         if keep_visibility:
             self.stream_state.set_visible(visible)
@@ -643,6 +654,18 @@ class Controller(QObject):
         mode = "normal" if self.config.overlay_mode == "competitive" else "competitive"
         self.set_mode(mode)
         self.tray.notify(_("Ficha: Competitivo") if mode == "competitive" else _("Ficha: Normal"))
+
+    def _type_icons_ready(self) -> bool:
+        """Iconos solo con la opción activa y los 18 en la caché (spec type-icons)."""
+        return self.config.type_icons and self.type_icons.complete()
+
+    def _apply_type_icons(self) -> None:
+        """Iconos o etiquetas en la ficha, la tabla y el stream; se llama al cambiar la opción o al llegar los iconos."""
+        ready = self._type_icons_ready()
+        self.overlay.type_icons = self.type_icons if ready else None
+        self.type_chart.set_icons({t: self.type_icons.pixmap(t) for t in self.pokedex.type_numbers} if ready else {})
+        self._redraw_last_battle()
+        self._publish_stream(keep_visibility=True)
 
     def _redraw_last_battle(self) -> None:
         if self._last_battle is not None and self.overlay.isVisible():
