@@ -66,12 +66,23 @@ function renderHead(card) {
   const tint = card.types.length ? card.types[0].color : "#8a90a3";
   head.style.background = `linear-gradient(180deg, ${rgba(tint, 0.2)}, ${rgba(tint, 0.04)})`;
   head.style.border = `1px solid ${rgba(tint, 0.28)}`;
+  // Imagen del Pokémon a la izquierda, si está en la caché (add-pokemon-sprites D5)
+  let body = head;
+  if (card.sprite) {
+    head.classList.add("with-sprite");
+    const sprite = el("img", "sprite");
+    sprite.src = card.sprite;
+    sprite.alt = card.name;
+    head.appendChild(sprite);
+    body = el("div", "head-body");
+    head.appendChild(body);
+  }
   const header = el("div", "header");
   header.appendChild(el("span", "name", card.name));
   if (card.level) header.appendChild(el("span", "level", card.level));
   header.appendChild(el("span", "number", card.number));
-  head.appendChild(header);
-  head.appendChild(row(card.types, true));
+  body.appendChild(header);
+  body.appendChild(row(card.types, true));
   if (card.capture) {
     const capture = el("div", "capture" + (card.capture.color ? "" : " muted"));
     const text = el("span", "", card.capture.text);
@@ -85,9 +96,9 @@ function renderHead(card) {
       meter.appendChild(fill);
       capture.appendChild(meter);
     }
-    head.appendChild(capture);
+    body.appendChild(capture);
   }
-  if (card.total) head.appendChild(el("div", "total", card.total));
+  if (card.total) body.appendChild(el("div", "total", card.total));
   return head;
 }
 

@@ -170,6 +170,11 @@ EN: dict[str, str] = {
     'Tipos como iconos': 'Types as icons',
     'Se descargan de PokéAPI la primera vez. Hasta entonces, o sin conexión, salen como etiquetas.':
         'Downloaded from PokéAPI the first time. Until then, or offline, they show as labels.',
+    'Mostrar la imagen del Pokémon (se descarga de PokéAPI la primera vez)':
+        "Show the Pokémon's picture (downloaded from PokéAPI the first time)",
+    'Imagen del Pokémon': "Pokémon picture",
+    'Cada una se descarga de PokéAPI la primera vez que aparece. Sin conexión, la ficha sale sin imagen.':
+        'Each one is downloaded from PokéAPI the first time it appears. Offline, the card shows without it.',
     'Cómo lee BattleLens los nombres y cuándo vigila el combate.': 'How BattleLens reads the names and when it watches the battle.',
     'Lectura': 'Reading',
     'Umbral de reconocimiento': 'Recognition threshold',

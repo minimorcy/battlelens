@@ -93,7 +93,8 @@ Todo se puede cambiar desde bandeja → **Ajustes…** (los cambios se aplican a
 | `overlay.language` | `es` | Idioma de los datos Pokémon: `es`, `en`, `fr`, `de`, `it` |
 | `overlay.auto_hide_seconds` | `0` | Ocultar la ficha tras N segundos (0 = nunca) |
 | `overlay.type_icons` | `false` | Tipos como iconos en vez de etiquetas (se descargan una vez de PokéAPI, ver abajo) |
-| `updates.check` | `true` | Avisar una vez al día si hay versión nueva en GitHub (única conexión saliente, además de los iconos de tipo si los activas) |
+| `overlay.sprites` | `false` | Imagen del Pokémon en la cabecera de la ficha (se descarga de PokéAPI la primera vez que aparece cada uno, ver abajo) |
+| `updates.check` | `true` | Avisar una vez al día si hay versión nueva en GitHub (única conexión saliente, además de los iconos de tipo y las imágenes de los Pokémon si los activas) |
 
 ### Si no reconoce bien
 
@@ -152,3 +153,4 @@ El proyecto sigue un desarrollo guiado por especificaciones con [OpenSpec](https
 - Código: [MIT](LICENSE).
 - Datos de Pokémon: [PokéAPI](https://github.com/PokeAPI/pokeapi) (BSD-3-Clause).
 - Iconos de tipo: no se distribuyen con la app. Si activas *Tipos como iconos*, BattleLens los descarga una sola vez (18 peticiones, así que GitHub ve tu IP) del repositorio público [PokeAPI/sprites](https://github.com/PokeAPI/sprites) a `%APPDATA%\BattleLens\type-icons\`. Las imágenes son © Nintendo/Creatures Inc./GAME FREAK inc.
+- Imágenes de los Pokémon: tampoco se distribuyen. Si activas *Imagen del Pokémon*, la de cada uno se descarga la primera vez que aparece (una petición por Pokémon nuevo) del mismo repositorio a `%APPDATA%\BattleLens\sprites\`. © Nintendo/Creatures Inc./GAME FREAK inc.

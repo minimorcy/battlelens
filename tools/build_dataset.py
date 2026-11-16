@@ -225,6 +225,7 @@ def build(tables: dict[str, list[dict[str, str]]]) -> dict:
         row = poke_rows.get(pid, {})
         return {
             "pokemon": row.get("identifier"),
+            "sprite_id": pid,  # número de Pokémon de PokéAPI = nombre del sprite (add-pokemon-sprites D1)
             "types": [t for _, t in sorted(poke_types.get(pid, []))],
             "stats": stats,
             "abilities": [a for _, a in sorted(poke_abilities.get(pid, []), key=lambda x: x[0])],

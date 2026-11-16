@@ -43,6 +43,7 @@ CATEGORY_LABELS = {"physical": N_("Fís."), "special": N_("Esp."), "status": N_(
 CAPTURE_COLORS = theme.CAPTURE_COLORS
 MOVE_TYPE_WIDTH = 78  # ancho fijo de la pastilla de tipo en las listas de movimientos
 ICON_SIZE, HEAD_ICON_SIZE = 22, 28  # iconos de tipo: resto de secciones y cabecera (add-type-icons D4)
+SPRITE_BOX, SPRITE_FIT = 60, 48  # recuadro de la imagen del Pokémon y lo que ocupa el sprite (add-pokemon-sprites D3)
 # Claves de los bloques plegables (improve-card-visuals D11)
 BLOCK_KEYS = ("matchup", "own_moves", "eff", "stats", "abilities", "moves", "training", "evo", "forms")
 
@@ -268,6 +269,8 @@ class Overlay(QWidget):
         self.language = language
         self.mode = mode
         self.type_icons = None  # TypeIcons con los 18 en la caché, o None: etiquetas (spec type-icons)
+        self.sprites = None  # Sprites, o None con las imágenes desactivadas (spec pokemon-sprites)
+        self._sprite_slots: dict[int, list[QLabel]] = {}  # recuadros a la espera de su sprite
         self.form_hotkey = ""  # atajo «Cambiar de forma», para la pista de «Otras formas»
         self._own_moves: tuple[list[Move], bool] = ([], False)  # «Tus movimientos» (spec own-moves)
         # Bloques plegados por modo de ficha (improve-card-visuals D11)
@@ -356,6 +359,7 @@ class Overlay(QWidget):
         """Una tarjeta por rival (dos en combates dobles), según el modo (spec display-modes)."""
         self._own_moves = (list(own_moves or []), own_moves_probable)
         self._clear()
+        self._sprite_slots = {}
         # Ancho fijo por tarjeta (descontando los márgenes del panel): así el texto se parte
         # en líneas con el ancho real y no se recorta en los combates dobles.
         inner = card_width(self.mode) - 2 * PANEL_PADDING
@@ -533,7 +537,16 @@ class Overlay(QWidget):
         if closable:
             top.addWidget(self._close_button(), alignment=Qt.AlignmentFlag.AlignTop)
         box.addLayout(top)
-        box.addWidget(self._types_row(view.types, solid=True))
+        types = self._types_row(view.types, solid=True)
+        sprite = self._sprite_slot(view, tint)
+        if sprite is not None:  # la imagen junto a los tipos: el nombre y la captura conservan todo el ancho
+            beside = QHBoxLayout()
+            beside.setSpacing(10)
+            beside.addWidget(sprite)
+            beside.addWidget(types, 1, Qt.AlignmentFlag.AlignVCenter)
+            box.addLayout(beside)
+        else:
+            box.addWidget(types)
         self._capture(view, box)
         if not self.competitive:
             total = QLabel(_("Total estadísticas base: {total}", total=f"<b>{view.stat_total}</b>"))
@@ -542,6 +555,37 @@ class Overlay(QWidget):
             total.setStyleSheet(f"color:{theme.TEXT_MUTED}; font-size:11px;")
             box.addWidget(total)
         layout.addWidget(head)
+
+    def _sprite_slot(self, view: SpeciesView, tint: str) -> QLabel | None:
+        """Recuadro de la imagen: se reserva si el sprite está o se está descargando, para que la ficha
+        no se mueva al llegar (add-pokemon-sprites D3). Sin imágenes o si falló, no hay recuadro."""
+        if self.sprites is None or not view.sprite_id or not self.sprites.request(view.sprite_id):
+            return None
+        slot = QLabel()
+        slot.setObjectName("sprite")
+        slot.setAccessibleName(view.name)
+        slot.setFixedSize(SPRITE_BOX, SPRITE_BOX)
+        slot.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        slot.setStyleSheet(
+            "#sprite { background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, "
+            f"stop:0 {theme.rgba(tint, 0.38)}, stop:1 {theme.rgba(tint, 0.0)}); border-radius:{SPRITE_BOX // 2}px; }}"
+        )
+        pixmap = self.sprites.pixmap(view.sprite_id, SPRITE_FIT)
+        if pixmap is not None:
+            slot.setPixmap(pixmap)
+        else:
+            self._sprite_slots.setdefault(view.sprite_id, []).append(slot)
+        return slot
+
+    def sprite_arrived(self, sprite_id: int) -> None:
+        """Coloca el sprite recién descargado en sus recuadros, sin redibujar la ficha."""
+        pixmap = self.sprites.pixmap(sprite_id, SPRITE_FIT) if self.sprites is not None else None
+        for slot in self._sprite_slots.pop(sprite_id, []):
+            if pixmap is not None:
+                try:
+                    slot.setPixmap(pixmap)
+                except RuntimeError:  # la tarjeta ya se cerró
+                    pass
 
     def _capture(self, view: SpeciesView, layout: QVBoxLayout) -> None:
         if view.capture_rate is None:

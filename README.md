@@ -93,7 +93,8 @@ Everything can be changed from tray → **Settings…** (*Ajustes…*) (changes 
 | `overlay.language` | `es` | Pokémon data language: `es`, `en`, `fr`, `de`, `it` |
 | `overlay.auto_hide_seconds` | `0` | Hide the card after N seconds (0 = never) |
 | `overlay.type_icons` | `false` | Show types as icons instead of labels (downloaded once from PokéAPI, see below) |
-| `updates.check` | `true` | Check once a day for a new version on GitHub (the only outgoing connection, besides the type icons if you turn them on) |
+| `overlay.sprites` | `false` | Pokémon picture in the card header (each one downloaded from PokéAPI the first time it appears, see below) |
+| `updates.check` | `true` | Check once a day for a new version on GitHub (the only outgoing connection, besides the type icons and Pokémon pictures if you turn them on) |
 
 ### If recognition fails
 
@@ -152,3 +153,4 @@ The project follows spec-driven development with [OpenSpec](https://github.com/F
 - Code: [MIT](LICENSE).
 - Pokémon data: [PokéAPI](https://github.com/PokeAPI/pokeapi) (BSD-3-Clause).
 - Type icons: they don't ship with the app. If you turn on *Types as icons*, BattleLens downloads them once (18 requests, so GitHub sees your IP) from the public [PokeAPI/sprites](https://github.com/PokeAPI/sprites) repository into `%APPDATA%\BattleLens\type-icons\`. The images are © Nintendo/Creatures Inc./GAME FREAK inc.
+- Pokémon pictures: they don't ship either. If you turn on *Pokémon picture*, each one is downloaded the first time it appears (one request per new Pokémon) from the same repository into `%APPDATA%\BattleLens\sprites\`. © Nintendo/Creatures Inc./GAME FREAK inc.

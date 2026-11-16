@@ -73,6 +73,8 @@ hidden_normal = {hidden_sections_normal}
 hidden_competitive = {hidden_sections_competitive}
 # Tipos como iconos en vez de etiquetas. Se descargan una vez del repositorio de PokéAPI en type-icons/.
 type_icons = {type_icons}
+# Imagen del Pokémon en la cabecera. Cada una se descarga la primera vez del repositorio de PokéAPI en sprites/.
+sprites = {sprites}
 
 [stream]
 # Fuente de navegador para OBS en http://localhost:<port>/ (solo en este PC).
@@ -143,6 +145,7 @@ class Config:
     hidden_sections_competitive: tuple[str, ...] = ("matchup", "own_moves", "abilities", "moves", "training",
                                                     "evo", "forms")
     type_icons: bool = False
+    sprites: bool = False
 
     def hidden_sections(self, mode: str) -> frozenset[str]:
         return frozenset(self.hidden_sections_competitive if mode == "competitive" else self.hidden_sections_normal)
@@ -189,6 +192,7 @@ class Config:
             hidden_sections_normal=_sections(ov.get("hidden_normal", default.hidden_sections_normal)),
             hidden_sections_competitive=_sections(ov.get("hidden_competitive", default.hidden_sections_competitive)),
             type_icons=ov.get("type_icons", default.type_icons),
+            sprites=ov.get("sprites", default.sprites),
         )
         cfg._validate()
         return cfg
@@ -231,6 +235,8 @@ class Config:
             raise ConfigError(_("{key} debe ser un número >= 0", key="overlay.auto_hide_seconds"))
         if not isinstance(self.type_icons, bool):
             raise ConfigError(_("{key} debe ser true o false", key="overlay.type_icons"))
+        if not isinstance(self.sprites, bool):
+            raise ConfigError(_("{key} debe ser true o false", key="overlay.sprites"))
         if not isinstance(self.detection_enabled, bool):
             raise ConfigError(_("{key} debe ser true o false", key="detection.enabled"))
         if not isinstance(self.detection_require_level, bool):

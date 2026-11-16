@@ -144,6 +144,7 @@ class Form:
     abilities: tuple[Ability, ...]
     pokemon: str | None = None  # identificador del Pokémon en PokéAPI (p. ej. "zigzagoon-galar")
     weight_kg: float | None = None
+    sprite_id: int | None = None  # número de PokéAPI: nombre del sprite
     height_m: float | None = None
     ev_yield: dict[str, int] = field(default_factory=dict, compare=False)
     past_abilities: tuple[PastAbility, ...] = field(default=(), compare=False)
@@ -183,6 +184,7 @@ class Species:
     evolution: Evolution | None = None
     pokemon: str | None = None  # identificador del Pokémon en PokéAPI (p. ej. "zigzagoon-galar")
     weight_kg: float | None = None
+    sprite_id: int | None = None  # número de PokéAPI: nombre del sprite
     height_m: float | None = None
     ev_yield: dict[str, int] = field(default_factory=dict, compare=False)
     past_abilities: tuple[PastAbility, ...] = field(default=(), compare=False)
@@ -246,6 +248,7 @@ class SpeciesView:
     game_id: str | None = None
     pokemon: str | None = None
     weight_kg: float | None = None
+    sprite_id: int | None = None  # número de PokéAPI: nombre del sprite
     ev_yield: dict[str, int] = field(default_factory=dict)
     # Efectos defensivos de sus habilidades, seguros y posibles (add-ability-aware-matchups D3)
     ability_effects: tuple[AbilityEffect, ...] = field(default_factory=tuple)
@@ -330,6 +333,7 @@ class Pokedex:
                         _abilities(f["abilities"], descriptions),
                         pokemon=f.get("pokemon") or f["identifier"],
                         weight_kg=f.get("weight_kg"),
+                        sprite_id=f.get("sprite_id"),
                         height_m=f.get("height_m"),
                         ev_yield=f.get("ev_yield", {}),
                         past_abilities=_past_abilities(f.get("past_abilities", []), descriptions),
@@ -344,6 +348,7 @@ class Pokedex:
                 evolution=Evolution(**evo) if evo else None,
                 pokemon=s.get("pokemon"),
                 weight_kg=s.get("weight_kg"),
+                sprite_id=s.get("sprite_id"),
                 height_m=s.get("height_m"),
                 ev_yield=s.get("ev_yield", {}),
                 past_abilities=_past_abilities(s.get("past_abilities", []), descriptions),
@@ -604,6 +609,7 @@ class Pokedex:
             game_id=game.id if game else None,
             pokemon=source.pokemon,
             weight_kg=source.weight_kg,
+            sprite_id=source.sprite_id or species.sprite_id,
             ev_yield=source.ev_yield,
             ability_effects=self.ability_effects(types, abilities, generation),
             form_id=form.identifier if form else species.identifier,

@@ -31,6 +31,7 @@ SECURITY_HEADERS = {
     "Referrer-Policy": "no-referrer",
 }
 TYPE_ICON_PATH = re.compile(r"^/type-icon/(\d{1,2})\.png$")  # solo un entero: nada de la petición llega a la ruta
+SPRITE_PATH = re.compile(r"^/sprite/(\d{1,5})\.png$")  # ídem para los sprites (add-pokemon-sprites D5)
 
 
 def read_static(name: str) -> bytes:
@@ -70,7 +71,7 @@ class StreamState:
             return {"seq": self._seq, "visible": self._visible, "mode": self.mode, "cards": self._cards}
 
 
-def _handler(state: StreamState, icons_dir: Path | None = None):
+def _handler(state: StreamState, icons_dir: Path | None = None, sprites_dir: Path | None = None):
     class Handler(BaseHTTPRequestHandler):
         server_version = "BattleLens"
         sys_version = ""
@@ -101,6 +102,8 @@ def _handler(state: StreamState, icons_dir: Path | None = None):
                 self._send(200, read_static(name), content_type)
             elif (icon := TYPE_ICON_PATH.fullmatch(path)) and icons_dir is not None                     and (file := icons_dir / f"{int(icon.group(1))}.png").is_file():
                 self._send(200, file.read_bytes(), "image/png")
+            elif (sprite := SPRITE_PATH.fullmatch(path)) and sprites_dir is not None                     and (file := sprites_dir / f"{int(sprite.group(1))}.png").is_file():
+                self._send(200, file.read_bytes(), "image/png")
             else:
                 self._send(404, b"Not found")
 
@@ -110,9 +113,10 @@ def _handler(state: StreamState, icons_dir: Path | None = None):
 class StreamServer:
     """Arranca y para el servidor en un hilo aparte."""
 
-    def __init__(self, state: StreamState, icons_dir: Path | None = None) -> None:
+    def __init__(self, state: StreamState, icons_dir: Path | None = None, sprites_dir: Path | None = None) -> None:
         self.state = state
         self.icons_dir = icons_dir  # caché de los iconos de tipo (spec stream-mode)
+        self.sprites_dir = sprites_dir  # caché de los sprites; el servidor nunca descarga
         self._httpd: ThreadingHTTPServer | None = None
         self._thread: threading.Thread | None = None
         self.port: int | None = None
@@ -129,7 +133,7 @@ class StreamServer:
         """False si el puerto está ocupado (se registra el motivo)."""
         self.stop()
         try:
-            httpd = ThreadingHTTPServer((HOST, port), _handler(self.state, self.icons_dir))
+            httpd = ThreadingHTTPServer((HOST, port), _handler(self.state, self.icons_dir, self.sprites_dir))
         except OSError as exc:
             log.warning("No se pudo abrir el puerto %s para el modo stream: %s", port, exc)
             return False

@@ -6,6 +6,8 @@ los textos y los colores con las mismas funciones que la ficha privada.
 
 from __future__ import annotations
 
+from typing import Callable
+
 from ..core.abilities import multiplier_text
 from ..core.card_text import ability_effect_lines, matchup_note
 from ..core.learnsets import Move
@@ -169,12 +171,16 @@ def build_cards(
     lang: str = "es",
     hidden: frozenset[str] = frozenset(),
     type_icons: bool = False,
+    has_sprite: Callable[[int], bool] | None = None,
 ) -> list[dict]:
     """Una tarjeta por rival, como la ficha privada en el modo de ficha del stream y sin las secciones ocultas."""
     levels = list(levels) + [None] * len(rivals)
     competitive = mode == "competitive"
     cards = [_card(pokedex, view, level, own, list(own_moves or []), probable, competitive, lang, type_icons)
              for view, level in zip(rivals, levels)]
+    for card, view in zip(cards, rivals):  # solo si ya está en la caché: el servidor no descarga (spec stream-mode)
+        ok = has_sprite is not None and view.sprite_id and has_sprite(view.sprite_id)
+        card["sprite"] = f"/sprite/{view.sprite_id}.png" if ok else None
     for card in cards:
         for section, fields in HIDDEN_FIELDS.items():
             if section in hidden:

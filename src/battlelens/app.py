@@ -41,6 +41,7 @@ from .core.profiles import Profile, ProfileStore, Region
 from .core.presets import preset_for, to_profile_regions
 from .core.report import ReportInputs, issue_form_url, write_report
 from .core.remote_images import TYPE_ICONS_DIR, TypeIcons
+from .core.sprites import SPRITES_DIR, Sprites
 from .core.storage import app_data_dir
 from .i18n import N_, _, get_language, resolve_language, set_language
 from .pipeline import (
@@ -138,13 +139,17 @@ class Controller(QObject):
         # Iconos de tipo (spec type-icons): se descargan a la caché solo con la opción activa
         self.type_icons = TypeIcons(self.data_dir / TYPE_ICONS_DIR, pokedex.type_numbers)
         self.type_icons.finished.connect(self._apply_type_icons)
+        # Imagen del Pokémon (spec pokemon-sprites): se descarga la de cada uno la primera vez, solo con la opción
+        self.sprites = Sprites(self.data_dir / SPRITES_DIR)
+        self.sprites.arrived.connect(self._sprite_arrived)
+        self.overlay.sprites = self.sprites if config.sprites else None
         self._last_battle = None  # (clave, juego, niveles) de la última ficha, para redibujarla
         self._searched = False  # la última ficha viene del buscador (no va al stream)
         self._search: SearchDialog | None = None  # buscador abierto (solo uno a la vez)
         self._form_choice: dict[int, str] = {}  # especie -> forma elegida con el atajo (add-alternate-forms D4)
         # Modo stream: fuente de navegador para OBS (spec stream-mode)
         self.stream_state = StreamState(config.stream_card_mode)
-        self.stream_server = StreamServer(self.stream_state, self.type_icons.directory)
+        self.stream_server = StreamServer(self.stream_state, self.type_icons.directory, self.sprites.directory)
         self._stream_args = None  # (rivales, tu Pokémon, niveles, movimientos, probables) de la última ficha
         if self.state.overlay_pos:
             self.overlay.saved_pos = QPoint(*self.state.overlay_pos)
@@ -436,6 +441,10 @@ class Controller(QObject):
             if new.type_icons:
                 self.type_icons.ensure()
             self._apply_type_icons()
+        if new.sprites != old.sprites:
+            self.overlay.sprites = self.sprites if new.sprites else None
+            self._redraw_last_battle()
+            self._publish_stream(keep_visibility=True)
         self._watch_timer.setInterval(new.detection_interval_ms)
         self.battle.hide_after_seconds = new.detection_hide_after_seconds
         if new.detection_enabled != old.detection_enabled:
@@ -491,7 +500,8 @@ class Controller(QObject):
         visible = self.stream_state.visible
         cards = build_cards(self.pokedex, rivals, own, levels, moves, probable,
                             self.config.stream_card_mode, self.config.language,
-                            self.config.hidden_sections(self.config.stream_card_mode), self._type_icons_ready())
+                            self.config.hidden_sections(self.config.stream_card_mode), self._type_icons_ready(),
+                            self.sprites.has if self.config.sprites else None)
         self.stream_state.publish(cards)
         if keep_visibility:
             self.stream_state.set_visible(visible)
@@ -665,6 +675,11 @@ class Controller(QObject):
         self.overlay.type_icons = self.type_icons if ready else None
         self.type_chart.set_icons({t: self.type_icons.pixmap(t) for t in self.pokedex.type_numbers} if ready else {})
         self._redraw_last_battle()
+        self._publish_stream(keep_visibility=True)
+
+    def _sprite_arrived(self, sprite_id: int) -> None:
+        """Un sprite recién descargado: a su recuadro de la ficha (sin redibujarla) y al stream."""
+        self.overlay.sprite_arrived(sprite_id)
         self._publish_stream(keep_visibility=True)
 
     def _redraw_last_battle(self) -> None:

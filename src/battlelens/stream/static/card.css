@@ -71,6 +71,9 @@ body {
    pastillas suaves y colores semánticos para el jugador. Sin color-mix(): el navegador de OBS puede ser antiguo. */
 .head { border-radius: 10px; padding: 9px 10px; display: flex; flex-direction: column; gap: 6px; }
 .header { display: flex; align-items: baseline; gap: 8px; }
+.head.with-sprite { flex-direction: row; align-items: flex-start; gap: 10px; }
+.head-body { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+.sprite { width: 60px; height: 60px; object-fit: scale-down; image-rendering: pixelated; flex: none; }
 .name { font-size: 18px; font-weight: 700; flex: 1; }
 .competitive .name { font-size: 20px; }
 .level { color: var(--accent); font-weight: 700; }

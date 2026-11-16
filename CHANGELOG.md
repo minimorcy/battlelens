@@ -5,6 +5,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ## [Unreleased]
 
 ### Añadido
+- Imagen del Pokémon: en Ajustes › Ficha → «Imagen del Pokémon», la cabecera muestra el sprite del Pokémon (de la forma que se ve, también regional o mega) junto a sus tipos, y también en la ficha del stream. Desactivada por defecto. Las imágenes no van con la app: la de cada Pokémon se descarga la primera vez que aparece; sin conexión, la ficha sale sin imagen.
 - Tipos como iconos: en Ajustes › Ficha → «Tipos como iconos», cada tipo sale con su símbolo (la llama de Fuego, la gota de Agua) en toda la ficha, en la tabla de tipos y en la ficha del stream. La cabecera lleva el icono con el nombre al lado; el resto, solo el icono, con el nombre al pasar el ratón. Desactivado por defecto. Los iconos no van con la app: se descargan una sola vez del repositorio público de PokéAPI y, hasta que están todos o sin conexión, los tipos siguen como etiquetas.
 
 ### Cambiado
@@ -17,6 +18,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ### English
 
 **Added**
+- Pokémon picture: in Settings › Card → "Pokémon picture", the header shows the Pokémon's sprite (of the form on screen, regional or Mega too) next to its types, also on the stream card. Off by default. The pictures don't ship with the app: each one is downloaded the first time it appears; offline, the card shows without it.
 - Types as icons: in Settings › Card → "Types as icons", each type shows its symbol (Fire's flame, Water's drop) across the card, the type chart and the stream card. The header shows the icon with the name next to it; elsewhere just the icon, with the name on hover. Off by default. The icons don't ship with the app: they're downloaded once from the public PokéAPI repository and, until they're all there or offline, types keep showing as labels.
 
 **Changed**
