@@ -73,14 +73,14 @@ def name_candidates(text: str) -> list[tuple[str, float]]:
     return candidates
 
 
-_LEVEL_VALUE = re.compile(r"(?:\b(?:lv|nv|niv|n|l)\s*\.?|:l)\s*(\d{1,3})\b", re.IGNORECASE)
+_LEVEL_VALUE = re.compile(r"(?:\b(?:lv|lu|nv|niv|n|l)\s*\.?|:l)\s*(\d{1,3})\b", re.IGNORECASE)
 _TRAILING_VALUE = re.compile(r"\s(\d{1,3})\s*$")
 # Letras que el OCR confunde con dígitos en fuentes estilizadas (improve-level-reading D1)
 _DIGIT_CONFUSIONS = str.maketrans("OoQDIl|iZzSsGbB", "000011112255668")
 _LEVEL_CONFUSED = re.compile(
-    r"(?:\b(?P<prefix>lv|nv|niv|n|l)\s*\.?|:l)\s*(?P<value>[0-9OoQDIl|iZzSsGbB]{1,3})(?![A-Za-z0-9])", re.IGNORECASE
+    r"(?:\b(?P<prefix>lv|lu|nv|niv|n|l)\s*\.?|:l)\s*(?P<value>[0-9OoQDIl|iZzSsGbB]{1,3})(?![A-Za-z0-9])", re.IGNORECASE
 )
-_STRONG_PREFIXES = {"lv", "nv", "niv"}
+_STRONG_PREFIXES = {"lv", "lu", "nv", "niv"}  # «lu»: «Lv» en fuentes pixeladas (hacks de GBA)
 
 
 def _confused_levels(text: str):
@@ -90,12 +90,14 @@ def _confused_levels(text: str):
             yield raw.translate(_DIGIT_CONFUSIONS)
 
 
-def extract_level(readings) -> int | None:
-    """Nivel (1-100) leído en alguna lectura de OCR: con prefijo («Nv. 10»), con prefijo y dígitos
-    confundidos («Nv. 1G») y, por último, un número suelto al final («… 10»)."""
+def extract_level(readings, pixel_level: int | None = None) -> int | None:
+    """Nivel (1-100) leído en alguna lectura de OCR: con prefijo («Nv. 10»); si no, el de los dígitos
+    reconocidos por su forma (`pixel_level`, fuente de GBA); después, con prefijo y dígitos confundidos
+    («Nv. 1G») y, por último, un número suelto al final («… 10»)."""
     readings = [r for r in readings if r]
     finders = (
         lambda text: (m.group(1) for m in _LEVEL_VALUE.finditer(text)),
+        lambda text: [str(pixel_level)] if pixel_level else [],
         _confused_levels,
         lambda text: (m.group(1) for m in _TRAILING_VALUE.finditer(text)),
     )

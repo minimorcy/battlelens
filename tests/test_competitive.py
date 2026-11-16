@@ -23,7 +23,7 @@ def dex():
     [(["Stufful Nv. 10"], 10), (["PIDGEY Lv5"], 5), (["RATTATA :L12"], 12), (["Stufiul 10"], 10),
      (["PIDGEY"], None), (["Stufful Nv. 410"], None), (["", "N. 10"], 10), (["Stufful", "Nv 7"], 7),
      (["Machop Nv. 1G"], 16), (["Machop Nv. I6"], 16), (["Machop Nv. 2O"], 20), (["Machop Lv.lS"], 15),
-     (["NOSEPASS"], None), (["Lombre"], None), (["LILLIGANT"], None)],
+     (["Hopp ip Lu2"], 2), (["Froak i e, LUS"], 5), (["NOSEPASS"], None), (["Lombre"], None), (["LILLIGANT"], None)],
 )
 def test_extraccion_del_nivel(readings, level):
     assert extract_level(readings) == level

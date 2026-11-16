@@ -166,7 +166,7 @@ def test_nivel_en_otra_variante():
 
 
 def test_nivel_solo_en_la_mitad_derecha():
-    reading, calls = _read(["Machop", "", "", "", "Nv. 16", ""])
+    reading, calls = _read(["Machop", *[""] * 17, "Nv. 16", ""])
     assert reading.match.species_id == 66 and reading.level == 16
     assert calls[-2][0] == 48 + 20  # mitad derecha ampliada a 48 px (más el margen)
 
@@ -174,7 +174,12 @@ def test_nivel_solo_en_la_mitad_derecha():
 def test_region_sin_nivel_lecturas_acotadas():
     reading, calls = _read(["PIDGEY"])
     assert reading.match.species_id == 16 and reading.level is None
-    assert len(calls) == 1 + 3 + 2
+    assert len(calls) == 1 + 17 + 2  # el resto de variantes y la mitad derecha
+
+
+def test_nivel_en_la_ultima_variante():
+    reading, calls = _read(["Pidgey", *[""] * 16, "Pidgey Lu3"])
+    assert reading.match.species_id == 16 and reading.level == 3 and len(calls) == 18
 
 
 def test_sin_reconocer_no_busca_el_nivel():

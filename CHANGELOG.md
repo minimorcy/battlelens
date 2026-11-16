@@ -7,10 +7,24 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ### Añadido
 - Tipos como iconos: en Ajustes › Ficha → «Tipos como iconos», cada tipo sale con su símbolo (la llama de Fuego, la gota de Agua) en toda la ficha, en la tabla de tipos y en la ficha del stream. La cabecera lleva el icono con el nombre al lado; el resto, solo el icono, con el nombre al pasar el ratón. Desactivado por defecto. Los iconos no van con la app: se descargan una sola vez del repositorio público de PokéAPI y, hasta que están todos o sin conexión, los tipos siguen como etiquetas.
 
+### Cambiado
+- Eficacias más fáciles de leer de un vistazo: cada apartado (Debilidades, Fuerte contra, Resistencias, Inmunidades) va en su propia franja con el color de lo que significa para ti (verde: bueno; rojo: amenaza; ámbar: tipos que resiste; gris: neutro).
+
+### Corregido
+- La detección automática lee el nivel en juegos con fuente pixelada (hacks de GBA en mGBA), donde el OCR veía «Lv» como «Lu» o solo lo leía en algunas versiones de la imagen, y la ficha no llegaba a salir.
+- El nivel ya no sale equivocado en los juegos de GBA (Nv. 11 en vez de 4, o 5 en vez de 6): los dígitos pixelados se reconocen por su forma en lugar de fiarse del OCR.
+
 ### English
 
 **Added**
 - Types as icons: in Settings › Card → "Types as icons", each type shows its symbol (Fire's flame, Water's drop) across the card, the type chart and the stream card. The header shows the icon with the name next to it; elsewhere just the icon, with the name on hover. Off by default. The icons don't ship with the app: they're downloaded once from the public PokéAPI repository and, until they're all there or offline, types keep showing as labels.
+
+**Changed**
+- Effectiveness is easier to read at a glance: each group (Weaknesses, Strong against, Resistances, Immunities) sits in its own strip tinted with what it means for you (green: good; red: threat; amber: types it resists; grey: neutral).
+
+**Fixed**
+- Auto-detection now reads the level in games with a pixel font (GBA hacks on mGBA), where OCR saw "Lv" as "Lu" or only read it in some versions of the image, and the card never showed up.
+- The level is no longer wrong in GBA games (Lv. 11 instead of 4, or 5 instead of 6): pixel digits are now recognised by their shape instead of trusting OCR.
 
 ## [0.7.0] - 2026-11-13
 

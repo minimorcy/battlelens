@@ -41,7 +41,7 @@ HIDDEN_FIELDS = {
     "evo": (("evolution", None),),
 }
 # Tono de cada grupo de eficacias para el jugador (improve-card-visuals D4)
-GROUP_TONES = {"weaknesses": "good", "strong": "bad", "resistances": "bad", "immunities": "neutral"}
+GROUP_TONES = {"weaknesses": "good", "strong": "bad", "resistances": "warn", "immunities": "neutral"}
 
 
 def _type(pokedex: Pokedex, type_id: str | None, lang: str, icons: bool = False) -> dict:

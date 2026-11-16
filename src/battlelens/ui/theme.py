@@ -64,6 +64,7 @@ SURFACE_BORDER = "rgba(255, 255, 255, 16)"
 GOOD = "#3ddc97"  # bueno para el jugador
 BAD = "#e5484d"  # malo para el jugador
 NEUTRAL = "#8a90a3"
+WARN = "#f2a33a"  # a evitar, sin ser una amenaza: tipos que el rival resiste
 VERDICT_COLORS = {"advantage": "#2e9d5b", "neutral": "#5b6274", "disadvantage": "#c8414b"}
 STAT_BAR = "#7f9be0"
 STAT_BAR_MAX = "#a9c1ff"
@@ -93,7 +94,7 @@ def soft_type_colors(type_id: str | None) -> tuple[str, str]:
 
 
 def tone_color(tone: str) -> str:
-    return {"good": GOOD, "bad": BAD}.get(tone, NEUTRAL)
+    return {"good": GOOD, "bad": BAD, "warn": WARN}.get(tone, NEUTRAL)
 
 
 def stat_bar_color(value: int, highest: int, lowest: int) -> str:

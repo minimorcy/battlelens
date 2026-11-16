@@ -631,13 +631,13 @@ class Overlay(QWidget):
         block.add(grid)
 
     def _effectiveness(self, view: SpeciesView, layout: QVBoxLayout) -> None:
-        """Debilidades (verde: bueno para ti), resistencias (rojo) e inmunidades (gris) en un bloque (D4)."""
+        """Debilidades (verde: bueno para ti), fuerte contra (rojo), resistencias (ámbar) e inmunidades (gris) en un bloque (D4)."""
         groups = view.matchups
         sections = [(_("Debilidades"), [(m, groups[m]) for m in (4.0, 2.0)], "good"),
                     # Lo que sus ataques de su propio tipo hacen ×2: una amenaza para ti (rojo)
                     (_("Fuerte contra"), [(2.0, view.strong_against)], "bad")]
         if self.competitive:
-            sections.append((_("Resistencias"), [(m, groups[m]) for m in (0.5, 0.25)], "bad"))
+            sections.append((_("Resistencias"), [(m, groups[m]) for m in (0.5, 0.25)], "warn"))
         sections.append((_("Inmunidades"), [(0.0, groups[0.0])], "neutral"))
         lines = ability_effect_lines(view, self._type_label, self.language)
         present = [(title, [(m, types) for m, types in rows if types], tone) for title, rows, tone in sections]
@@ -646,7 +646,19 @@ class Overlay(QWidget):
             return
         block = self._block("eff", _("Eficacias"), layout)
         for title, rows, tone in present:
-            block.add(_sub_title(title))
+            # Cada apartado en su franja tintada (verde/rojo/gris) para distinguirlos de un vistazo
+            color = theme.tone_color(tone)
+            group = QFrame()
+            group.setObjectName("eff-group")
+            group.setStyleSheet(f"QFrame#eff-group {{ background:{theme.rgba(color, 0.08)};"
+                                f" border-left:3px solid {color}; border-radius:6px; }}")
+            group_layout = QVBoxLayout(group)
+            group_layout.setContentsMargins(8, 5, 6, 6)
+            group_layout.setSpacing(4)
+            heading = _sub_title(title)
+            heading.setStyleSheet(f"color:{color}; font-size:11px; font-weight:700; letter-spacing:0.6px;")
+            group_layout.addWidget(heading)
+            block.add(group)
             for m, types in rows:
                 row = QHBoxLayout()
                 row.setSpacing(6)
@@ -657,7 +669,7 @@ class Overlay(QWidget):
                 pills = [self._type_pill(t) for t in types]
                 per_row = 7 if self.type_icons else 4 if self.competitive else 3  # los iconos ocupan menos
                 row.addWidget(_FlowRow(pills, per_row=per_row), 1)
-                block.add(row)
+                group_layout.addLayout(row)
         for line in lines:
             block.add(self._muted(line, size=10, name="ability-effect-line"))
 
