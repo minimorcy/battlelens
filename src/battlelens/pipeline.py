@@ -75,14 +75,11 @@ class CropReading:
         return extract_level([self.match.raw_text, *self.readings])
 
 
-LEVEL_EXTRA_VARIANTS = 3
-
-
 def read_crop(crop: np.ndarray, ocr_fn: OcrFn, matcher: NameMatcher, languages: tuple[str, ...]) -> CropReading:
     """Pasa cada variante preprocesada por el OCR y conserva la de mayor puntuación.
 
     Se detiene en cuanto una variante alcanza 100 y se ha leído el nivel. Si el nivel no aparece,
-    prueba unas pocas variantes más y la mitad derecha ampliada (improve-level-reading D2-D3).
+    prueba el resto de variantes y la mitad derecha ampliada (improve-level-reading D2-D3).
     """
     variants = preprocess_variants(crop)
     best: MatchResult | None = None
@@ -100,7 +97,7 @@ def read_crop(crop: np.ndarray, ocr_fn: OcrFn, matcher: NameMatcher, languages: 
             break
     if best is not None and best.score >= 100 and extract_level([best.raw_text, *readings]) is None:
         extra = [*(v for v in pending if v.ndim == 2 and not _is_binary(v)), *(v for v in pending if _is_binary(v))]
-        for image in extra[:LEVEL_EXTRA_VARIANTS]:
+        for image in extra:  # en GBA el nivel puede salir solo en las últimas binarizadas
             readings.append(ocr_fn(image, languages).text)
             if extract_level(readings[-1:]) is not None:
                 break
