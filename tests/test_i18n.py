@@ -61,7 +61,9 @@ def test_sin_traducciones_huerfanas():
 
 def test_las_traducciones_no_son_espanol():
     spanish = re.compile(r"[ñáéíóú¿¡]")
-    suspicious = {es: en for es, en in CATALOG_EN.items() if spanish.search(en) and "Pokémon" not in en}
+    # Pokémon y PokéAPI se escriben igual en inglés
+    suspicious = {es: en for es, en in CATALOG_EN.items()
+                  if spanish.search(en.replace("PokéAPI", "")) and "Pokémon" not in en}
     assert not suspicious, f"Traducciones con caracteres españoles: {suspicious}"
 
 

@@ -110,3 +110,13 @@ def test_modo_por_defecto_y_no_valido(tmp_path):
     path.write_text('[overlay]\nmode = "pro"\n', encoding="utf-8")
     with pytest.raises(ConfigError):
         load_config(path)
+
+
+def test_iconos_de_tipo_desactivados_por_defecto(tmp_path):
+    assert Config().type_icons is False
+    path = tmp_path / "config.toml"
+    save_config(path, Config(type_icons=True))
+    assert "type_icons = true" in path.read_text(encoding="utf-8")
+    assert load_config(path).type_icons is True
+    with pytest.raises(ConfigError):
+        Config.from_toml("[overlay]\ntype_icons = 1\n")

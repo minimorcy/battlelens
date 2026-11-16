@@ -6,8 +6,8 @@
 
 ## 2. Opción
 
-- [ ] 2.1 `overlay.type_icons = false` en `core/config.py` (plantilla de `config.toml` y lectura)
-- [ ] 2.2 Casilla en Ajustes › Ficha con su texto en `i18n` (es/en); al guardar, lanzar `ensure()` o volver a las etiquetas y redibujar la ficha
+- [x] 2.1 `overlay.type_icons = false` en `core/config.py` (plantilla de `config.toml` y lectura)
+- [x] 2.2 Casilla en Ajustes › Ficha con su texto en `i18n` (es/en); al guardar, lanzar `ensure()` o volver a las etiquetas y redibujar la ficha
 - [ ] 2.3 `app.py`: crear `TypeIcons` en la carpeta de datos, lanzar `ensure()` al arrancar si la opción está activa y redibujar la última ficha cuando llegan
 
 ## 3. Ficha

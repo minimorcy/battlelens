@@ -392,6 +392,7 @@ class SettingsWindow(QWidget):
         for code in LANGUAGES:
             self.language.addItem(LANGUAGE_LABELS[code], code)
         self.auto_hide = _spin(0, 600, config.auto_hide_seconds, 1, 0, " s")
+        self.type_icons = Toggle(_("Tipos como iconos (se descargan de PokéAPI la primera vez)"))
         card = _Card()
         card.add_row(_("Modo de la ficha"), self.mode,
                      _("Normal es compacta (aventura y captura); Competitivo muestra todos los datos de combate."))
@@ -399,6 +400,8 @@ class SettingsWindow(QWidget):
                      _("Panel: una ventana con la ficha y la tabla de tipos, para tenerla en otra pantalla."))
         card.add_row(_("Idioma de los datos Pokémon"), self.language, _("Nombres, tipos, movimientos y habilidades."))
         card.add_row(_("Ocultar la ficha tras"), self.auto_hide, _("Segundos; 0 = no se oculta sola."))
+        card.add_row(_("Tipos como iconos"), self.type_icons,
+                     _("Se descargan de PokéAPI la primera vez. Hasta entonces, o sin conexión, salen como etiquetas."))
         page.add(card)
 
         page.add(self._sections_card())
@@ -669,6 +672,7 @@ class SettingsWindow(QWidget):
         self.threshold.setValue(round(config.threshold))
         self._threshold_value.setText(str(self.threshold.value()))
         self.auto_hide.setValue(config.auto_hide_seconds)
+        self.type_icons.setChecked(config.type_icons)
         self.debug.setChecked(config.debug)
         self.detection_enabled.setChecked(config.detection_enabled)
         self.require_level.setChecked(config.detection_require_level)
@@ -699,7 +703,7 @@ class SettingsWindow(QWidget):
         widgets.update({f"section:{mode}:{key}": t for (mode, key), t in self.section_toggles.items()})
         for name in ("interface_language", "language", "mode", "display", "stream_mode", "threshold", "auto_hide", "debug",
                      "detection_enabled", "require_level", "interval", "hide_after", "stream_enabled", "stream_port",
-                     "updates", "start_screen"):
+                     "updates", "start_screen", "type_icons"):
             widgets[name] = getattr(self, name)
         return widgets
 
@@ -779,6 +783,7 @@ class SettingsWindow(QWidget):
             updates_check=self.updates.isChecked(),
             hidden_sections_normal=self._hidden("normal"),
             hidden_sections_competitive=self._hidden("competitive"),
+            type_icons=self.type_icons.isChecked(),
         )
         return config, {}
 

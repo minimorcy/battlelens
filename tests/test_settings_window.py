@@ -227,3 +227,12 @@ def test_desplegar_todas_las_secciones(qapp):
     w.expand_button.click()
     assert asked == [True]
     w.close()
+
+
+def test_opcion_de_iconos_de_tipo(qapp):
+    w = _window()
+    assert not w.type_icons.isChecked()  # desactivada por defecto
+    w.type_icons.setChecked(True)
+    assert w.has_changes()
+    config, errors = w.collect()
+    assert not errors and config.type_icons is True

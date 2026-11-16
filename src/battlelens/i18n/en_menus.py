@@ -166,6 +166,10 @@ EN: dict[str, str] = {
     'Nombres, tipos, movimientos y habilidades.': 'Names, types, moves and abilities.',
     'Ocultar la ficha tras': 'Hide the card after',
     'Segundos; 0 = no se oculta sola.': 'Seconds; 0 = never hides by itself.',
+    'Tipos como iconos (se descargan de PokéAPI la primera vez)': 'Types as icons (downloaded from PokéAPI the first time)',
+    'Tipos como iconos': 'Types as icons',
+    'Se descargan de PokéAPI la primera vez. Hasta entonces, o sin conexión, salen como etiquetas.':
+        'Downloaded from PokéAPI the first time. Until then, or offline, they show as labels.',
     'Cómo lee BattleLens los nombres y cuándo vigila el combate.': 'How BattleLens reads the names and when it watches the battle.',
     'Lectura': 'Reading',
     'Umbral de reconocimiento': 'Recognition threshold',
