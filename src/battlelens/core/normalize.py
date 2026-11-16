@@ -90,12 +90,14 @@ def _confused_levels(text: str):
             yield raw.translate(_DIGIT_CONFUSIONS)
 
 
-def extract_level(readings) -> int | None:
-    """Nivel (1-100) leído en alguna lectura de OCR: con prefijo («Nv. 10»), con prefijo y dígitos
-    confundidos («Nv. 1G») y, por último, un número suelto al final («… 10»)."""
+def extract_level(readings, pixel_level: int | None = None) -> int | None:
+    """Nivel (1-100) leído en alguna lectura de OCR: con prefijo («Nv. 10»); si no, el de los dígitos
+    reconocidos por su forma (`pixel_level`, fuente de GBA); después, con prefijo y dígitos confundidos
+    («Nv. 1G») y, por último, un número suelto al final («… 10»)."""
     readings = [r for r in readings if r]
     finders = (
         lambda text: (m.group(1) for m in _LEVEL_VALUE.finditer(text)),
+        lambda text: [str(pixel_level)] if pixel_level else [],
         _confused_levels,
         lambda text: (m.group(1) for m in _TRAILING_VALUE.finditer(text)),
     )

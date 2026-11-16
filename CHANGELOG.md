@@ -9,6 +9,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ### Corregido
 - La detección automática lee el nivel en juegos con fuente pixelada (hacks de GBA en mGBA), donde el OCR veía «Lv» como «Lu» o solo lo leía en algunas versiones de la imagen, y la ficha no llegaba a salir.
+- El nivel ya no sale equivocado en los juegos de GBA (Nv. 11 en vez de 4, o 5 en vez de 6): los dígitos pixelados se reconocen por su forma en lugar de fiarse del OCR.
 
 ### English
 
@@ -17,6 +18,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 **Fixed**
 - Auto-detection now reads the level in games with a pixel font (GBA hacks on mGBA), where OCR saw "Lv" as "Lu" or only read it in some versions of the image, and the card never showed up.
+- The level is no longer wrong in GBA games (Lv. 11 instead of 4, or 5 instead of 6): pixel digits are now recognised by their shape instead of trusting OCR.
 
 ## [0.7.0] - 2026-11-13
 

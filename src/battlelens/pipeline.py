@@ -22,6 +22,7 @@ from .core.pokedex import Pokedex, Species
 from .core.presets import game_screen
 from .core.profiles import Profile, Region
 from .vision.viewport import find_viewport
+from .vision.pixel_level import read_pixel_level
 from .vision.preprocess import crop_region, fingerprint, level_variants, moves_variants, preprocess_variants
 
 log = logging.getLogger(__name__)
@@ -68,11 +69,12 @@ class CropReading:
     match: MatchResult
     image: np.ndarray
     readings: tuple[str, ...]
+    pixel_level: int | None = None  # nivel de los dígitos reconocidos por su forma (fuente de GBA)
 
     @property
     def level(self) -> int | None:
         """Nivel leído en cualquiera de las lecturas, empezando por la de mejor coincidencia (level-reading)."""
-        return extract_level([self.match.raw_text, *self.readings])
+        return extract_level([self.match.raw_text, *self.readings], self.pixel_level)
 
 
 def read_crop(crop: np.ndarray, ocr_fn: OcrFn, matcher: NameMatcher, languages: tuple[str, ...]) -> CropReading:
@@ -95,7 +97,8 @@ def read_crop(crop: np.ndarray, ocr_fn: OcrFn, matcher: NameMatcher, languages: 
             best, best_image = match, image
         if match.score >= 100:
             break
-    if best is not None and best.score >= 100 and extract_level([best.raw_text, *readings]) is None:
+    pixel_level = read_pixel_level(crop)
+    if best is not None and best.score >= 100 and extract_level([best.raw_text, *readings], pixel_level) is None:
         extra = [*(v for v in pending if v.ndim == 2 and not _is_binary(v)), *(v for v in pending if _is_binary(v))]
         for image in extra:  # en GBA el nivel puede salir solo en las últimas binarizadas
             readings.append(ocr_fn(image, languages).text)
@@ -103,7 +106,7 @@ def read_crop(crop: np.ndarray, ocr_fn: OcrFn, matcher: NameMatcher, languages: 
                 break
         else:
             readings += [ocr_fn(image, languages).text for image in level_variants(crop)]
-    return CropReading(best, best_image, tuple(readings))
+    return CropReading(best, best_image, tuple(readings), pixel_level)
 
 
 def _is_binary(image: np.ndarray) -> bool:
