@@ -2,7 +2,7 @@
 
 - [x] 1.1 `core/remote_images.py`: `fetch_png` (tiempo de espera, tamaño máximo, firma PNG, escritura atómica) con tests usando una función de descarga falsa
 - [x] 1.2 `TypeIcons`: `complete()`, `ensure()` en segundo plano con aviso por señal Qt, fallos recordados en la sesión y `pixmap()` con caché por tamaño; tests de caché completa, fallo y respuesta no válida
-- [ ] 1.3 Actualizar D2 de `openspec/changes/add-pokemon-sprites/design.md` para que reutilice `fetch_png`
+- [x] 1.3 Actualizar D2 de `openspec/changes/add-pokemon-sprites/design.md` para que reutilice `fetch_png`
 
 ## 2. Opción
 
