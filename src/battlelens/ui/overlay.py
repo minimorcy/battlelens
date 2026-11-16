@@ -612,7 +612,19 @@ class Overlay(QWidget):
             return
         block = self._block("eff", _("Eficacias"), layout)
         for title, rows, tone in present:
-            block.add(_sub_title(title))
+            # Cada apartado en su franja tintada (verde/rojo/gris) para distinguirlos de un vistazo
+            color = theme.tone_color(tone)
+            group = QFrame()
+            group.setObjectName("eff-group")
+            group.setStyleSheet(f"QFrame#eff-group {{ background:{theme.rgba(color, 0.08)};"
+                                f" border-left:3px solid {color}; border-radius:6px; }}")
+            group_layout = QVBoxLayout(group)
+            group_layout.setContentsMargins(8, 5, 6, 6)
+            group_layout.setSpacing(4)
+            heading = _sub_title(title)
+            heading.setStyleSheet(f"color:{color}; font-size:11px; font-weight:700; letter-spacing:0.6px;")
+            group_layout.addWidget(heading)
+            block.add(group)
             for m, types in rows:
                 row = QHBoxLayout()
                 row.setSpacing(6)
@@ -622,7 +634,7 @@ class Overlay(QWidget):
                 # Dentro del bloque y con la columna del multiplicador, en Normal (300 px) caben 3 por fila
                 pills = [_pill(self._type_label(t), t) for t in types]
                 row.addWidget(_FlowRow(pills, per_row=4 if self.competitive else 3), 1)
-                block.add(row)
+                group_layout.addLayout(row)
         for line in lines:
             block.add(self._muted(line, size=10, name="ability-effect-line"))
 
