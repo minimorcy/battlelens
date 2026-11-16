@@ -292,6 +292,8 @@ class Pokedex:
     def __init__(self, data: dict) -> None:
         self.languages: list[str] = data["languages"]
         self.type_names: dict[str, dict[str, str]] = {k: v["names"] for k, v in data["types"].items()}
+        # Número de PokéAPI de cada tipo: nombre de archivo de su icono (add-type-icons)
+        self.type_numbers: dict[str, int] = {k: v["id"] for k, v in data["types"].items() if "id" in v}
         self.type_efficacy: dict[str, dict[str, float]] = data["type_efficacy"]
         self.type_generation: dict[str, int] = data.get("type_generation", {})
         self._efficacy_past: list[dict] = data.get("type_efficacy_past", [])
