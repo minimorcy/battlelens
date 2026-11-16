@@ -92,7 +92,8 @@ Everything can be changed from tray → **Settings…** (*Ajustes…*) (changes 
 | `interface.language` | `auto` | Menus, notices and card labels: `auto` (Windows language), `es` or `en` |
 | `overlay.language` | `es` | Pokémon data language: `es`, `en`, `fr`, `de`, `it` |
 | `overlay.auto_hide_seconds` | `0` | Hide the card after N seconds (0 = never) |
-| `updates.check` | `true` | Check once a day for a new version on GitHub (the app's only outgoing connection) |
+| `overlay.type_icons` | `false` | Show types as icons instead of labels (downloaded once from PokéAPI, see below) |
+| `updates.check` | `true` | Check once a day for a new version on GitHub (the only outgoing connection, besides the type icons if you turn them on) |
 
 ### If recognition fails
 
@@ -150,3 +151,4 @@ The project follows spec-driven development with [OpenSpec](https://github.com/F
 
 - Code: [MIT](LICENSE).
 - Pokémon data: [PokéAPI](https://github.com/PokeAPI/pokeapi) (BSD-3-Clause).
+- Type icons: they don't ship with the app. If you turn on *Types as icons*, BattleLens downloads them once (18 requests, so GitHub sees your IP) from the public [PokeAPI/sprites](https://github.com/PokeAPI/sprites) repository into `%APPDATA%\BattleLens\type-icons\`. The images are © Nintendo/Creatures Inc./GAME FREAK inc.
