@@ -143,6 +143,7 @@ body {
 }
 .mult.good { color: var(--good); background: rgba(61, 220, 151, 0.15); }
 .mult.bad { color: var(--bad); background: rgba(229, 72, 77, 0.15); }
+.mult.warn { color: #f2a33a; background: rgba(242, 163, 58, 0.15); }
 .mult.status { color: var(--muted); background: none; font-weight: 400; }
 
 .note { color: var(--muted); font-size: 10px; }

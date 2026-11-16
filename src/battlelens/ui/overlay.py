@@ -597,13 +597,13 @@ class Overlay(QWidget):
         block.add(grid)
 
     def _effectiveness(self, view: SpeciesView, layout: QVBoxLayout) -> None:
-        """Debilidades (verde: bueno para ti), resistencias (rojo) e inmunidades (gris) en un bloque (D4)."""
+        """Debilidades (verde: bueno para ti), fuerte contra (rojo), resistencias (ámbar) e inmunidades (gris) en un bloque (D4)."""
         groups = view.matchups
         sections = [(_("Debilidades"), [(m, groups[m]) for m in (4.0, 2.0)], "good"),
                     # Lo que sus ataques de su propio tipo hacen ×2: una amenaza para ti (rojo)
                     (_("Fuerte contra"), [(2.0, view.strong_against)], "bad")]
         if self.competitive:
-            sections.append((_("Resistencias"), [(m, groups[m]) for m in (0.5, 0.25)], "bad"))
+            sections.append((_("Resistencias"), [(m, groups[m]) for m in (0.5, 0.25)], "warn"))
         sections.append((_("Inmunidades"), [(0.0, groups[0.0])], "neutral"))
         lines = ability_effect_lines(view, self._type_label, self.language)
         present = [(title, [(m, types) for m, types in rows if types], tone) for title, rows, tone in sections]

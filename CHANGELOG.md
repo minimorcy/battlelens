@@ -5,7 +5,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ## [Unreleased]
 
 ### Cambiado
-- Eficacias más fáciles de leer de un vistazo: cada apartado (Debilidades, Fuerte contra, Resistencias, Inmunidades) va en su propia franja con el color de lo que significa para ti (verde bueno, rojo malo, gris neutro).
+- Eficacias más fáciles de leer de un vistazo: cada apartado (Debilidades, Fuerte contra, Resistencias, Inmunidades) va en su propia franja con el color de lo que significa para ti (verde: bueno; rojo: amenaza; ámbar: tipos que resiste; gris: neutro).
 
 ### Corregido
 - La detección automática lee el nivel en juegos con fuente pixelada (hacks de GBA en mGBA), donde el OCR veía «Lv» como «Lu» o solo lo leía en algunas versiones de la imagen, y la ficha no llegaba a salir.
@@ -13,7 +13,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ### English
 
 **Changed**
-- Effectiveness is easier to read at a glance: each group (Weaknesses, Strong against, Resistances, Immunities) sits in its own strip tinted with what it means for you (green good, red bad, grey neutral).
+- Effectiveness is easier to read at a glance: each group (Weaknesses, Strong against, Resistances, Immunities) sits in its own strip tinted with what it means for you (green: good; red: threat; amber: types it resists; grey: neutral).
 
 **Fixed**
 - Auto-detection now reads the level in games with a pixel font (GBA hacks on mGBA), where OCR saw "Lv" as "Lu" or only read it in some versions of the image, and the card never showed up.
