@@ -106,6 +106,16 @@ def test_sin_ventana_ni_perfil_avisa(qapp, controller):
     assert not controller._busy
 
 
+def test_aviso_de_atajos_no_registrados_con_todos_los_nombres(qapp, controller):
+    from battlelens.platform.hotkeys import parse_hotkey
+
+    messages = []
+    controller.tray.notify = lambda msg, warning=False: messages.append(msg)
+    # Antes, «search» y «type_chart» no tenían nombre y el aviso daba KeyError
+    controller._startup_notices(["search", "type_chart"], {"search": parse_hotkey("Ctrl+Alt+B")})
+    assert "buscar Pokémon (Ctrl+Alt+B)" in messages[-1] and "tabla de tipos (inválido)" in messages[-1]
+
+
 def test_ventana_cerrada_borra_objetivo(qapp, controller, fake_emulator):
     from battlelens.core.profiles import Profile, Region
     from battlelens.platform.windows import WindowInfo

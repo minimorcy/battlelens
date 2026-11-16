@@ -8,6 +8,8 @@ EN: dict[str, str] = {
     "cambiar de modo": "switch mode",
     "cambiar de forma": "switch form",
     "ficha del stream": "stream card",
+    "buscar Pokémon": "search Pokémon",
+    "tabla de tipos": "type chart",
     "inválido": "invalid",
     "No se pudieron registrar los atajos: {detail}. Cámbialos en config.toml.":
         "Couldn't register the shortcuts: {detail}. Change them in config.toml.",

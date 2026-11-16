@@ -12,6 +12,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Eficacias más fáciles de leer de un vistazo: cada apartado (Debilidades, Fuerte contra, Resistencias, Inmunidades) va en su propia franja con el color de lo que significa para ti (verde: bueno; rojo: amenaza; ámbar: tipos que resiste; gris: neutro).
 
 ### Corregido
+- Si el atajo de buscar o el de la tabla de tipos no se podía registrar (porque otro programa lo usa), el aviso de arranque fallaba en vez de decir qué atajo cambiar.
 - La detección automática lee el nivel en juegos con fuente pixelada (hacks de GBA en mGBA), donde el OCR veía «Lv» como «Lu» o solo lo leía en algunas versiones de la imagen, y la ficha no llegaba a salir.
 - El nivel ya no sale equivocado en los juegos de GBA (Nv. 11 en vez de 4, o 5 en vez de 6): los dígitos pixelados se reconocen por su forma en lugar de fiarse del OCR.
 
@@ -25,6 +26,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 - Effectiveness is easier to read at a glance: each group (Weaknesses, Strong against, Resistances, Immunities) sits in its own strip tinted with what it means for you (green: good; red: threat; amber: types it resists; grey: neutral).
 
 **Fixed**
+- If the search or type chart hotkey couldn't be registered (because another program uses it), the startup notice failed instead of saying which hotkey to change.
 - Auto-detection now reads the level in games with a pixel font (GBA hacks on mGBA), where OCR saw "Lv" as "Lu" or only read it in some versions of the image, and the card never showed up.
 - The level is no longer wrong in GBA games (Lv. 11 instead of 4, or 5 instead of 6): pixel digits are now recognised by their shape instead of trusting OCR.
 

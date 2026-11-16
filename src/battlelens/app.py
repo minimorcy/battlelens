@@ -258,10 +258,11 @@ class Controller(QObject):
         if failed:
             labels = {"recognize": _("reconocer"), "calibrate": _("calibrar"), "hide": _("ocultar"),
                       "toggle_mode": _("cambiar de modo"), "cycle_form": _("cambiar de forma"),
-                      "toggle_stream": _("ficha del stream")}
+                      "toggle_stream": _("ficha del stream"), "search": _("buscar Pokémon"),
+                      "type_chart": _("tabla de tipos")}
             invalid = _("inválido")
             detail = ", ".join(
-                f"{labels[n]} ({bindings[n].text})" if n in bindings else f"{labels[n]} ({invalid})" for n in failed
+                f"{labels.get(n, n)} ({bindings[n].text if n in bindings else invalid})" for n in failed
             )
             notices.append(_("No se pudieron registrar los atajos: {detail}. Cámbialos en config.toml.", detail=detail))
         if not self.ocr_available():
