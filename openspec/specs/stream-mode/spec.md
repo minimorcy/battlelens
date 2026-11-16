@@ -66,3 +66,25 @@ La página SHALL aceptar el parámetro `scale` (entre 0,5 y 3; por defecto 1) pa
 - **WHEN** OBS abre `http://localhost:17320/?scale=1.5`
 - **THEN** la ficha se dibuja al 150 %
 
+### Requirement: Iconos de tipo en la ficha del stream
+Cuando los iconos de tipo están disponibles, el payload de la ficha del stream SHALL incluir para cada tipo la ruta `/type-icon/<id>.png`, y la ficha HTML SHALL mostrar el icono en lugar de la etiqueta. El servidor SHALL servir esa ruta solo si `<id>` cumple `^\d{1,2}$` y el archivo ya existe en la caché (404 en otro caso). MUST NOT descargar nada ni construir rutas a partir de la petición más allá de ese entero.
+
+#### Scenario: Icono en caché
+- **WHEN** OBS pide `/type-icon/10.png` y el icono está en la caché
+- **THEN** el servidor devuelve el PNG
+
+#### Scenario: Ruta no válida
+- **WHEN** se pide `/type-icon/../config.toml` o un número que no está en la caché
+- **THEN** el servidor responde 404
+
+### Requirement: Imagen en la ficha del stream
+El estado (`/state`) SHALL incluir para cada tarjeta la ruta de su sprite (`/sprite/<número>.png`) cuando esté en caché, o `null`. El servidor SHALL servir `/sprite/<número>.png` solo si el número es un entero de hasta 5 cifras y el archivo ya existe en la caché; en cualquier otro caso responde 404. El servidor MUST NOT descargar imágenes.
+
+#### Scenario: Imagen en caché
+- **WHEN** el stream muestra a Stufful y `sprites/759.png` existe
+- **THEN** `/state` incluye `"/sprite/759.png"` y esa ruta devuelve el PNG
+
+#### Scenario: Ruta no válida
+- **WHEN** se pide `/sprite/..%2Fconfig.png` o `/sprite/123.png` sin estar en caché
+- **THEN** el servidor responde 404
+

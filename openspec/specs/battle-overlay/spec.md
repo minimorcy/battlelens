@@ -123,3 +123,29 @@ La bandeja SHALL incluir «Modo stream» (casilla que activa o desactiva el modo
 - **WHEN** el modo stream está desactivado
 - **THEN** «Copiar URL para OBS» aparece deshabilitada
 
+### Requirement: Tipos como iconos en la ficha
+Cuando los iconos están disponibles (spec `type-icons`), la ficha SHALL dibujar como icono cada tipo que hoy sale como etiqueta: los tipos del Pokémon en la cabecera, «Contra tu…», «Tus movimientos», Eficacias, Movimientos probables y Otras formas. Los multiplicadores, los colores de cada apartado y el orden de los tipos MUST NOT cambiar. Los iconos de la cabecera SHALL ser más grandes que los del resto de secciones.
+
+#### Scenario: Eficacias con iconos
+- **WHEN** los iconos están disponibles y aparece la ficha de Pidgey
+- **THEN** Debilidades muestra los iconos de Roca, Eléctrico y Hielo junto a su ×2, en su franja verde
+
+#### Scenario: Movimiento sin tipo
+- **WHEN** un movimiento leído no tiene tipo conocido
+- **THEN** su casilla muestra «?» como ahora
+
+### Requirement: Imagen del Pokémon en la cabecera
+Con `overlay.sprites` activado y el sprite disponible, la cabecera de cada tarjeta SHALL mostrar a la izquierda del nombre el sprite de la forma mostrada, centrado en un recuadro y escalado sin suavizado. Si la imagen llega con la ficha ya visible, MUST colocarse sin mover la ficha. Sin imagen, la cabecera MUST mostrarse sin el recuadro. Al cambiar de forma, la imagen MUST cambiar a la de la nueva forma.
+
+#### Scenario: Forma regional
+- **WHEN** se reconoce a Zigzagoon con un perfil de Pokémon Espada y la imagen está en caché
+- **THEN** la cabecera muestra el sprite de Zigzagoon de Galar (10174)
+
+#### Scenario: Cambio de forma
+- **WHEN** la ficha muestra a Rotom en `platinum` y el usuario pulsa `Ctrl+Alt+F`
+- **THEN** la cabecera muestra el sprite de Rotom Calor (o ninguno, si aún no se ha descargado)
+
+#### Scenario: Imágenes desactivadas
+- **WHEN** `overlay.sprites = false`
+- **THEN** la cabecera no muestra imagen y no se hace ninguna petición de red
+
