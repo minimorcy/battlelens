@@ -38,6 +38,29 @@ def game_frame() -> np.ndarray:
     return frame
 
 
+def fake_type_icons(directory: Path, dex):
+    """Iconos de tipo de prueba (círculos del color de cada tipo): los reales tienen copyright y no van al repo."""
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtGui import QColor, QImage, QPainter
+
+    from battlelens.core.remote_images import TypeIcons
+    from battlelens.ui import theme
+
+    for type_id, number in dex.type_numbers.items():
+        image = QImage(60, 60, QImage.Format.Format_ARGB32)
+        image.fill(Qt.GlobalColor.transparent)
+        p = QPainter(image)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QColor(theme.TYPE_COLORS.get(type_id, "#555")))
+        p.drawEllipse(2, 2, 56, 56)
+        p.setBrush(QColor(255, 255, 255, 220))
+        p.drawEllipse(20, 20, 20, 20)
+        p.end()
+        image.save(str(directory / f"{number}.png"))
+    return TypeIcons(directory, dex.type_numbers)
+
+
 def save(widget, name: str, lang: str) -> None:
     from PyQt6.QtWidgets import QApplication
 
@@ -118,6 +141,11 @@ def main() -> int:
     window = WindowInfo(1, "eden | Pokémon Sword", "eden.exe", 1)
     windows = [window, WindowInfo(2, "mGBA - Pokémon Emerald", "mGBA.exe", 2)]
     names = {"es": ("Pokémon Espada", "Pokémon Esmeralda"), "en": ("Pokémon Sword", "Pokémon Emerald")}
+
+    import tempfile
+
+    icons_dir = tempfile.TemporaryDirectory()
+    type_icons = fake_type_icons(Path(icons_dir.name), dex)
 
     for lang in ("es", "en"):
         set_language(lang)
@@ -210,8 +238,10 @@ def main() -> int:
         dialog.close()
 
         # ---- fichas ----
-        def card(name: str, mode: str, rivals, own=None, own_level=None, hidden=None, form=None, own_moves=None):
+        def card(name: str, mode: str, rivals, own=None, own_level=None, hidden=None, form=None, own_moves=None,
+                 icons=None):
             overlay = Overlay(dex, lang, mode=mode)
+            overlay.type_icons = icons
             overlay.form_hotkey = "Ctrl+Alt+F"
             overlay._available_height = lambda rect: 100_000  # ficha completa, sin desplazamiento
             if hidden is not None:
@@ -231,6 +261,7 @@ def main() -> int:
         card("card-double.png", "normal", [(263, 8), (759, 10)], 813, 14,
              hidden=("own_moves", "evo", "forms"))
         card("card-form.png", "normal", [(479, 40)], hidden=("matchup", "own_moves", "evo"), form="rotom-wash")
+        card("card-icons.png", "normal", [(16, 3)], 813, 15, hidden=("own_moves", "evo", "forms"), icons=type_icons)
 
         # ---- modo panel: Machop contra tu Scorbunny, con la tabla al lado (spec panel-window) ----
         overlay = Overlay(dex, lang, mode="competitive")

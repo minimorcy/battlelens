@@ -320,7 +320,7 @@
           </figure>
           <p>Pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd> (o bandeja → <b>Tabla de tipos</b>) para tener la chuleta de tipos encima del juego. Vuelve a pulsarlo, o haz clic en su <b>✕</b>, para ocultarla.</p>
           <ul>
-            <li>Cada fila es el tipo que <b>ataca</b> y cada columna el que <b>defiende</b>: <b>×2</b> en verde, <b>×½</b> en rojo y <b>×0</b> en gris. Las casillas vacías son ×1. Pasa el ratón por una columna para ver el nombre completo.</li>
+            <li>Cada fila es el tipo que <b>ataca</b> y cada columna el que <b>defiende</b>: <b>×2</b> en verde, <b>×½</b> en rojo y <b>×0</b> en gris. Las casillas vacías son ×1. Pasa el ratón por una columna para ver el nombre completo. Con <a href="#iconos-de-tipo">tipos como iconos</a>, las filas y columnas llevan el icono de cada tipo y el nombre sale al pasar el ratón.</li>
             <li>Es la tabla de la <b>generación del juego</b> del perfil activo: en la Gen 1 salen 15 tipos (y Fantasma no afecta a Psíquico), de la Gen 2 a la 5 no hay Hada y Acero resiste Fantasma y Siniestro. Sin perfil, la tabla actual.</li>
             <li>Con una ficha en pantalla, se <b>resaltan las columnas de los tipos del rival</b> (o del Pokémon buscado), y en combates dobles las de los dos rivales a la vez. Si tu perfil lee <b>tu Pokémon</b>, sus tipos se resaltan en <b>amarillo como filas</b>: las casillas donde se cruzan, con borde amarillo, son lo que tus ataques de tu tipo le hacen al rival. La leyenda de arriba indica qué color es de quién.</li>
             <li>Arrástrala a donde quieras; la primera vez sale a la izquierda del emulador. Para cambiar su tamaño, arrastra el <b>tirador de la esquina inferior derecha</b> o usa <kbd>Ctrl</kbd> + rueda del ratón encima (del 60 % al 200 %). Recuerda dónde la dejaste y su tamaño.</li>
@@ -346,7 +346,7 @@
           <h2>Tu ficha a medida</h2>
           <p>En <i>Ajustes › Ficha</i> eliges qué secciones ves en cada modo. De fábrica la ficha es mínima: <b>Normal</b> solo con las eficacias y <b>Competitivo</b> con eficacias y estadísticas. El nombre, los tipos y la captura se ven siempre. La ficha del stream sigue la misma elección.</p>
           <figure class="shot">
-            <img src="assets/guide/es/settings-card.png" width="880" height="1284" loading="lazy" alt="Ajustes, sección Ficha, con los interruptores de cada sección para Normal y Competitivo">
+            <img src="assets/guide/es/settings-card.png" width="880" height="1357" loading="lazy" alt="Ajustes, sección Ficha, con los interruptores de cada sección para Normal y Competitivo">
           </figure>
           <ul class="checks">
             <li><b>Mostrar todas</b> activa todas las secciones de golpe.</li>
@@ -354,8 +354,20 @@
             <li><b>Mostrar la ficha en:</b> Overlay (sobre el juego, por defecto) o Panel (ventana aparte). Ver <a href="#panel">Modo panel</a>.</li>
             <li><b>Idioma de los datos Pokémon:</b> nombres, tipos, habilidades y movimientos en español, inglés, francés, alemán o italiano. Es independiente del idioma de los menús.</li>
             <li><b>Ocultar la ficha tras:</b> segundos hasta ocultarla aunque siga el combate (0 = nunca).</li>
+            <li><b>Tipos como iconos:</b> los tipos salen con su símbolo en vez de como etiqueta (desactivado por defecto). Mira el apartado siguiente.</li>
           </ul>
           <p class="tip">Los cambios de esta página se aplican al pulsar <b>Guardar</b>. «Guardar» solo se activa si has cambiado algo, y la ventana avisa si la cierras con cambios pendientes. La ventana no bloquea nada: la detección sigue funcionando mientras está abierta.</p>
+          <h3 id="iconos-de-tipo">Tipos como iconos</h3>
+          <div class="pair">
+            <figure class="shot shot-card">
+              <img src="assets/guide/es/card-icons.png" width="300" height="418" loading="lazy" alt="Ficha de Pidgey con los tipos como iconos: icono y nombre en la cabecera y solo el icono en el resto">
+              <figcaption>Con <i>Tipos como iconos</i> activado.</figcaption>
+            </figure>
+            <div>
+              <p>Con <b>Tipos como iconos</b> activado, cada tipo sale con su símbolo (la llama de Fuego, la gota de Agua) en toda la ficha: en la cabecera, con el nombre al lado, y solo el icono en «Contra tu…», «Tus movimientos», Eficacias, Movimientos probables y Otras formas. También en la tabla de tipos y en la ficha del stream. Pasa el ratón por un icono para ver el nombre.</p>
+              <p>Los iconos son de Nintendo y no van con la app: al activar la opción se descargan una sola vez (18 imágenes pequeñas) del repositorio público de <b>PokéAPI</b> en GitHub y se guardan en la carpeta de datos. Hasta que están todos, o sin conexión, los tipos siguen saliendo como etiquetas. Es la misma colección de símbolos en todos los juegos.</p>
+            </div>
+          </div>
         </section>
 
         <section class="g-section" id="ajustes">
@@ -745,7 +757,7 @@
           </figure>
           <p>Press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd> (or tray → <b>Type chart</b>) to keep the type cheat sheet over the game. Press it again, or click its <b>✕</b>, to hide it.</p>
           <ul>
-            <li>Each row is the <b>attacking</b> type and each column the <b>defending</b> one: <b>×2</b> in green, <b>×½</b> in red and <b>×0</b> in grey. Empty cells are ×1. Hover over a column to see its full name.</li>
+            <li>Each row is the <b>attacking</b> type and each column the <b>defending</b> one: <b>×2</b> in green, <b>×½</b> in red and <b>×0</b> in grey. Empty cells are ×1. Hover over a column to see its full name. With <a href="#type-icons">types as icons</a>, rows and columns carry each type's icon and the name shows on hover.</li>
             <li>It's the chart for the <b>generation of the active profile's game</b>: Gen 1 has 15 types (and Ghost doesn't affect Psychic), Gens 2 to 5 have no Fairy and Steel resists Ghost and Dark. Without a profile, the current chart.</li>
             <li>With a card on screen, the <b>columns of the opponent's types are highlighted</b> (or the searched Pokémon's), and in double battles both opponents' at once. If your profile reads <b>your Pokémon</b>, its types are highlighted in <b>yellow as rows</b>: the cells where they cross, with a yellow border, are what your own-type attacks do to the opponent. The legend at the top tells you which color is whose.</li>
             <li>Drag it wherever you like; the first time it shows left of the emulator. To resize it, drag the <b>grip in the bottom-right corner</b> or use <kbd>Ctrl</kbd> + mouse wheel over it (60% to 200%). It remembers where you left it and its size.</li>
@@ -771,7 +783,7 @@
           <h2>Make the card yours</h2>
           <p>In <i>Settings › Card</i> you choose which sections each mode shows. Out of the box the card is minimal: <b>Normal</b> shows only type matchups and <b>Competitive</b> shows matchups and stats. The name, types and catch rate are always shown. The stream card follows the same choice.</p>
           <figure class="shot">
-            <img src="assets/guide/en/settings-card.png" width="880" height="1268" loading="lazy" alt="Settings, Card section, with a switch per section for Normal and Competitive">
+            <img src="assets/guide/en/settings-card.png" width="880" height="1341" loading="lazy" alt="Settings, Card section, with a switch per section for Normal and Competitive">
           </figure>
           <ul class="checks">
             <li><b>Show all</b> turns every section on at once.</li>
@@ -779,8 +791,20 @@
             <li><b>Show the card in:</b> Overlay (on top of the game, the default) or Panel (separate window). See <a href="#panel-mode">Panel mode</a>.</li>
             <li><b>Pokémon data language:</b> names, types, abilities and moves in English, Spanish, French, German or Italian. It's separate from the menu language.</li>
             <li><b>Hide the card after:</b> seconds until it hides even if the battle goes on (0 = never).</li>
+            <li><b>Types as icons:</b> types show their symbol instead of a label (off by default). See the next section.</li>
           </ul>
           <p class="tip">Changes on this page apply when you click <b>Save</b>. "Save" is only enabled when something changed, and the window asks before closing with pending changes. It doesn't block anything: detection keeps working while it's open.</p>
+          <h3 id="type-icons">Types as icons</h3>
+          <div class="pair">
+            <figure class="shot shot-card">
+              <img src="assets/guide/en/card-icons.png" width="300" height="418" loading="lazy" alt="Pidgey card with types as icons: icon and name in the header and just the icon elsewhere">
+              <figcaption>With <i>Types as icons</i> on.</figcaption>
+            </figure>
+            <div>
+              <p>With <b>Types as icons</b> on, each type shows its symbol (Fire's flame, Water's drop) across the card: in the header, with the name next to it, and just the icon in "Against your…", "Your moves", Type matchups, Likely moves and Other forms. Also in the type chart and the stream card. Hover over an icon to see its name.</p>
+              <p>The icons belong to Nintendo and don't ship with the app: when you turn the option on they're downloaded once (18 small images) from the public <b>PokéAPI</b> repository on GitHub and saved in the data folder. Until they're all there, or offline, types keep showing as labels. It's the same set of symbols for every game.</p>
+            </div>
+          </div>
         </section>
 
         <section class="g-section" id="settings">

@@ -24,6 +24,6 @@
 
 ## 5. Guía de uso y documentación
 
-- [ ] 5.1 Guía de uso: opción nueva en Ajustes › Ficha y mención en la ficha y en la tabla de tipos (`site/guide.html`, es/en); captura nueva de la ficha con iconos añadida a `tools/make_guide_screenshots.py` (con iconos de prueba generados en el script, sin descargar) y capturas regeneradas con `uv run python tools/make_guide_screenshots.py`; `uv run pytest tests/test_site.py`
+- [x] 5.1 Guía de uso: opción nueva en Ajustes › Ficha y mención en la ficha y en la tabla de tipos (`site/guide.html`, es/en); captura nueva de la ficha con iconos añadida a `tools/make_guide_screenshots.py` (con iconos de prueba generados en el script, sin descargar) y capturas regeneradas con `uv run python tools/make_guide_screenshots.py`; `uv run pytest tests/test_site.py`
 - [ ] 5.2 README.md y README.es.md: opción nueva y aviso del origen y la propiedad de los iconos
 - [ ] 5.3 CHANGELOG.md en los dos idiomas
