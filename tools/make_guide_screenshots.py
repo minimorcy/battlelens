@@ -38,6 +38,36 @@ def game_frame() -> np.ndarray:
     return frame
 
 
+IMAGE_CACHE = ROOT / "tools" / ".cache"  # fuera de git: los iconos y sprites reales tienen copyright
+
+
+def real_images(dex, views):
+    """Iconos de tipo y sprites reales, descargados a tools/.cache (solo para las capturas, nunca al repo).
+
+    Devuelve (TypeIcons, Sprites). Sin conexión, iconos de prueba y sin sprites, para que el script no falle."""
+    import tempfile
+    import time
+
+    from PyQt6.QtWidgets import QApplication
+
+    from battlelens.core.remote_images import TypeIcons
+    from battlelens.core.sprites import Sprites
+
+    icons = TypeIcons(IMAGE_CACHE / "type-icons", dex.type_numbers)
+    sprites = Sprites(IMAGE_CACHE / "sprites")
+    icons.ensure()
+    for view in views:
+        sprites.request(view.sprite_id)
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline and (icons._running or sprites._pending):
+        QApplication.processEvents()
+        time.sleep(0.05)
+    if not icons.complete():
+        print("Sin iconos reales (¿sin conexión?): uso iconos de prueba", file=sys.stderr)
+        icons = fake_type_icons(Path(tempfile.mkdtemp()), dex)
+    return icons, sprites
+
+
 def fake_type_icons(directory: Path, dex):
     """Iconos de tipo de prueba (círculos del color de cada tipo): los reales tienen copyright y no van al repo."""
     from PyQt6.QtCore import Qt
@@ -142,10 +172,7 @@ def main() -> int:
     windows = [window, WindowInfo(2, "mGBA - Pokémon Emerald", "mGBA.exe", 2)]
     names = {"es": ("Pokémon Espada", "Pokémon Esmeralda"), "en": ("Pokémon Sword", "Pokémon Emerald")}
 
-    import tempfile
-
-    icons_dir = tempfile.TemporaryDirectory()
-    type_icons = fake_type_icons(Path(icons_dir.name), dex)
+    type_icons, sprites = real_images(dex, [dex.view(16, GAME)])
 
     for lang in ("es", "en"):
         set_language(lang)
@@ -239,9 +266,10 @@ def main() -> int:
 
         # ---- fichas ----
         def card(name: str, mode: str, rivals, own=None, own_level=None, hidden=None, form=None, own_moves=None,
-                 icons=None):
+                 icons=None, pictures=None):
             overlay = Overlay(dex, lang, mode=mode)
             overlay.type_icons = icons
+            overlay.sprites = pictures
             overlay.form_hotkey = "Ctrl+Alt+F"
             overlay._available_height = lambda rect: 100_000  # ficha completa, sin desplazamiento
             if hidden is not None:
@@ -261,7 +289,8 @@ def main() -> int:
         card("card-double.png", "normal", [(263, 8), (759, 10)], 813, 14,
              hidden=("own_moves", "evo", "forms"))
         card("card-form.png", "normal", [(479, 40)], hidden=("matchup", "own_moves", "evo"), form="rotom-wash")
-        card("card-icons.png", "normal", [(16, 3)], 813, 15, hidden=("own_moves", "evo", "forms"), icons=type_icons)
+        card("card-icons.png", "normal", [(16, 3)], 813, 15, hidden=("own_moves", "evo", "forms"), icons=type_icons,
+             pictures=sprites)
 
         # ---- modo panel: Machop contra tu Scorbunny, con la tabla al lado (spec panel-window) ----
         overlay = Overlay(dex, lang, mode="competitive")

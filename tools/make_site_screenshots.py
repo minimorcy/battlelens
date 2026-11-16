@@ -19,7 +19,9 @@ ASSETS = ROOT / "site" / "assets"
 GAME = "sword-shield"
 
 # (archivo, modo, rivales [(especie, nivel)], tu Pokémon (especie, nivel) o None)
+# card-look.png lleva los iconos de tipo y la imagen del Pokémon reales (opciones de Ajustes › Ficha)
 SHOTS = [
+    ("card-look.png", "normal", [(263, 8)], (813, 14)),  # Zigzagoon de Galar contra tu Scorbunny
     ("card-normal.png", "normal", [(759, 10)], (813, 14)),  # Stufful contra tu Scorbunny
     ("card-competitive.png", "competitive", [(759, 10)], (813, 14)),
     ("card-double.png", "normal", [(263, 8), (759, 10)], (813, 14)),  # Zigzagoon de Galar + Stufful
@@ -50,11 +52,18 @@ def main() -> int:
     from battlelens.core.pokedex import Pokedex
     from battlelens.ui.overlay import Overlay
 
+    sys.path.insert(0, str(ROOT / "tools"))
+    from make_guide_screenshots import real_images
+
     dex = Pokedex.load()
+    icons, sprites = real_images(dex, [dex.view(263, GAME)])
     ASSETS.mkdir(parents=True, exist_ok=True)
     for filename, mode, rivals, own in SHOTS:
         overlay = Overlay(dex, "es", mode=mode)
         overlay._available_height = lambda rect: 100_000  # captura de la ficha completa, sin desplazamiento
+        if filename == "card-look.png":
+            overlay.type_icons, overlay.sprites = icons, sprites
+            overlay.hidden = {mode: frozenset({"own_moves", "evo", "forms"})}
         views = [dex.view(sid, GAME, "es") for sid, _ in rivals]
         own_view = dex.view(own[0], GAME, "es") if own else None
         overlay.show_battle(views, own_view, None, [lvl for _, lvl in rivals], own[1] if own else None)
