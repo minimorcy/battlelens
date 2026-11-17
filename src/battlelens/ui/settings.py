@@ -231,6 +231,7 @@ class SettingsWindow(QWidget):
     window_selected = pyqtSignal(object)  # WindowInfo
     profile_selected = pyqtSignal(str)
     profile_game_selected = pyqtSignal(object)  # id de juego o None
+    profile_language_selected = pyqtSignal(str)  # idioma del juego del perfil activo (OCR)
     preset_requested = pyqtSignal()
     calibrate_requested = pyqtSignal()
     region_requested = pyqtSignal(str)
@@ -607,6 +608,14 @@ class SettingsWindow(QWidget):
         self.name_edit.editingFinished.connect(lambda: self.rename_requested.emit(self.name_edit.text()))
         self.active_card.add_row(_("Nombre"), self.name_edit)
         self.active_card.add_row(_("Juego"), self.game_combo, _("Decide las formas regionales y la tabla de tipos."))
+        self.game_language_combo = QComboBox()
+        self.game_language_combo.setMinimumWidth(260)
+        for code, label in LANGUAGE_LABELS.items():
+            self.game_language_combo.addItem(label, code)
+        self.game_language_combo.activated.connect(
+            lambda i: self.profile_language_selected.emit(self.game_language_combo.itemData(i)))
+        self.active_card.add_row(_("Idioma del juego"), self.game_language_combo,
+                                 _("El OCR lee los nombres en este idioma (y en inglés, de respaldo)."))
         self.apply_preset_button = _button(_("Aplicar un preset…"))
         self.apply_preset_button.clicked.connect(self.apply_preset_requested)
         self.active_card.add_row(_("Preset"), self.apply_preset_button,
@@ -908,6 +917,8 @@ class SettingsWindow(QWidget):
         for game_id, label in [(None, _("Sin especificar")), *self._get_games()]:
             self.game_combo.addItem(label, game_id)
         self.game_combo.setCurrentIndex(max(self.game_combo.findData(active.game), 0))
+        first = active.ocr_languages[0].split("-")[0].lower() if active.ocr_languages else "es"
+        self.game_language_combo.setCurrentIndex(max(self.game_language_combo.findData(first), 0))
         regions = {"rival": active.region, "rival2": active.rival2_region, "own": active.own_region,
                    "moves": active.moves_region}
         for role, (status, calibrate, remove) in self.region_rows.items():

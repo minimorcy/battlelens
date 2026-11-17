@@ -292,8 +292,9 @@ class Controller(QObject):
 
     # ---- acciones ----------------------------------------------------------
 
-    def install_ocr(self) -> None:
-        tag = proposed_ocr_tag(ui_language_tag())
+    def install_ocr(self, language: str | None = None) -> None:
+        """OCR de `language` (idioma del juego de un perfil) o, sin él, el del idioma de Windows."""
+        tag = proposed_ocr_tag(language or ui_language_tag())
         answer = QMessageBox.question(
             None,
             _("Instalar OCR de Windows"),
@@ -376,6 +377,7 @@ class Controller(QObject):
             w.window_selected.connect(self.select_window)
             w.profile_selected.connect(self.select_profile)
             w.profile_game_selected.connect(self.set_profile_game)
+            w.profile_language_selected.connect(self.set_profile_language)
             w.preset_requested.connect(self.new_profile_from_preset)
             w.calibrate_requested.connect(self.calibrate_new)
             w.region_requested.connect(self.calibrate_region)
@@ -1042,6 +1044,23 @@ class Controller(QObject):
         label = game.name(self.config.language) if game else _("sin especificar")
         self._refresh_ui()
         self.tray.notify(_("Juego de «{name}»: {game}.", name=profile.name, game=label))
+
+    def set_profile_language(self, language: str) -> None:
+        """Idioma del juego del perfil activo: el OCR lee en él, con inglés de respaldo."""
+        profile = self.profiles.active
+        if profile is None:
+            return
+        languages = (language,) if language == "en" else (language, "en")
+        self.profiles.save(replace(profile, ocr_languages=languages), activate=True)
+        self._refresh_ui()
+        try:
+            installed = any(tag.split("-")[0].lower() == language for tag in available_languages())
+        except Exception:  # noqa: BLE001 - sin WinRT (tests, otros sistemas): no se avisa
+            installed = True
+        if installed:
+            self.tray.notify(_("Idioma del juego de «{name}»: {language}.", name=profile.name, language=language))
+        else:
+            self.install_ocr(language)  # pregunta antes de instalar
 
     def _set_target(self, info: windows.WindowInfo | None) -> None:
         self.target = info

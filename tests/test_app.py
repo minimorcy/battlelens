@@ -660,7 +660,7 @@ def test_ajustes_guardan_y_aplican(qapp, controller, tmp_path):
     window.hide()
 
 
-def test_perfil_desde_ajustes(qapp, controller):
+def test_perfil_desde_ajustes(qapp, controller, monkeypatch):
     from battlelens.core.profiles import Profile, Region
 
     controller.tray.notify = lambda msg, warning=False: None
@@ -675,6 +675,16 @@ def test_perfil_desde_ajustes(qapp, controller):
     assert controller.profiles.active_id == second.id
     controller.set_profile_game("emerald")
     assert window.game_combo.currentData() == "emerald"
+    from battlelens import app as app_module
+
+    installs = []
+    controller.install_ocr = installs.append
+    monkeypatch.setattr(app_module, "available_languages", lambda: ["es-ES", "en-US"])
+    controller.set_profile_language("fr")
+    assert controller.profiles.active.ocr_languages == ("fr", "en") and installs == ["fr"]  # ofrece instalarlo
+    assert window.game_language_combo.currentData() == "fr"
+    controller.set_profile_language("en")
+    assert controller.profiles.active.ocr_languages == ("en",)
     window.hide()
 
 
