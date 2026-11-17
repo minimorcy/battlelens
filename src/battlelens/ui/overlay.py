@@ -281,6 +281,7 @@ class Overlay(QWidget):
         self._card_inner = 0
         self._target_rect: tuple[int, int, int, int] | None = None
         self.saved_pos: QPoint | None = None
+        self.side = "right"  # sin posición guardada, a qué lado del emulador aparece («left»: la ficha buscada)
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setFixedWidth(card_width(mode))
@@ -952,7 +953,8 @@ class Overlay(QWidget):
 
     def expand_all(self) -> None:
         """«Desplegar todas las secciones»: olvida lo plegado en los dos modos."""
-        self.collapsed = {"normal": set(), "competitive": set()}
+        for keys in self.collapsed.values():  # en su sitio: la ficha buscada comparte este dict
+            keys.clear()
         for block in self.blocks():
             block.set_collapsed(False)
         self._relayout()
@@ -1051,12 +1053,19 @@ class Overlay(QWidget):
             return self._clamp(self.saved_pos, size)
         if target_rect is None:
             screen = QGuiApplication.primaryScreen().availableGeometry()
+            if self.side == "left":
+                return QPoint(screen.left() + MARGIN, screen.top() + MARGIN)
             return QPoint(screen.right() - size.width() - MARGIN, screen.top() + MARGIN)
 
         left, top, width, height = target_rect
         top_left = physical_to_logical(left, top)
         bottom_right = physical_to_logical(left + width, top + height)
         screen = (QGuiApplication.screenAt(top_left) or QGuiApplication.primaryScreen()).availableGeometry()
+        if self.side == "left":
+            x = top_left.x() - size.width() - MARGIN
+            if x < screen.left():  # no cabe a la izquierda: esquina superior izquierda de la pantalla
+                return QPoint(screen.left() + MARGIN, screen.top() + MARGIN)
+            return self._clamp(QPoint(x, max(top_left.y(), screen.top())), size)
         x = bottom_right.x() + MARGIN
         if x + size.width() > screen.right():
             # No cabe a la derecha: esquina superior derecha de la pantalla.

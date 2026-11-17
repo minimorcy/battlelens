@@ -291,6 +291,7 @@ class AppState:
     last_window_title: str | None = None
     active_profile: str | None = None
     overlay_pos: list[int] | None = field(default=None)
+    search_card_pos: list[int] | None = None  # ficha buscada flotante (spec pokemon-search)
     auto_detect: bool | None = None  # conmutador de la bandeja; tiene prioridad sobre detection.enabled
     last_update_check: str | None = None  # ISO 8601 de la última consulta a GitHub
     # Bloques plegados de la ficha por modo (improve-card-visuals D11): {"competitive": ["abilities"]}

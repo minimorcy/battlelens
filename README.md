@@ -42,10 +42,10 @@ BattleLens uses the text recognition that ships with Windows. Almost every PC al
 3. **In every battle the card appears by itself** next to the emulator as soon as the opponent's name is visible (**automatic detection**), and hides a few seconds after the battle ends. It only appears when the opponent's **level** is read next to its name, as on the battle screen, so it doesn't pop up in the Pokédex or on your Pokémon's summary (turn it off in **Settings → Recognition → Only on the battle screen** if your regions don't include the level).
    - If you turn it off from the tray (**Automatic detection** / *Detección automática*), press `Ctrl+Alt+P` to recognise manually.
    - Click **✕** in its top-right corner or press `Ctrl+Alt+H` to hide it. Drag it to move it; click a section title to collapse it.
-   - **Search any Pokémon** at any time with `Ctrl+Alt+B` (or tray → **Search Pokémon…**): type a name and press `Enter` to see its card for the active profile's game.
+   - **Search any Pokémon** at any time with `Ctrl+Alt+B` (or tray → **Search Pokémon…**): type a name and press `Enter` to see its card for the active profile's game, in its own card next to the opponent's.
    - **Edit a profile instead of creating another**: with an active profile, `Ctrl+Alt+C` asks which region to recalibrate (or whether to create a new profile); rename it or apply a preset to it in **Settings → Profiles**.
    - **Type chart** for your game's generation with `Ctrl+Alt+T` (or tray → **Type chart**), with the opponent's types (columns) and yours (rows) highlighted.
-   - **Two screens?** In **Settings › Card → Show the card in: Panel**, the card and the type chart move into a regular window you can put on your other monitor instead of floating over the game.
+   - **Two screens?** In **Settings › Card → Show the card in: Panel**, the cards, the charts and an always-visible search box move into a regular window you can put on your other monitor instead of floating over the game.
    - **Mega Evolutions and other forms** (Rotom, Deoxys, Giratina…) show the same name on screen, so use the **◀ ▶** arrows next to the card's name or `Ctrl+Alt+F` to cycle through the forms available in that game; the card is recalculated and keeps that form while the Pokémon stays in battle.
 4. **Choose the card mode** (tray → **Card mode** / *Modo de la ficha*, `Ctrl+Alt+M` or *Ajustes*):
    - **Normal** (default): a compact card for adventuring and catching, with types, weaknesses, what it's strong against, highlighted **catch difficulty**, evolution and stat total.
@@ -80,7 +80,7 @@ Everything can be changed from tray → **Settings…** (*Ajustes…*) (changes 
 | `detection.interval_ms` | `500` | How often the name region is checked |
 | `detection.hide_after_seconds` | `4` | Seconds without seeing the opponent before hiding the card (0 = never) |
 | `overlay.mode` | `normal` | `normal` (compact) or `competitive` (full) card |
-| `overlay.display` | `overlay` | `overlay` (over the game) or `panel` (separate window with the card and the type chart) |
+| `overlay.display` | `overlay` | `overlay` (over the game) or `panel` (separate window with the cards, the charts and the search box) |
 | `hotkeys.toggle_mode` | `Ctrl+Alt+M` | Switch mode |
 | `hotkeys.cycle_form` | `Ctrl+Alt+F` | Cycle the opponent's form (Mega Evolutions, Rotom…) |
 | `hotkeys.toggle_stream` | `Ctrl+Alt+S` | Show/hide the stream card |

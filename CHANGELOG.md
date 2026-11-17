@@ -4,6 +4,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Unreleased]
 
+### Cambiado
+- El buscador (`Ctrl+Alt+B`) abre su propia ficha, aparte de la del rival: puedes consultar otro Pokémon en pleno combate sin perder de vista al rival. La detección ya no se pausa mientras buscas, y la ficha buscada no se va con el fin del combate: se cierra con su ✕, cambia de forma con sus flechas ◀ ▶ y recuerda dónde la dejaste.
+- Modo panel en tres columnas: el rival a la izquierda, las tablas de tipos y naturalezas en el centro, y a la derecha el buscador siempre visible con la ficha buscada debajo. `Ctrl+Alt+B` trae el panel delante con el cursor en el buscador. El panel arranca más ancho para que quepa todo.
+
+### English
+
+**Changed**
+- Search (`Ctrl+Alt+B`) opens its own card, separate from the opponent's: look up another Pokémon mid-battle without losing sight of the opponent. Detection no longer pauses while you search, and the searched card doesn't go away when the battle ends: close it with its ✕, switch its form with its ◀ ▶ arrows, and it remembers where you left it.
+- Panel mode in three columns: the opponent on the left, the type and nature charts in the middle, and on the right an always-visible search box with the searched card below. `Ctrl+Alt+B` brings the panel to the front with the cursor in the search box. The panel starts wider so everything fits.
+
 ## [0.9.0] - 2026-11-17
 
 ### Añadido

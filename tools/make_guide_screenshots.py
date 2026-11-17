@@ -160,7 +160,7 @@ def main() -> int:
     from battlelens.ui.preset_wizard import PresetWizard
     from battlelens.core.matcher import NameMatcher
     from battlelens.ui.settings import SettingsWindow
-    from battlelens.ui.search import SearchDialog
+    from battlelens.ui.search import SearchDialog, SearchField
     from battlelens.ui.start import StartDialog
     from battlelens.ui.tray import Tray
     from battlelens.ui.nature_chart import NatureChartWindow
@@ -293,14 +293,18 @@ def main() -> int:
         card("card-icons.png", "normal", [(16, 3)], 813, 15, hidden=("own_moves", "evo", "forms"), icons=type_icons,
              pictures=sprites)
 
-        # ---- modo panel: Machop contra tu Scorbunny, con la tabla al lado (spec panel-window) ----
+        # ---- modo panel: Machop contra tu Scorbunny, las tablas en medio y Rotom buscado a la derecha ----
         overlay = Overlay(dex, lang, mode="competitive")
         overlay.hidden = {"competitive": defaults.hidden_sections("competitive") - {"matchup"}}
+        searched = Overlay(dex, lang, mode="competitive")
+        searched.hidden = overlay.hidden
         type_chart = TypeChartWindow()
         type_chart.set_chart(chart, {t: dex.type_name(t, lang) for t in chart}, generation)
-        panel = PanelWindow(overlay, type_chart, NatureChartWindow())
-        panel.resize(940, 470)  # cabe en la pantalla lógica con QT_SCALE_FACTOR=2
+        field = SearchField(entries, NameMatcher(dex))
+        panel = PanelWindow(overlay, type_chart, NatureChartWindow(), searched, field)
         panel.dock()
+        panel.resize(1240, 520)
+        searched.show_view(dex.view(479, GAME, lang, "rotom-wash"), None)
         own_view = dex.view(813, GAME, lang)
         rival = dex.view(66, GAME, lang)
         overlay.show_battle([rival], own_view, None, [16], 15)

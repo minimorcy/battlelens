@@ -88,3 +88,37 @@ def test_panel_con_la_tabla_de_naturalezas(qapp):
     finally:
         panel.undock()
     assert natures.isWindow() and natures.scale == 1.0
+
+
+def test_panel_en_tres_columnas_con_el_buscador(qapp):
+    from PyQt6.QtWidgets import QLineEdit
+
+    from battlelens.ui.overlay import Overlay
+    from battlelens.ui.panel import PanelWindow
+
+    dex, overlay, chart, _ = _panel(qapp)
+    search_card, field = Overlay(dex), QLineEdit()
+    field.edit = field  # basta con algo que tenga `edit` para enfocar
+    panel = PanelWindow(overlay, chart, None, search_card, field)
+    panel.dock()
+    try:
+        panel.resize(1440, 760)
+        qapp.processEvents()
+        assert not search_card.isWindow() and field.isVisible()
+        overlay.show_view(dex.view(759, None, "es"), None)  # rival
+        search_card.show_view(dex.view(479, None, "es"), None)  # buscada
+        qapp.processEvents()
+        rival_x = overlay.mapTo(panel, overlay.rect().topLeft()).x()
+        chart_x = chart.mapTo(panel, chart.rect().topLeft()).x()
+        card_pos = search_card.mapTo(panel, search_card.rect().topLeft())
+        assert rival_x < chart_x < card_pos.x()  # rival | tablas | buscador
+        assert card_pos.y() > field.mapTo(panel, field.rect().bottomLeft()).y()  # la buscada, bajo el buscador
+        assert search_card.height() <= panel._search_slot.height()
+
+        overlay.hide()  # fin del combate: la buscada sigue
+        assert panel._waiting.isVisible() and search_card.isVisible()
+        panel.focus_search()
+        panel.grab()
+    finally:
+        panel.undock()
+    assert overlay.isWindow() and search_card.isWindow() and not search_card.isVisible()

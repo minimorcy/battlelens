@@ -74,7 +74,7 @@ from .ui.icons import app_icon
 from .ui.overlay import Overlay
 from .ui.preset_wizard import PresetWizard
 from .ui.report import ReportDialog
-from .ui.search import SearchDialog
+from .ui.search import SearchDialog, SearchField
 from .ui.start import StartDialog
 from .ui.tray import Tray
 from .ui.panel import PanelWindow
@@ -136,16 +136,21 @@ class Controller(QObject):
         self.detector = GameDetector(pokedex.games)
 
         self.overlay = Overlay(pokedex, config.language, config.auto_hide_seconds, mode=config.overlay_mode)
-        self.overlay.hidden = {mode: config.hidden_sections(mode) for mode in ("normal", "competitive")}
+        # Ficha buscada (spec pokemon-search): aparte de la del rival, sin temporizador y a la izquierda del juego
+        self.search_card = Overlay(pokedex, config.language, 0, mode=config.overlay_mode)
+        self.search_card.side = "left"
+        for card in self.cards:
+            card.hidden = {mode: config.hidden_sections(mode) for mode in ("normal", "competitive")}
         # Iconos de tipo (spec type-icons): se descargan a la caché solo con la opción activa
         self.type_icons = TypeIcons(self.data_dir / TYPE_ICONS_DIR, pokedex.type_numbers)
         self.type_icons.finished.connect(self._apply_type_icons)
         # Imagen del Pokémon (spec pokemon-sprites): se descarga la de cada uno la primera vez, solo con la opción
         self.sprites = Sprites(self.data_dir / SPRITES_DIR)
         self.sprites.arrived.connect(self._sprite_arrived)
-        self.overlay.sprites = self.sprites if config.sprites else None
+        for card in self.cards:
+            card.sprites = self.sprites if config.sprites else None
         self._last_battle = None  # (clave, juego, niveles) de la última ficha, para redibujarla
-        self._searched = False  # la última ficha viene del buscador (no va al stream)
+        self._last_search = None  # (especie, forma o None, juego) de la ficha buscada
         self._search: SearchDialog | None = None  # buscador abierto (solo uno a la vez)
         self._form_choice: dict[int, str] = {}  # especie -> forma elegida con el atajo (add-alternate-forms D4)
         # Modo stream: fuente de navegador para OBS (spec stream-mode)
@@ -160,6 +165,13 @@ class Controller(QObject):
         for mode, keys in (self.state.collapsed_sections or {}).items():  # bloques plegados (improve-card-visuals D11)
             self.overlay.collapsed[mode] = set(keys)
         self.overlay.collapsed_changed.connect(self._on_overlay_collapsed)
+        pos = self.state.search_card_pos  # puede venir tocado a mano
+        if isinstance(pos, list) and len(pos) == 2 and all(type(v) is int for v in pos):
+            self.search_card.saved_pos = QPoint(*pos)
+        self.search_card.collapsed = self.overlay.collapsed  # el plegado es común a las dos fichas
+        self.search_card.collapsed_changed.connect(self._on_overlay_collapsed)
+        self.search_card.moved.connect(self._on_search_card_moved)
+        self.search_card.form_step.connect(lambda _sid, step: self.cycle_search_form(step))
         # Tabla de tipos (spec type-chart): resalta los tipos de la ficha mientras está visible
         self.type_chart = TypeChartWindow()
         self.nature_chart = NatureChartWindow()
@@ -172,7 +184,9 @@ class Controller(QObject):
             chart.changed.connect(lambda c=chart, k=key: self._on_chart_changed(c, k))
         self.overlay.became_hidden.connect(lambda: self.type_chart.set_highlight(()))
         # Modo panel (spec panel-window): la ficha y la tabla en una ventana normal
-        self.panel = PanelWindow(self.overlay, self.type_chart, self.nature_chart)
+        self.search_field = SearchField(self._search_entries(), self.pipeline.matcher)  # buscador fijo del panel
+        self.search_field.chosen.connect(self._on_panel_search)
+        self.panel = PanelWindow(self.overlay, self.type_chart, self.nature_chart, self.search_card, self.search_field)
         self.panel.restore_geometry(self.state.panel_geometry)
         self.panel.geometry_changed.connect(self._on_panel_geometry)
 
@@ -401,9 +415,15 @@ class Controller(QObject):
         self._settings.raise_()
         self._settings.activateWindow()
 
+    @property
+    def cards(self) -> tuple[Overlay, Overlay]:
+        """La ficha del rival y la buscada: comparten modo, idioma, secciones, iconos e imágenes."""
+        return self.overlay, self.search_card
+
     def _refresh_ui(self) -> None:
         """Tras cambiar perfiles o ventana: tooltip de la bandeja y sección Perfiles de Ajustes."""
         self.tray.refresh_tooltip()
+        self.search_field.set_entries(self._search_entries())  # el juego del perfil puede haber cambiado
         if self._settings is not None:
             self._settings.refresh()
 
@@ -433,13 +453,16 @@ class Controller(QObject):
                 self.tray.notify(_("No se pudieron registrar los atajos: {names}.", names=", ".join(failed)), warning=True)
         self.pipeline.matcher.threshold = new.threshold
         self.pipeline.debug_dir = self.data_dir / "debug" if new.debug else None
-        self.overlay.language = new.language
+        for card in self.cards:
+            card.language = new.language
         self.overlay.auto_hide_seconds = new.auto_hide_seconds
         sections_changed = (new.hidden_sections_normal, new.hidden_sections_competitive) != (
             old.hidden_sections_normal, old.hidden_sections_competitive)
-        self.overlay.hidden = {mode: new.hidden_sections(mode) for mode in ("normal", "competitive")}
+        for card in self.cards:
+            card.hidden = {mode: new.hidden_sections(mode) for mode in ("normal", "competitive")}
         if new.overlay_mode != old.overlay_mode or sections_changed:
-            self.overlay.mode = new.overlay_mode
+            for card in self.cards:
+                card.mode = new.overlay_mode
             self.tray.set_mode(new.overlay_mode)
             self._redraw_last_battle()
         if sections_changed:
@@ -451,7 +474,8 @@ class Controller(QObject):
                 self.type_icons.ensure()
             self._apply_type_icons()
         if new.sprites != old.sprites:
-            self.overlay.sprites = self.sprites if new.sprites else None
+            for card in self.cards:
+                card.sprites = self.sprites if new.sprites else None
             self._redraw_last_battle()
             self._publish_stream(keep_visibility=True)
         self._watch_timer.setInterval(new.detection_interval_ms)
@@ -460,6 +484,7 @@ class Controller(QObject):
             self.set_auto_detect(new.detection_enabled)
         if new.interface_language != old.interface_language:
             set_language(resolve_language(new.interface_language, _windows_language()))
+            self.search_field.set_entries(self._search_entries())
             self._redraw_last_battle()
             self._publish_stream(keep_visibility=True)
             self.tray.notify(_("Los menús cambiarán de idioma al reiniciar BattleLens."))
@@ -665,7 +690,8 @@ class Controller(QObject):
             new = replace(self.config, overlay_mode=mode)
             save_config(self.data_dir / "config.toml", new)
             self.config = new
-        self.overlay.mode = mode
+        for card in self.cards:
+            card.mode = mode
         self.tray.set_mode(mode)
         self._sync_settings("mode", mode)
         self._redraw_last_battle()
@@ -682,20 +708,24 @@ class Controller(QObject):
     def _apply_type_icons(self) -> None:
         """Iconos o etiquetas en la ficha, la tabla y el stream; se llama al cambiar la opción o al llegar los iconos."""
         ready = self._type_icons_ready()
-        self.overlay.type_icons = self.type_icons if ready else None
+        for card in self.cards:
+            card.type_icons = self.type_icons if ready else None
         self.type_chart.set_icons({t: self.type_icons.pixmap(t) for t in self.pokedex.type_numbers} if ready else {})
         self._redraw_last_battle()
         self._publish_stream(keep_visibility=True)
 
     def _sprite_arrived(self, sprite_id: int) -> None:
         """Un sprite recién descargado: a su recuadro de la ficha (sin redibujarla) y al stream."""
-        self.overlay.sprite_arrived(sprite_id)
+        for card in self.cards:
+            card.sprite_arrived(sprite_id)
         self._publish_stream(keep_visibility=True)
 
     def _redraw_last_battle(self) -> None:
         if self._last_battle is not None and self.overlay.isVisible():
             key, game, levels = self._last_battle
-            self._show_battle(key, game, self._target_rect(), levels, self._searched)
+            self._show_battle(key, game, self._target_rect(), levels)
+        if self._last_search is not None and self.search_card.isVisible():
+            self._show_search()
 
     def cycle_form(self, step: int = 1, species_id: int | None = None) -> None:
         """Siguiente (o anterior) forma del rival indicado o, sin él, del primero que tenga otras en el
@@ -743,7 +773,8 @@ class Controller(QObject):
     def _watch_tick(self) -> None:
         if self._watch_busy or self._busy or self._modal_open or self.target is None:
             return
-        self.overlay.keep_on_top()  # el emulador puede haberse puesto delante al pasar a pantalla completa
+        for card in self.cards:
+            card.keep_on_top()  # el emulador puede haberse puesto delante al pasar a pantalla completa
         self.type_chart.keep_on_top()
         self.nature_chart.keep_on_top()
         self._auto_select_profile()
@@ -852,13 +883,9 @@ class Controller(QObject):
         elif action is Action.HIDE:
             self._end_battle()
 
-    def _show_battle(self, key, game: str | None, rect, levels=(None, None, None), searched: bool = False) -> None:
-        """Muestra las tarjetas de los rivales de la clave (rival, rival2, own) y la comparativa.
-
-        Una ficha buscada (spec pokemon-search) no se publica en el stream: es una consulta privada.
-        """
+    def _show_battle(self, key, game: str | None, rect, levels=(None, None, None)) -> None:
+        """Muestra las tarjetas de los rivales de la clave (rival, rival2, own) y la comparativa."""
         self._last_battle = (key, game, levels)
-        self._searched = searched
         rival, rival2, own = key
         lang = self.config.language
         pairs = [(sid, lvl) for sid, lvl in zip((rival, rival2), levels[:2]) if sid is not None]
@@ -876,9 +903,8 @@ class Controller(QObject):
         self.overlay.show_battle(rivals, own_view, rect, [lvl for _, lvl in pairs], levels[2], own_moves, probable)
         self.type_chart.set_highlight((t for view in rivals for t in view.types),  # tras mostrarla: su hide la limpia
                                       own_view.types if own_view is not None else ())
-        if not searched:
-            self._stream_args = (rivals, own_view, [lvl for _, lvl in pairs], own_moves, probable)
-            self._publish_stream()
+        self._stream_args = (rivals, own_view, [lvl for _, lvl in pairs], own_moves, probable)
+        self._publish_stream()
 
     def toggle_type_chart(self) -> None:
         """Muestra u oculta la tabla de tipos de la generación del perfil activo (spec type-chart)."""
@@ -914,6 +940,7 @@ class Controller(QObject):
     def _set_display(self, display: str) -> None:
         """Ficha flotante («overlay») o en la ventana del panel (spec panel-window)."""
         redraw = self._last_battle is not None and self.overlay.isVisible()
+        redraw_search = self._last_search is not None and self.search_card.isVisible()
         if display == "panel":
             self._load_type_chart()
             self.panel.dock()
@@ -922,35 +949,62 @@ class Controller(QObject):
         self.tray.set_panel_mode(display == "panel")
         if redraw:
             key, game, levels = self._last_battle
-            self._show_battle(key, game, self._target_rect(), levels, self._searched)
+            self._show_battle(key, game, self._target_rect(), levels)
+        if redraw_search:
+            self._show_search()
 
     def search_pokemon(self) -> None:
-        """Buscador con atajo global: ficha de cualquier especie fuera del combate (spec pokemon-search)."""
+        """Buscador con atajo global: ficha propia de cualquier especie, aparte de la del rival (spec pokemon-search).
+
+        La detección sigue mientras se busca: cada ficha va por su lado.
+        """
+        if self.panel.docked:  # el buscador ya está en el panel: delante y con el foco en el campo
+            self.panel.focus_search()
+            return
         if self._search is not None:  # ya abierto: el atajo lo trae delante en vez de abrir otro
             self._search.raise_()
             self._search.activateWindow()
             return
-        lang = get_language()
-        profile = self.profiles.active
-        game = profile.game if profile is not None else None
-        entries = sorted(
-            (name, [(self.pokedex.type_name(t, lang), t) for t in types], (sid, form))
-            for name, types, sid, form in self.pokedex.search_entries(game, lang)
-        )
-        dialog = self._search = SearchDialog(entries, self.pipeline.matcher)
-        self._modal_open = True  # pausa la detección automática mientras se escribe
+        dialog = self._search = SearchDialog(self._search_entries(), self.pipeline.matcher)
         try:
             accepted = dialog.exec()
         finally:
-            self._modal_open = False
             self._search = None
         if accepted and dialog.choice is not None:
-            sid, form = dialog.choice
-            if form is None:
-                self._form_choice.pop(sid, None)  # nombre escrito a mano: la forma automática del juego
-            else:
-                self._form_choice[sid] = form
-            self._show_battle((sid, None, None), game, self._target_rect(), searched=True)
+            self.show_search(*dialog.choice)
+
+    def _search_entries(self) -> list:
+        """Sugerencias del buscador: una por forma del juego del perfil activo, con sus tipos traducidos."""
+        lang = get_language()
+        profile = self.profiles.active
+        game = profile.game if profile is not None else None
+        return sorted(
+            (name, [(self.pokedex.type_name(t, lang), t) for t in types], (sid, form))
+            for name, types, sid, form in self.pokedex.search_entries(game, lang)
+        )
+
+    def _on_panel_search(self, species_id: int, form) -> None:
+        self.search_field.clear()
+        self.show_search(species_id, form)
+
+    def show_search(self, species_id: int, form: str | None) -> None:
+        """Ficha buscada; forma None: la automática del juego (nombre escrito a mano)."""
+        profile = self.profiles.active
+        self._last_search = (species_id, form, profile.game if profile is not None else None)
+        self._show_search()
+
+    def _show_search(self) -> None:
+        species_id, form, game = self._last_search
+        self.search_card.show_view(self.pokedex.view(species_id, game, self.config.language, form), self._target_rect())
+
+    def cycle_search_form(self, step: int) -> None:
+        """Flechas ◀ ▶ de la ficha buscada: no tocan la forma del rival."""
+        species_id, form, game = self._last_search
+        cycle = self.pokedex.form_cycle(species_id, game)
+        if len(cycle) > 1:
+            index = cycle.index(form) if form in cycle else 0
+            self._last_search = (species_id, cycle[(index + step) % len(cycle)], game)
+            self._show_search()
 
     def _on_auto_failure(self, exc: Exception) -> None:
         self._busy = False
@@ -1343,7 +1397,8 @@ class Controller(QObject):
 
     def expand_all_sections(self) -> None:
         """«Desplegar todas las secciones» (improve-card-visuals)."""
-        self.overlay.expand_all()  # emite collapsed_changed, que lo guarda en state.json
+        for card in self.cards:
+            card.expand_all()  # emite collapsed_changed, que lo guarda en state.json
 
     def _on_chart_changed(self, chart, key: str) -> None:
         """Tabla de tipos o de naturalezas movida o reescalada: se guarda en state.json."""
@@ -1357,6 +1412,10 @@ class Controller(QObject):
 
     def _on_overlay_moved(self, x: int, y: int) -> None:
         self.state.overlay_pos = [x, y]
+        self._save_state()
+
+    def _on_search_card_moved(self, x: int, y: int) -> None:
+        self.state.search_card_pos = [x, y]
         self._save_state()
 
     def _save_state(self) -> None:

@@ -53,3 +53,35 @@ def test_sugerencias_por_forma_como_la_ficha():
     names = {name for name, *_ in dex.search_entries("sword-shield", "es")}
     assert {"Rapidash", "Rapidash de Galar", "Rotom Lavado"} <= names and "Mega-Charizard X" not in names
     assert "Mega-Charizard X" in {name for name, *_ in dex.search_entries("x-y", "es")}
+
+
+def test_campo_de_busqueda_reutilizable(qapp):
+    from PyQt6.QtCore import QEvent, Qt
+    from PyQt6.QtGui import QKeyEvent
+
+    from battlelens.ui.search import SearchField
+
+    dex = Pokedex.load()
+
+    def entries(game):
+        return sorted((n, [(t, t) for t in types], (sid, f)) for n, types, sid, f in dex.search_entries(game, "es"))
+
+    field = SearchField([], NameMatcher(dex))
+    chosen = []
+    field.chosen.connect(lambda sid, form: chosen.append((sid, form)))
+    field.edit.setText("Rapidash de Galar")  # sin sugerencias: emparejador aproximado
+    field.edit.returnPressed.emit()
+    assert chosen == [(78, None)]
+    qapp.processEvents()
+
+    field.set_entries(entries("sword-shield"))  # cambio de perfil
+    field.edit.setText("rapidash de galar")
+    field.edit.returnPressed.emit()
+    assert chosen[-1] == (78, "rapidash-galar")
+    qapp.processEvents()
+
+    field.edit.setText("xyzzy")
+    field.edit.returnPressed.emit()
+    assert len(chosen) == 2 and not field.error.isHidden()
+    field.keyPressEvent(QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_Escape, Qt.KeyboardModifier.NoModifier))
+    assert field.edit.text() == "" and field.error.isHidden()  # fuera de un diálogo, Esc vacía el campo

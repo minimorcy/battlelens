@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from PyQt6.QtCore import QEvent, QObject, QRect, Qt, pyqtSignal
 from PyQt6.QtGui import QGuiApplication
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QWidget
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from ..i18n import _
 from . import theme
@@ -16,7 +16,8 @@ GAP = 12
 
 
 class PanelWindow(QWidget):
-    """Ventana con marco: ficha a la izquierda (o «Esperando combate…») y tablas de tipos y naturalezas a la derecha.
+    """Ventana con marco en tres columnas: ficha del rival (o «Esperando combate…»), tablas de tipos y naturalezas,
+    y el buscador con la ficha buscada debajo (search-own-card D4).
 
     Reutiliza los mismos `Overlay` y `TypeChartWindow` reparentándolos (design D1); fuera de aquí vuelven a ser
     ventanas flotantes con sus flags de siempre.
@@ -24,18 +25,27 @@ class PanelWindow(QWidget):
 
     geometry_changed = pyqtSignal()
 
-    def __init__(self, overlay: Overlay, chart: TypeChartWindow, natures: TypeChartWindow | None = None) -> None:
+    def __init__(self, overlay: Overlay, chart: TypeChartWindow, natures: TypeChartWindow | None = None,
+                 search_card: Overlay | None = None, search_field: QWidget | None = None) -> None:
         super().__init__(None, Qt.WindowType.Window)
         self.setWindowTitle("BattleLens")
         self.setWindowIcon(app_icon())
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)  # aparece sin quitar el foco al juego
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground)
-        self.setStyleSheet(f"PanelWindow {{ background:{theme.PANEL_SOLID}; }}")
-        self.setMinimumSize(480, 360)
-        self.resize(1100, 720)
+        self.setStyleSheet(
+            f"PanelWindow {{ background:{theme.PANEL_SOLID}; }}"
+            f"QLineEdit {{ background:{theme.SETTINGS_FIELD}; color:{theme.TEXT}; border:1px solid {theme.PANEL_BORDER};"
+            f" border-radius:7px; padding:6px 10px; font-size:13px; selection-background-color:{theme.ACCENT}; }}"
+            f"QLineEdit:focus {{ border-color:{theme.ACCENT}; }}"
+            f"#field-error {{ color:{theme.DANGER}; }}"
+        )
+        self.setMinimumSize(760, 400)
+        self.resize(1440, 760)  # dos fichas y la tabla; manda la geometría guardada
         self.overlay, self.chart, self.natures = overlay, chart, natures
-        self.charts = [c for c in (chart, natures) if c is not None]  # apiladas en el hueco derecho
-        self._flags = {w: w.windowFlags() for w in (overlay, *self.charts)}
+        self.search_card, self.search_field = search_card, search_field
+        self.charts = [c for c in (chart, natures) if c is not None]  # apiladas en el hueco central
+        self.cards = [c for c in (overlay, search_card) if c is not None]
+        self._flags = {w: w.windowFlags() for w in (*self.cards, *self.charts)}
 
         # Ficha y tabla se colocan a mano dentro de sus huecos, sin layout: con su tamaño fijo, un layout no
         # dejaría encoger la ventana por debajo de ellas y no se volverían a ajustar.
@@ -49,6 +59,19 @@ class PanelWindow(QWidget):
         row.setSpacing(GAP)
         row.addWidget(self._column)
         row.addWidget(self._chart_slot, 1)
+        self._search_slot = None
+        if search_card is not None:
+            # Columna derecha: el buscador arriba y la ficha buscada, colocada a mano como la del rival, debajo
+            self._search_column = QWidget(self)
+            column = QVBoxLayout(self._search_column)
+            column.setContentsMargins(0, 0, 0, 0)
+            column.setSpacing(GAP)
+            if search_field is not None:
+                column.addWidget(search_field)
+            self._search_slot = QWidget(self._search_column)
+            column.addWidget(self._search_slot, 1)
+            self._search_column.setFixedWidth(search_card._base_width)
+            row.addWidget(self._search_column)
         self.docked = False
 
     # ---- dentro / fuera del panel ------------------------------------------
@@ -66,7 +89,12 @@ class PanelWindow(QWidget):
             chart.hide()
             chart.setParent(self._chart_slot, Qt.WindowType.Widget)
             chart.setCursor(Qt.CursorShape.ArrowCursor)
-        for watched in (self.overlay, self._column, self._chart_slot, *self.charts):
+        if self.search_card is not None:
+            self.search_card.hide()
+            self.search_card.setParent(self._search_slot, Qt.WindowType.Widget)
+            self.search_card.move(0, 0)
+            self.search_card.setCursor(Qt.CursorShape.ArrowCursor)
+        for watched in self._watched():
             watched.installEventFilter(self)
         for chart in self.charts:  # chuletas siempre a mano en el panel
             chart.show()
@@ -78,15 +106,27 @@ class PanelWindow(QWidget):
             return
         self.docked = False
         self.hide()
-        for watched in (self.overlay, self._column, self._chart_slot, *self.charts):
+        for watched in self._watched():
             watched.removeEventFilter(self)
-        for widget in (self.overlay, *self.charts):
+        for widget in (*self.cards, *self.charts):
             widget.hide()
             widget.setParent(None, self._flags[widget])
             widget.setCursor(Qt.CursorShape.OpenHandCursor)
             widget._capture_excluded = False  # HWND nuevo: hay que volver a excluirlo de la captura
         for chart in self.charts:
             chart.set_scale(self._floating_scale[chart])
+
+    def _watched(self) -> list[QWidget]:
+        extra = [self.search_card, self._search_slot] if self.search_card is not None else []
+        return [self.overlay, self._column, self._chart_slot, *self.charts, *extra]
+
+    def focus_search(self) -> None:
+        """Atajo «Buscar Pokémon» en modo panel: el panel delante y el foco en su buscador (search-own-card D5)."""
+        self.showNormal() if self.isMinimized() else self.show()
+        self.raise_()
+        self.activateWindow()
+        if self.search_field is not None:
+            self.search_field.edit.setFocus()
 
     # ---- geometría ----------------------------------------------------------
 
@@ -131,6 +171,11 @@ class PanelWindow(QWidget):
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:
         if obj is self.overlay and event.type() in (QEvent.Type.Show, QEvent.Type.Hide, QEvent.Type.Resize):
             self._sync_waiting()
+        elif obj is self.search_card and event.type() == QEvent.Type.Resize:
+            self._search_column.setFixedWidth(max(self.search_card.width(), self.search_card._base_width))
+        elif obj is self._search_slot and event.type() == QEvent.Type.Resize:
+            if self.search_card.isVisibleTo(self):
+                self.search_card._relayout()  # alto disponible nuevo: con o sin desplazamiento
         elif obj is self._column and event.type() == QEvent.Type.Resize:
             self._waiting.setGeometry(self._column.rect())
             if self.overlay.isVisibleTo(self):

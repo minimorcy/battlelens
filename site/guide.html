@@ -306,11 +306,13 @@
           <figure class="shot">
             <img src="assets/guide/es/search.png" width="320" height="104" loading="lazy" alt="Buscador de Pokémon con sugerencias y sus tipos">
           </figure>
-          <p>Pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> (o bandeja → <b>Buscar Pokémon…</b>) en cualquier momento, escribe un nombre y pulsa <kbd>Enter</kbd>: aparece su ficha, como la de un rival. Sirve para preparar un equipo o mirar al próximo líder sin salir del juego.</p>
+          <p>Pulsa <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> (o bandeja → <b>Buscar Pokémon…</b>) en cualquier momento, escribe un nombre y pulsa <kbd>Enter</kbd>: aparece su ficha, aparte de la del rival. Sirve para preparar un equipo, mirar al próximo líder o consultar otro Pokémon en pleno combate sin perder de vista al rival.</p>
           <ul>
             <li>Mientras escribes te sugiere nombres, con sus tipos en el juego del perfil activo. Cada forma sale aparte (Rapidash y Rapidash de Galar, Rotom Lavado, Mega-Charizard X…), solo si existe en ese juego, y al elegirla ves la ficha de esa forma. También vale el nombre en otro idioma, sin tildes o con una errata pequeña.</li>
-            <li>La ficha usa el juego del perfil activo (tipos y estadísticas de esa generación) y sale sobre el emulador. Sin perfil, usa los datos actuales y sale en la pantalla principal.</li>
-            <li><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> cambia de forma y <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> de modo, igual que en combate. La ficha del stream no cambia: la búsqueda es solo para ti.</li>
+            <li>La ficha usa el juego del perfil activo (tipos y estadísticas de esa generación). La primera vez sale a la izquierda del emulador (sin perfil, en la pantalla principal); arrástrala a donde quieras y la próxima saldrá ahí.</li>
+            <li>Las dos fichas van por su lado: la detección sigue mientras buscas, un rival nuevo no quita la ficha buscada y el fin del combate tampoco. Se cierra con su <b>✕</b>; una búsqueda nueva la sustituye.</li>
+            <li>Cambia de forma con sus flechas <b>◀ ▶</b> (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> es solo para el rival). <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> cambia el modo de las dos. La ficha del stream no cambia: la búsqueda es solo para ti.</li>
+            <li>En <a href="#panel">modo panel</a> el buscador está siempre en el panel y el atajo lo trae delante.</li>
             <li><kbd>Esc</kbd> cierra el buscador. Si estás en pantalla completa exclusiva, puede que no aparezca delante: usa la <a href="#emulador">ventana sin bordes</a>.</li>
           </ul>
         </section>
@@ -324,7 +326,7 @@
           <ul>
             <li>Cada fila es el tipo que <b>ataca</b> y cada columna el que <b>defiende</b>: <b>×2</b> en verde, <b>×½</b> en rojo y <b>×0</b> en gris. Las casillas vacías son ×1. Pasa el ratón por una columna para ver el nombre completo. Con <a href="#iconos-de-tipo">tipos como iconos</a>, las filas y columnas llevan el icono de cada tipo y el nombre sale al pasar el ratón.</li>
             <li>Es la tabla de la <b>generación del juego</b> del perfil activo: en la Gen 1 salen 15 tipos (y Fantasma no afecta a Psíquico), de la Gen 2 a la 5 no hay Hada y Acero resiste Fantasma y Siniestro. Sin perfil, la tabla actual.</li>
-            <li>Con una ficha en pantalla, se <b>resaltan las columnas de los tipos del rival</b> (o del Pokémon buscado), y en combates dobles las de los dos rivales a la vez. Si tu perfil lee <b>tu Pokémon</b>, sus tipos se resaltan en <b>amarillo como filas</b>: las casillas donde se cruzan, con borde amarillo, son lo que tus ataques de tu tipo le hacen al rival. La leyenda de arriba indica qué color es de quién.</li>
+            <li>Con una ficha en pantalla, se <b>resaltan las columnas de los tipos del rival</b>, y en combates dobles las de los dos rivales a la vez. Si tu perfil lee <b>tu Pokémon</b>, sus tipos se resaltan en <b>amarillo como filas</b>: las casillas donde se cruzan, con borde amarillo, son lo que tus ataques de tu tipo le hacen al rival. La leyenda de arriba indica qué color es de quién.</li>
             <li>Arrástrala a donde quieras; la primera vez sale a la izquierda del emulador. Para cambiar su tamaño, arrastra el <b>tirador de la esquina inferior derecha</b> o usa <kbd>Ctrl</kbd> + rueda del ratón encima (del 60 % al 200 %). Recuerda dónde la dejaste y su tamaño.</li>
             <li>El OCR no la ve, así que puede tapar el nombre del rival.</li>
           </ul>
@@ -332,13 +334,15 @@
 
         <section class="g-section" id="panel">
           <h2>Modo panel (dos pantallas)</h2>
-          <p>Si juegas con dos pantallas, en <i>Ajustes › Ficha</i> elige <b>Mostrar la ficha en: Panel (ventana aparte)</b>. La ficha y la tabla de tipos dejan de flotar sobre el juego y pasan a una ventana normal que puedes llevar al otro monitor, agrandar o maximizar.</p>
+          <p>Si juegas con dos pantallas, en <i>Ajustes › Ficha</i> elige <b>Mostrar la ficha en: Panel (ventana aparte)</b>. Las fichas, las tablas y el buscador dejan de flotar sobre el juego y pasan a una ventana normal que puedes llevar al otro monitor, agrandar o maximizar.</p>
           <figure class="shot">
-            <img src="assets/guide/es/panel.png" width="940" height="470" loading="lazy" alt="Ventana del panel con la ficha competitiva de Machop a la izquierda y la tabla de tipos a la derecha con Lucha y Fuego resaltados">
+            <img src="assets/guide/es/panel.png" width="1240" height="520" loading="lazy" alt="Ventana del panel con la ficha competitiva de Machop a la izquierda, las tablas de tipos y naturalezas en el centro y el buscador con la ficha de Rotom Lavado a la derecha">
           </figure>
           <ul>
-            <li>A la izquierda, la ficha del rival (o las dos en combates dobles), con desplazamiento si no cabe. A la derecha, la <a href="#tabla-tipos">tabla de tipos</a> resaltada y la tabla de naturalezas, debajo o al lado según lo que las deje más grandes con la forma de la ventana; las dos crecen con ella. La de naturalezas se oculta desde la bandeja.</li>
-            <li>Fuera del combate el panel sigue abierto y muestra <b>Esperando combate…</b>.</li>
+            <li>A la izquierda, la ficha del rival (o las dos en combates dobles), con desplazamiento si no cabe.</li>
+            <li>En el centro, la <a href="#tabla-tipos">tabla de tipos</a> resaltada y la tabla de naturalezas, que crecen con la ventana. La de naturalezas se oculta desde la bandeja.</li>
+            <li>A la derecha, el <a href="#buscar">buscador</a>, siempre a mano: escribe un nombre y su ficha sale debajo, sin tocar la del rival. <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> trae el panel delante con el cursor en el buscador y <kbd>Esc</kbd> vacía el campo.</li>
+            <li>Fuera del combate el panel sigue abierto y muestra <b>Esperando combate…</b>; el buscador y la ficha buscada siguen ahí.</li>
             <li>Aparece solo al reconocer un rival sin quitarle el foco al juego, y no se pone encima de otras ventanas. Si lo cierras, vuelve con la siguiente ficha o desde la bandeja con <b>Mostrar el panel</b>.</li>
             <li>Recuerda su posición y su tamaño. Atajos, modos, secciones y stream funcionan igual.</li>
           </ul>
@@ -747,11 +751,13 @@
           <figure class="shot">
             <img src="assets/guide/en/search.png" width="320" height="104" loading="lazy" alt="Pokémon search box with suggestions and their types">
           </figure>
-          <p>Press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> (or tray → <b>Search Pokémon…</b>) at any time, type a name and press <kbd>Enter</kbd>: its card appears, just like an opponent's. Handy for planning a team or checking the next Gym Leader without leaving the game.</p>
+          <p>Press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> (or tray → <b>Search Pokémon…</b>) at any time, type a name and press <kbd>Enter</kbd>: its card appears, separate from the opponent's. Handy for planning a team, checking the next Gym Leader or looking up another Pokémon mid-battle without losing sight of the opponent.</p>
           <ul>
             <li>It suggests names as you type, with their types in the active profile's game. Each form is listed on its own (Rapidash and Galarian Rapidash, Wash Rotom, Mega Charizard X…), only if it exists in that game, and picking one shows that form's card. A name in another language, without accents or with a small typo works too.</li>
-            <li>The card uses the active profile's game (that generation's types and stats) and shows over the emulator. Without a profile, it uses current data and shows on the main screen.</li>
-            <li><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> switches form and <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> switches mode, as in battle. The stream card doesn't change: searches are just for you.</li>
+            <li>The card uses the active profile's game (that generation's types and stats). The first time it shows left of the emulator (without a profile, on the main screen); drag it wherever you like and the next one will show there.</li>
+            <li>Both cards are independent: detection keeps running while you search, and neither a new opponent nor the end of the battle removes the searched card. Close it with its <b>✕</b>; a new search replaces it.</li>
+            <li>Switch its form with its <b>◀ ▶</b> arrows (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> is for the opponent only). <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> switches the mode of both. The stream card doesn't change: searches are just for you.</li>
+            <li>In <a href="#panel-mode">panel mode</a> the search box is always in the panel and the shortcut brings it to the front.</li>
             <li><kbd>Esc</kbd> closes the search box. In exclusive fullscreen it may not come to the front: use <a href="#emulator">borderless windowed</a>.</li>
           </ul>
         </section>
@@ -765,7 +771,7 @@
           <ul>
             <li>Each row is the <b>attacking</b> type and each column the <b>defending</b> one: <b>×2</b> in green, <b>×½</b> in red and <b>×0</b> in grey. Empty cells are ×1. Hover over a column to see its full name. With <a href="#type-icons">types as icons</a>, rows and columns carry each type's icon and the name shows on hover.</li>
             <li>It's the chart for the <b>generation of the active profile's game</b>: Gen 1 has 15 types (and Ghost doesn't affect Psychic), Gens 2 to 5 have no Fairy and Steel resists Ghost and Dark. Without a profile, the current chart.</li>
-            <li>With a card on screen, the <b>columns of the opponent's types are highlighted</b> (or the searched Pokémon's), and in double battles both opponents' at once. If your profile reads <b>your Pokémon</b>, its types are highlighted in <b>yellow as rows</b>: the cells where they cross, with a yellow border, are what your own-type attacks do to the opponent. The legend at the top tells you which color is whose.</li>
+            <li>With a card on screen, the <b>columns of the opponent's types are highlighted</b>, and in double battles both opponents' at once. If your profile reads <b>your Pokémon</b>, its types are highlighted in <b>yellow as rows</b>: the cells where they cross, with a yellow border, are what your own-type attacks do to the opponent. The legend at the top tells you which color is whose.</li>
             <li>Drag it wherever you like; the first time it shows left of the emulator. To resize it, drag the <b>grip in the bottom-right corner</b> or use <kbd>Ctrl</kbd> + mouse wheel over it (60% to 200%). It remembers where you left it and its size.</li>
             <li>The OCR can't see it, so it can cover the opponent's name.</li>
           </ul>
@@ -773,13 +779,15 @@
 
         <section class="g-section" id="panel-mode">
           <h2>Panel mode (two screens)</h2>
-          <p>If you play with two screens, in <i>Settings › Card</i> choose <b>Show the card in: Panel (separate window)</b>. The card and the type chart stop floating over the game and move into a regular window you can drag to your other monitor, enlarge or maximize.</p>
+          <p>If you play with two screens, in <i>Settings › Card</i> choose <b>Show the card in: Panel (separate window)</b>. The cards, the charts and the search box stop floating over the game and move into a regular window you can drag to your other monitor, enlarge or maximize.</p>
           <figure class="shot">
-            <img src="assets/guide/en/panel.png" width="940" height="470" loading="lazy" alt="Panel window with Machop's competitive card on the left and the type chart on the right with Fighting and Fire highlighted">
+            <img src="assets/guide/en/panel.png" width="1240" height="520" loading="lazy" alt="Panel window with Machop's competitive card on the left, the type and nature charts in the middle and the search box with Wash Rotom's card on the right">
           </figure>
           <ul>
-            <li>On the left, the opponent's card (or both in double battles), scrolling if it doesn't fit. On the right, the highlighted <a href="#type-chart">type chart</a> and the nature chart, below or beside it, whichever keeps them larger for the window's shape; both grow with it. Hide the nature chart from the tray.</li>
-            <li>Outside battles the panel stays open and shows <b>Waiting for a battle…</b>.</li>
+            <li>On the left, the opponent's card (or both in double battles), scrolling if it doesn't fit.</li>
+            <li>In the middle, the highlighted <a href="#type-chart">type chart</a> and the nature chart, which grow with the window. Hide the nature chart from the tray.</li>
+            <li>On the right, the <a href="#search">search box</a>, always at hand: type a name and its card shows below, without touching the opponent's. <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> brings the panel to the front with the cursor in the search box, and <kbd>Esc</kbd> clears it.</li>
+            <li>Outside battles the panel stays open and shows <b>Waiting for a battle…</b>; the search box and the searched card stay there.</li>
             <li>It appears by itself when an opponent is recognized, without taking focus from the game, and doesn't stay on top of other windows. If you close it, it comes back with the next card or from the tray with <b>Show the panel</b>.</li>
             <li>It remembers its position and size. Shortcuts, modes, sections and streaming work the same.</li>
           </ul>

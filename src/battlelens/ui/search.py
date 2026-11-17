@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from PyQt6.QtCore import QRectF, QSize, Qt
+from PyQt6.QtCore import QRectF, QSize, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QFontMetrics, QPainter, QStandardItem, QStandardItemModel
-from PyQt6.QtWidgets import QCompleter, QDialog, QLabel, QLineEdit, QStyledItemDelegate, QVBoxLayout
+from PyQt6.QtWidgets import QCompleter, QDialog, QLabel, QLineEdit, QStyledItemDelegate, QVBoxLayout, QWidget
 
 from ..core.matcher import NameMatcher
 from ..i18n import _
@@ -44,30 +44,24 @@ class _TypesDelegate(QStyledItemDelegate):
         painter.restore()
 
 
-class SearchDialog(QDialog):
-    """Campo con sugerencias; al confirmar deja en `choice` la (especie, forma) elegida.
+class SearchField(QWidget):
+    """Campo con sugerencias; al resolver emite `chosen(especie, forma)` (spec pokemon-search).
 
     `entries`: (nombre, [(tipo traducido, id del tipo)], (especie, forma)), una por forma. Un nombre que no está
     en la lista se resuelve con el emparejador aproximado, con la forma automática del juego (forma None).
+    Lo usan el diálogo del modo overlay y la columna del buscador del panel.
     """
 
-    def __init__(self, entries: list[tuple[str, list[tuple[str, str]], tuple[int, str]]], matcher: NameMatcher) -> None:
-        super().__init__(None, Qt.WindowType.WindowStaysOnTopHint)
-        self.setWindowTitle(_("Buscar Pokémon"))
-        self.setWindowIcon(app_icon())
-        self.setMinimumWidth(320)
-        self._matcher = matcher
-        self.choice: tuple[int, str | None] | None = None
-        self._by_name = {name.casefold(): choice for name, _types, choice in entries}
+    chosen = pyqtSignal(int, object)
 
-        model = QStandardItemModel(self)
-        for name, types, _choice in entries:
-            item = QStandardItem(name)
-            item.setData(types, TYPES_ROLE)
-            model.appendRow(item)
+    def __init__(self, entries: list[tuple[str, list[tuple[str, str]], tuple[int, str]]], matcher: NameMatcher,
+                 parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self._matcher = matcher
+        self._model = QStandardItemModel(self)
         self.edit = QLineEdit()
         self.edit.setPlaceholderText(_("Nombre del Pokémon"))
-        completer = QCompleter(model, self)
+        completer = QCompleter(self._model, self)
         completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         completer.setFilterMode(Qt.MatchFlag.MatchContains)
         self._delegate = _TypesDelegate(self)  # referencia propia: si no, Python lo recoge y se pierde el pintado
@@ -78,28 +72,78 @@ class SearchDialog(QDialog):
         self.error = QLabel()
         self.error.setObjectName("field-error")
         self.error.hide()
+        self._resolving = False
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.edit)
         layout.addWidget(self.error)
+        self.set_entries(entries)
+
+    def set_entries(self, entries: list[tuple[str, list[tuple[str, str]], tuple[int, str]]]) -> None:
+        """Sugerencias nuevas (otro perfil u otro idioma)."""
+        self._by_name = {name.casefold(): choice for name, _types, choice in entries}
+        self._model.clear()
+        for name, types, _choice in entries:
+            item = QStandardItem(name)
+            item.setData(types, TYPES_ROLE)
+            self._model.appendRow(item)
+
+    def clear(self) -> None:
+        self.edit.clear()
+        self.error.hide()
+
+    def keyPressEvent(self, event) -> None:
+        # Esc: en el diálogo lo cierra (le llega a él); en el panel vacía el campo
+        if event.key() == Qt.Key.Key_Escape and not isinstance(self.window(), QDialog):
+            self.clear()
+            return
+        super().keyPressEvent(event)
+
+    def _resolve(self, text: str | None = None) -> None:
+        if self._resolving:  # el completer y Enter llegan a la vez al elegir una sugerencia
+            return
+        text = (text or self.edit.text()).strip()
+        if text.casefold() in self._by_name:
+            choice = self._by_name[text.casefold()]
+        else:
+            match = self._matcher.match(text) if text else None
+            if match is None or not match.recognized:
+                self.error.setText(_("No encuentro ese Pokémon."))
+                self.error.show()
+                return
+            choice = (match.species_id, None)
+        self.error.hide()
+        self._resolving = True
+        try:
+            self.chosen.emit(*choice)
+        finally:
+            QTimer.singleShot(0, self._done)  # tras el Enter que llega detrás del clic en la sugerencia
+
+    def _done(self) -> None:
+        self._resolving = False
+
+
+class SearchDialog(QDialog):
+    """Diálogo del buscador (modo overlay): al confirmar deja en `choice` la (especie, forma) elegida."""
+
+    def __init__(self, entries: list[tuple[str, list[tuple[str, str]], tuple[int, str]]], matcher: NameMatcher) -> None:
+        super().__init__(None, Qt.WindowType.WindowStaysOnTopHint)
+        self.setWindowTitle(_("Buscar Pokémon"))
+        self.setWindowIcon(app_icon())
+        self.setMinimumWidth(320)
+        self.choice: tuple[int, str | None] | None = None
+        self.field = SearchField(entries, matcher, self)
+        self.edit, self.error = self.field.edit, self.field.error
+        self.field.chosen.connect(self._chosen)
+        QVBoxLayout(self).addWidget(self.field)
 
     def showEvent(self, event) -> None:
         super().showEvent(event)
         self.activateWindow()  # el atajo llega con el emulador delante
         self.edit.setFocus()
 
-    def _resolve(self, text: str | None = None) -> None:
-        if self.choice is not None:  # el completer y Enter llegan a la vez al elegir una sugerencia
-            return
-        text = (text or self.edit.text()).strip()
-        if text.casefold() in self._by_name:
-            self.choice = self._by_name[text.casefold()]
+    def _chosen(self, species_id: int, form) -> None:
+        if self.choice is None:
+            self.choice = (species_id, form)
             self.accept()
-            return
-        match = self._matcher.match(text) if text else None
-        if match is None or not match.recognized:
-            self.error.setText(_("No encuentro ese Pokémon."))
-            self.error.show()
-            return
-        self.choice = (match.species_id, None)
-        self.accept()

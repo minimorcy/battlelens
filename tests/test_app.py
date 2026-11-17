@@ -44,6 +44,7 @@ def controller(qapp, tmp_path, monkeypatch):
     c.hotkeys.stop()
     c.tray.hide()
     c.overlay.close()
+    c.search_card.close()
 
 
 @pytest.fixture
@@ -241,6 +242,7 @@ def auto_controller(qapp, tmp_path, monkeypatch):
     c.hotkeys.stop()
     c.tray.hide()
     c.overlay.close()
+    c.search_card.close()
 
 
 def _overlay_name(controller):
@@ -405,10 +407,11 @@ def test_cambio_de_modo_redibuja_la_ficha_visible(qapp, controller, tmp_path):
     assert not names("move") and load_config(tmp_path / "config.toml").overlay_mode == "normal"
 
 
-def _card_names(controller, obj):
+def _card_names(controller, obj, searched=False):
     from PyQt6.QtWidgets import QLabel
 
-    return [w.text() for w in controller.overlay.findChildren(QLabel) if w.objectName() == obj]
+    card = controller.search_card if searched else controller.overlay
+    return [w.text() for w in card.findChildren(QLabel) if w.objectName() == obj]
 
 
 def test_cambiar_de_forma_rotom(qapp, controller):
@@ -813,7 +816,8 @@ def test_dobles_en_el_orden_de_la_pantalla(controller, monkeypatch, rival2_x, ex
     assert shown == [expected]
 
 
-def test_buscar_pokemon_muestra_su_ficha_sin_tocar_el_stream(qapp, controller, monkeypatch):
+def test_buscar_pokemon_abre_su_propia_ficha(qapp, controller, monkeypatch):
+    """La ficha buscada va aparte de la del rival y no sale en el stream (spec pokemon-search)."""
     from battlelens import app
     from battlelens.core.profiles import Profile, Region
 
@@ -828,6 +832,7 @@ def test_buscar_pokemon_muestra_su_ficha_sin_tocar_el_stream(qapp, controller, m
 
         def exec(self):
             controller.search_pokemon()  # el atajo otra vez con el buscador abierto
+            assert not controller._modal_open  # la detección sigue mientras se escribe
             return 1
 
         def raise_(self):
@@ -838,15 +843,35 @@ def test_buscar_pokemon_muestra_su_ficha_sin_tocar_el_stream(qapp, controller, m
 
     monkeypatch.setattr(app, "SearchDialog", FakeDialog)
     controller.profiles.save(Profile("Platino", Region(0.6, 0.05, 0.2, 0.05), game="platinum"))
+    controller._show_battle((759, None, None), "platinum", None)  # rival: Stufful
+    stream = controller._stream_args
     controller.search_pokemon()  # como Ctrl+Alt+B
     qapp.processEvents()
     assert len(opened) == 1 and opened[0].raised == 1 and controller._search is None  # un solo buscador
-    assert controller.overlay.isVisible() and _card_names(controller, "species-name") == ["Rotom Lavado"]
-    assert controller._last_battle[1] == "platinum"
-    controller.cycle_form()
+    assert _card_names(controller, "species-name") == ["Stufful"]  # la del rival no cambia
+    assert controller.search_card.isVisible() and _card_names(controller, "species-name", True) == ["Rotom Lavado"]
+    assert controller._last_search == (479, "rotom-wash", "platinum") and controller._stream_args is stream
+
+    controller.cycle_form()  # el atajo de forma es solo del rival
+    controller.search_card.form_step.emit(479, 1)  # ▶ de la ficha buscada
     qapp.processEvents()
-    assert _card_names(controller, "species-name") != ["Rotom Lavado"]
-    assert controller._stream_args is None and not controller._modal_open
+    assert _card_names(controller, "species-name", True) not in (["Rotom Lavado"], [])
+    assert _card_names(controller, "species-name") == ["Stufful"]
+
+    controller._show_battle((25, None, None), "platinum", None)  # llega otro rival
+    controller._end_battle()  # y termina el combate
+    controller.hide_overlay()
+    assert not controller.overlay.isVisible() and controller.search_card.isVisible()
+    controller.search_card.close_by_user()
+    assert not controller.search_card.isVisible()
+
+
+def test_ficha_buscada_recuerda_su_posicion(qapp, controller, tmp_path):
+    from battlelens.core.config import AppState
+
+    controller.search_card.moved.emit(30, 40)  # como al soltarla tras arrastrarla
+    state = AppState.load(tmp_path / "state.json")
+    assert state.search_card_pos == [30, 40] and state.overlay_pos is None
 
 
 def test_tabla_de_tipos_con_el_juego_y_los_tipos_de_la_ficha(qapp, controller):
@@ -1023,3 +1048,22 @@ def test_iconos_de_tipo_desde_ajustes(qapp, controller, tmp_path):
     controller.apply_config(replace(controller.config, type_icons=False))
     assert controller.overlay.type_icons is None and controller.type_chart.icons == {}
     assert (controller.type_icons.directory / "10.png").exists()  # la caché no se borra
+
+
+def test_buscador_del_panel(qapp, controller, monkeypatch):
+    from battlelens import app
+
+    monkeypatch.setattr(app, "SearchDialog", lambda *a: pytest.fail("en modo panel no se abre el diálogo"))
+    controller._set_display("panel")
+    try:
+        controller.search_pokemon()  # el atajo enfoca el buscador del panel
+        field = controller.search_field
+        field.edit.setText("Clefairy")
+        field.edit.returnPressed.emit()
+        qapp.processEvents()
+        assert controller.search_card.isVisible() and not controller.search_card.isWindow()
+        assert _card_names(controller, "species-name", True) == ["Clefairy"] and field.edit.text() == ""
+        assert not controller.overlay.isVisible()  # la del rival no aparece
+    finally:
+        controller._set_display("overlay")
+    assert controller.search_card.isWindow()
