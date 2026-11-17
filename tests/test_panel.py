@@ -76,6 +76,12 @@ def test_panel_con_la_tabla_de_naturalezas(qapp):
         assert natures.isVisible() and not natures.isWindow()
         assert natures.y() >= chart.y() + chart.height()  # debajo de la de tipos
         assert natures.y() + natures.height() <= panel._chart_slot.height()  # caben las dos
+        assert not panel.side_by_side
+        panel.resize(2400, 700)  # ventana muy ancha y bajita: una al lado de la otra
+        qapp.processEvents()
+        assert panel.side_by_side and natures.x() >= chart.x() + chart.width() and natures.y() == 0
+        panel.resize(1300, 900)
+        qapp.processEvents()
         natures.hide()  # bandeja: la oculta y la de tipos recupera el hueco
         qapp.processEvents()
         assert chart.scale > natures.scale

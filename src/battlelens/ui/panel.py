@@ -103,20 +103,23 @@ class PanelWindow(QWidget):
         return [rect.x(), rect.y(), rect.width(), rect.height()]
 
     def fit_chart(self) -> None:
-        """Las tablas visibles, una debajo de otra, ocupan el hueco libre a la derecha de la ficha (design D6)."""
+        """Las tablas visibles ocupan el hueco libre a la derecha de la ficha (design D6): apiladas o una al lado
+        de la otra, lo que las deje más grandes con la forma actual de la ventana."""
         shown = [c for c in self.charts if c.isVisibleTo(self) and not c._base.isEmpty()]
         if not shown:
             return
         slot = self._chart_slot.size()
-        width = max(c._base.width() for c in shown)
-        height = sum(c._base.height() for c in shown)
-        room = slot.height() - GAP * (len(shown) - 1) - len(shown)  # el hueco entre tablas no escala; −1 px por redondeo
-        scale = min(max(min(slot.width() / width, room / height), MIN_SCALE), MAX_SCALE)
-        y = 0
+        gaps = (GAP + 1) * (len(shown) - 1) + 1  # el hueco entre tablas no escala; +1 px por redondeo
+        widths, heights = [c._base.width() for c in shown], [c._base.height() for c in shown]
+        stacked = min(slot.width() / max(widths), (slot.height() - gaps) / sum(heights))
+        side = min((slot.width() - gaps) / sum(widths), slot.height() / max(heights))
+        self.side_by_side = side > stacked
+        scale = min(max(max(stacked, side), MIN_SCALE), MAX_SCALE)
+        offset = 0
         for chart in shown:
             chart.set_scale(scale)
-            chart.move(0, y)
-            y += chart.height() + GAP
+            chart.move(offset, 0) if self.side_by_side else chart.move(0, offset)
+            offset += (chart.width() if self.side_by_side else chart.height()) + GAP
 
     # ---- eventos -------------------------------------------------------------
 

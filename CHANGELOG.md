@@ -5,12 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ## [Unreleased]
 
 ### Añadido
-- Tabla de naturalezas (`Ctrl+Alt+N` o bandeja → «Tabla de naturalezas»): las 25 naturalezas con la estadística que sube (fila) y la que baja (columna). Se mueve, reescala y cierra como la tabla de tipos. En el modo panel aparece debajo de la tabla de tipos.
+- Tabla de naturalezas (`Ctrl+Alt+N` o bandeja → «Tabla de naturalezas»): las 25 naturalezas con la estadística que sube (fila) y la que baja (columna). Se mueve, reescala y cierra como la tabla de tipos. En el modo panel aparece debajo o al lado de la tabla de tipos, según lo que deje las dos más grandes.
 
 ### English
 
 **Added**
-- Nature chart (`Ctrl+Alt+N` or tray → "Nature chart"): the 25 natures with the stat each raises (row) and lowers (column). Moves, resizes and closes like the type chart. In panel mode it sits below the type chart.
+- Nature chart (`Ctrl+Alt+N` or tray → "Nature chart"): the 25 natures with the stat each raises (row) and lowers (column). Moves, resizes and closes like the type chart. In panel mode it sits below or beside the type chart, whichever keeps both larger.
 
 ## [0.8.0] - 2026-11-16
 
