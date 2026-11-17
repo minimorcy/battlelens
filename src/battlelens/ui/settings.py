@@ -47,6 +47,7 @@ HOTKEY_FIELDS = (
     ("hotkey_toggle_stream", N_("Ficha del stream")),
     ("hotkey_search", N_("Buscar Pokémon")),
     ("hotkey_type_chart", N_("Tabla de tipos")),
+    ("hotkey_natures", N_("Tabla de naturalezas")),
 )
 MODE_LABELS = {"normal": N_("Normal (aventura y captura)"), "competitive": N_("Competitivo (combate)")}
 DISPLAY_LABELS = {"overlay": N_("Overlay (sobre el juego)"), "panel": N_("Panel (ventana aparte)")}
@@ -769,6 +770,7 @@ class SettingsWindow(QWidget):
             hotkey_toggle_stream=self.hotkey_edits["hotkey_toggle_stream"].text().strip(),
             hotkey_search=self.hotkey_edits["hotkey_search"].text().strip(),
             hotkey_type_chart=self.hotkey_edits["hotkey_type_chart"].text().strip(),
+            hotkey_natures=self.hotkey_edits["hotkey_natures"].text().strip(),
             stream_enabled=self.stream_enabled.isChecked(),
             stream_port=int(self.stream_port.value()),
             stream_card_mode=self.stream_mode.currentData(),

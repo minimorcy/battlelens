@@ -34,6 +34,7 @@ def controller(qapp, tmp_path, monkeypatch):
         hotkey_toggle_stream="Ctrl+Alt+Shift+F16",
         hotkey_search="Ctrl+Alt+Shift+F15",
         hotkey_type_chart="Ctrl+Alt+Shift+F14",
+        hotkey_natures="Ctrl+Alt+Shift+F13",
         detection_enabled=False,
         hidden_sections_normal=(),  # ficha completa: los tests miran todas las secciones
         hidden_sections_competitive=(),
@@ -228,6 +229,7 @@ def auto_controller(qapp, tmp_path, monkeypatch):
         hotkey_toggle_stream="Ctrl+Alt+Shift+F16",
         hotkey_search="Ctrl+Alt+Shift+F15",
         hotkey_type_chart="Ctrl+Alt+Shift+F14",
+        hotkey_natures="Ctrl+Alt+Shift+F13",
         detection_enabled=True,
         detection_interval_ms=200,
         detection_hide_after_seconds=1.0,

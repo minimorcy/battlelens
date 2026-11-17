@@ -24,6 +24,7 @@ EN: dict[str, str] = {
     "Defiende →": "Defends →",
     "Ataca ↓": "Attacks ↓",
     "Tabla de naturalezas": "Nature chart",
+    "tabla de naturalezas": "nature chart",
     "Naturalezas": "Natures",
     "Baja →": "Lowers →",
     "Sube ↓": "Raises ↓",

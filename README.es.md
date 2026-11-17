@@ -86,6 +86,7 @@ Todo se puede cambiar desde bandeja → **Ajustes…** (los cambios se aplican a
 | `hotkeys.toggle_stream` | `Ctrl+Alt+S` | Mostrar/ocultar la ficha del stream |
 | `hotkeys.search` | `Ctrl+Alt+B` | Buscar un Pokémon |
 | `hotkeys.type_chart` | `Ctrl+Alt+T` | Mostrar/ocultar la tabla de tipos |
+| `hotkeys.natures` | `Ctrl+Alt+N` | Mostrar/ocultar la tabla de naturalezas |
 | `stream.enabled` | `false` | Modo stream: fuente de navegador para OBS |
 | `stream.port` | `17320` | Puerto local de la fuente para OBS (`http://localhost:17320/`) |
 | `stream.card_mode` | `normal` | Ficha del stream: `normal` o `competitive`, independiente de la tuya |

@@ -40,6 +40,8 @@ toggle_stream = {hotkey_toggle_stream}
 search = {hotkey_search}
 # Muestra u oculta la tabla de tipos del juego.
 type_chart = {hotkey_type_chart}
+# Muestra u oculta la tabla de naturalezas.
+natures = {hotkey_natures}
 
 [recognition]
 # Puntuación mínima (0-100) para dar por reconocido un nombre.
@@ -135,6 +137,7 @@ class Config:
     hotkey_toggle_stream: str = "Ctrl+Alt+S"
     hotkey_search: str = "Ctrl+Alt+B"
     hotkey_type_chart: str = "Ctrl+Alt+T"
+    hotkey_natures: str = "Ctrl+Alt+N"
     stream_enabled: bool = False
     stream_port: int = 17320
     stream_card_mode: str = "normal"
@@ -185,6 +188,7 @@ class Config:
             hotkey_toggle_stream=hk.get("toggle_stream", default.hotkey_toggle_stream),
             hotkey_search=hk.get("search", default.hotkey_search),
             hotkey_type_chart=hk.get("type_chart", default.hotkey_type_chart),
+            hotkey_natures=hk.get("natures", default.hotkey_natures),
             stream_enabled=st.get("enabled", default.stream_enabled),
             stream_port=st.get("port", default.stream_port),
             stream_card_mode=st.get("card_mode", default.stream_card_mode),
@@ -217,6 +221,8 @@ class Config:
             raise ConfigError(_("{name} debe ser un texto", name="hotkeys.search"))
         if not isinstance(self.hotkey_type_chart, str):
             raise ConfigError(_("{name} debe ser un texto", name="hotkeys.type_chart"))
+        if not isinstance(self.hotkey_natures, str):
+            raise ConfigError(_("{name} debe ser un texto", name="hotkeys.natures"))
         if not isinstance(self.stream_enabled, bool):
             raise ConfigError(_("{key} debe ser true o false", key="stream.enabled"))
         if not isinstance(self.stream_port, int) or isinstance(self.stream_port, bool) or not 1024 <= self.stream_port <= 65535:

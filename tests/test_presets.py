@@ -169,6 +169,7 @@ def test_controlador_crea_el_perfil_con_el_preset(qapp, tmp_path, monkeypatch):
                     hotkey_cycle_form="Ctrl+Alt+Shift+F17", hotkey_toggle_stream="Ctrl+Alt+Shift+F16",
                     hotkey_search="Ctrl+Alt+Shift+F15",
                     hotkey_type_chart="Ctrl+Alt+Shift+F14",
+                    hotkey_natures="Ctrl+Alt+Shift+F13",
                     updates_check=False, detection_enabled=False)
     controller = Controller(qapp, config, Pokedex.load())
     try:

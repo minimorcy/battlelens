@@ -163,6 +163,7 @@ def main() -> int:
     from battlelens.ui.search import SearchDialog
     from battlelens.ui.start import StartDialog
     from battlelens.ui.tray import Tray
+    from battlelens.ui.nature_chart import NatureChartWindow
     from battlelens.ui.type_chart import TypeChartWindow
 
     dex = Pokedex.load()
@@ -297,7 +298,7 @@ def main() -> int:
         overlay.hidden = {"competitive": defaults.hidden_sections("competitive") - {"matchup"}}
         type_chart = TypeChartWindow()
         type_chart.set_chart(chart, {t: dex.type_name(t, lang) for t in chart}, generation)
-        panel = PanelWindow(overlay, type_chart)
+        panel = PanelWindow(overlay, type_chart, NatureChartWindow())
         panel.resize(940, 470)  # cabe en la pantalla lógica con QT_SCALE_FACTOR=2
         panel.dock()
         own_view = dex.view(813, GAME, lang)

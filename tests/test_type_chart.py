@@ -6,6 +6,8 @@ from battlelens.core.pokedex import Pokedex
 
 def test_atajo_de_la_tabla_en_la_configuracion():
     assert Config.from_toml("").hotkey_type_chart == "Ctrl+Alt+T"
+    assert Config.from_toml("").hotkey_natures == "Ctrl+Alt+N"
+    assert Config.from_toml('[hotkeys]\nnatures = "Ctrl+Shift+N"\n').hotkey_natures == "Ctrl+Shift+N"
     assert Config.from_toml('[hotkeys]\ntype_chart = "Ctrl+Shift+Y"\n').hotkey_type_chart == "Ctrl+Shift+Y"
 
 

@@ -196,8 +196,7 @@ class Controller(QObject):
         self.tray.search_requested.connect(self.search_pokemon)
         self.tray.calibrate_requested.connect(self.calibrate)
         self.tray.type_chart_requested.connect(self.toggle_type_chart)
-        self.tray.nature_chart_requested.connect(
-            lambda: self.nature_chart.hide() if self.nature_chart.isVisible() else self.nature_chart.present(self._target_rect()))
+        self.tray.nature_chart_requested.connect(self.toggle_nature_chart)
         self.tray.panel_requested.connect(self.panel.show)
         self.tray.auto_detect_toggled.connect(self.set_auto_detect)
         self.tray.mode_selected.connect(self.set_mode)
@@ -249,6 +248,7 @@ class Controller(QObject):
             ("toggle_stream", config.hotkey_toggle_stream),
             ("search", config.hotkey_search),
             ("type_chart", config.hotkey_type_chart),
+            ("natures", config.hotkey_natures),
         ):
             try:
                 bindings[name] = parse_hotkey(text)
@@ -263,7 +263,7 @@ class Controller(QObject):
             labels = {"recognize": _("reconocer"), "calibrate": _("calibrar"), "hide": _("ocultar"),
                       "toggle_mode": _("cambiar de modo"), "cycle_form": _("cambiar de forma"),
                       "toggle_stream": _("ficha del stream"), "search": _("buscar Pokémon"),
-                      "type_chart": _("tabla de tipos")}
+                      "type_chart": _("tabla de tipos"), "natures": _("tabla de naturalezas")}
             invalid = _("inválido")
             detail = ", ".join(
                 f"{labels.get(n, n)} ({bindings[n].text if n in bindings else invalid})" for n in failed
@@ -415,9 +415,10 @@ class Controller(QObject):
         save_config(self.data_dir / "config.toml", new)
         self.config = new
         if (new.hotkey_recognize, new.hotkey_calibrate, new.hotkey_hide, new.hotkey_toggle_mode,
-                new.hotkey_cycle_form, new.hotkey_toggle_stream, new.hotkey_search, new.hotkey_type_chart) != (
+                new.hotkey_cycle_form, new.hotkey_toggle_stream, new.hotkey_search, new.hotkey_type_chart,
+                new.hotkey_natures) != (
             old.hotkey_recognize, old.hotkey_calibrate, old.hotkey_hide, old.hotkey_toggle_mode, old.hotkey_cycle_form,
-            old.hotkey_toggle_stream, old.hotkey_search, old.hotkey_type_chart
+            old.hotkey_toggle_stream, old.hotkey_search, old.hotkey_type_chart, old.hotkey_natures
         ):
             self.hotkeys.stop()
             bindings, invalid = self._parse_hotkeys(new)
@@ -651,6 +652,7 @@ class Controller(QObject):
             "toggle_stream": self.toggle_stream_card,
             "search": self.search_pokemon,
             "type_chart": self.toggle_type_chart,
+            "natures": self.toggle_nature_chart,
         }[name]()
 
     # ---- modos de ficha (spec display-modes) ---------------------------------------
@@ -884,6 +886,13 @@ class Controller(QObject):
         if not self.overlay.isVisible():
             self.type_chart.set_highlight(())
         self.type_chart.present(self._target_rect())
+
+    def toggle_nature_chart(self) -> None:
+        """Muestra u oculta la tabla de naturalezas (flotante o dentro del panel)."""
+        if self.nature_chart.isVisible():
+            self.nature_chart.hide()
+        else:
+            self.nature_chart.present(self._target_rect())
 
     def _load_type_chart(self) -> None:
         """Tabla de la generación del perfil activo."""

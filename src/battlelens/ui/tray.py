@@ -71,6 +71,7 @@ class Tray(QObject):
         self._recognize_action.setText(_("Reconocer ahora") + self._hint("recognize"))
         self._search_action.setText(_("Buscar Pokémon…") + self._hint("search"))
         self._type_chart_action.setText(_("Tabla de tipos") + self._hint("type_chart"))
+        self._natures_action.setText(_("Tabla de naturalezas") + self._hint("natures"))
         self._calibrate_action.setText(_("Modificar o crear perfil…") + self._hint("calibrate"))
 
     def show_update(self, version: str) -> None:
@@ -121,7 +122,8 @@ class Tray(QObject):
         search.triggered.connect(self.search_requested)
         type_chart = self._type_chart_action = m.addAction(_("Tabla de tipos") + self._hint("type_chart"))
         type_chart.triggered.connect(self.type_chart_requested)
-        m.addAction(_("Tabla de naturalezas")).triggered.connect(self.nature_chart_requested)
+        natures = self._natures_action = m.addAction(_("Tabla de naturalezas") + self._hint("natures"))
+        natures.triggered.connect(self.nature_chart_requested)
         self.panel_action = m.addAction(_("Mostrar el panel"))
         self.panel_action.triggered.connect(self.panel_requested)
         self.panel_action.setVisible(False)

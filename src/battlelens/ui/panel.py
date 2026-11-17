@@ -109,8 +109,9 @@ class PanelWindow(QWidget):
             return
         slot = self._chart_slot.size()
         width = max(c._base.width() for c in shown)
-        height = sum(c._base.height() for c in shown) + GAP * (len(shown) - 1)
-        scale = min(max(min(slot.width() / width, slot.height() / height), MIN_SCALE), MAX_SCALE)
+        height = sum(c._base.height() for c in shown)
+        room = slot.height() - GAP * (len(shown) - 1) - len(shown)  # el hueco entre tablas no escala; −1 px por redondeo
+        scale = min(max(min(slot.width() / width, room / height), MIN_SCALE), MAX_SCALE)
         y = 0
         for chart in shown:
             chart.set_scale(scale)
