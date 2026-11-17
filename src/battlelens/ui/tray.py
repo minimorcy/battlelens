@@ -20,6 +20,7 @@ class Tray(QObject):
     search_requested = pyqtSignal()
     calibrate_requested = pyqtSignal()  # modificar o crear perfil, como el atajo de calibrar
     type_chart_requested = pyqtSignal()
+    nature_chart_requested = pyqtSignal()
     panel_requested = pyqtSignal()  # «Mostrar el panel» (spec panel-window)
     auto_detect_toggled = pyqtSignal(bool)
     mode_selected = pyqtSignal(str)  # "normal" | "competitive"
@@ -120,6 +121,7 @@ class Tray(QObject):
         search.triggered.connect(self.search_requested)
         type_chart = self._type_chart_action = m.addAction(_("Tabla de tipos") + self._hint("type_chart"))
         type_chart.triggered.connect(self.type_chart_requested)
+        m.addAction(_("Tabla de naturalezas")).triggered.connect(self.nature_chart_requested)
         self.panel_action = m.addAction(_("Mostrar el panel"))
         self.panel_action.triggered.connect(self.panel_requested)
         self.panel_action.setVisible(False)

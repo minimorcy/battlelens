@@ -65,3 +65,16 @@ def test_tabla_reescalable(qapp):
     w.wheelEvent(wheel)  # Ctrl+rueda hacia arriba
     assert w.scale == 1.1 and changes == [1.1]
     w.grab()  # pinta escalada sin errores
+
+
+def test_tabla_de_naturalezas(qapp):
+    from battlelens.i18n import set_language
+    from battlelens.ui.nature_chart import NatureChartWindow, nature
+
+    assert nature(0, 2) == "Firme" and nature(4, 0) == "Miedosa"  # +Ataque −At.Esp.; +Velocidad −Ataque
+    set_language("en")
+    try:
+        assert nature(2, 0) == "Modest" and nature(4, 2) == "Jolly"
+        NatureChartWindow().grab()  # se pinta sin errores
+    finally:
+        set_language("es")

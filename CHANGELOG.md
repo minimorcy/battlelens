@@ -4,6 +4,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 
 ## [Unreleased]
 
+### Añadido
+- Tabla de naturalezas (bandeja → «Tabla de naturalezas»): las 25 naturalezas con la estadística que sube (fila) y la que baja (columna). Se mueve, reescala y cierra como la tabla de tipos.
+
+### English
+
+**Added**
+- Nature chart (tray → "Nature chart"): the 25 natures with the stat each raises (row) and lowers (column). Moves, resizes and closes like the type chart.
+
 ## [0.8.0] - 2026-11-16
 
 ### Añadido

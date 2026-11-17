@@ -78,6 +78,7 @@ from .ui.search import SearchDialog
 from .ui.start import StartDialog
 from .ui.tray import Tray
 from .ui.panel import PanelWindow
+from .ui.nature_chart import NatureChartWindow
 from .ui.type_chart import TypeChartWindow
 from .stream.payload import build_cards
 from .stream.server import StreamServer, StreamState
@@ -168,6 +169,7 @@ class Controller(QObject):
             self.type_chart.scale = float(scale)
         self.type_chart.changed.connect(self._on_type_chart_changed)
         self.overlay.became_hidden.connect(lambda: self.type_chart.set_highlight(()))
+        self.nature_chart = NatureChartWindow()
         # Modo panel (spec panel-window): la ficha y la tabla en una ventana normal
         self.panel = PanelWindow(self.overlay, self.type_chart)
         self.panel.restore_geometry(self.state.panel_geometry)
@@ -194,6 +196,8 @@ class Controller(QObject):
         self.tray.search_requested.connect(self.search_pokemon)
         self.tray.calibrate_requested.connect(self.calibrate)
         self.tray.type_chart_requested.connect(self.toggle_type_chart)
+        self.tray.nature_chart_requested.connect(
+            lambda: self.nature_chart.hide() if self.nature_chart.isVisible() else self.nature_chart.present(self._target_rect()))
         self.tray.panel_requested.connect(self.panel.show)
         self.tray.auto_detect_toggled.connect(self.set_auto_detect)
         self.tray.mode_selected.connect(self.set_mode)
@@ -736,6 +740,7 @@ class Controller(QObject):
             return
         self.overlay.keep_on_top()  # el emulador puede haberse puesto delante al pasar a pantalla completa
         self.type_chart.keep_on_top()
+        self.nature_chart.keep_on_top()
         self._auto_select_profile()
         profile = self.profiles.active
         if profile is None:
