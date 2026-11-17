@@ -27,4 +27,4 @@
 - [x] 4.1 `site/guide.html` (ES y EN): apartado del buscador (ficha propia, detección sin pausa, cerrar con ✕, flechas de forma) y del modo panel (tres columnas, buscador fijo, atajo)
 - [x] 4.2 Actualizar `tools/make_guide_screenshots.py` para que la captura del panel muestre las tres columnas con una ficha buscada, y regenerar con `uv run python tools/make_guide_screenshots.py`
 - [x] 4.3 `README.md`, `README.es.md` y `CHANGELOG.md` (los dos idiomas)
-- [ ] 4.4 `uv run pytest` completo (incluido `tests/test_site.py`) y prueba manual en los dos modos
+- [x] 4.4 `uv run pytest` completo (incluido `tests/test_site.py`) y prueba manual en los dos modos

@@ -19,22 +19,26 @@ El sistema SHALL ofrecer en Ajustes › Ficha la opción «Mostrar la ficha en»
 - **THEN** se informa del error de configuración como con el resto de claves
 
 ### Requirement: Ventana del panel
-En modo Panel, el sistema SHALL mostrar una ventana normal de Windows con marco, título «BattleLens», que se puede redimensionar y que no está «siempre encima». Contiene a la izquierda la ficha (o las dos de un combate doble) y a la derecha la tabla de tipos de la generación del perfil activo, con los tipos del rival y los tuyos resaltados y escalada para aprovechar el espacio libre. La ficha MUST desplazarse verticalmente si no cabe y conservar el plegado de secciones con un clic en el título.
+En modo Panel, el sistema SHALL mostrar una ventana normal de Windows con marco, título «BattleLens», que se puede redimensionar y que no está «siempre encima». Se organiza en tres columnas: a la izquierda la ficha del rival (o las dos de un combate doble); en el centro la tabla de tipos de la generación del perfil activo, con los tipos del rival y los tuyos resaltados, y la tabla de naturalezas, escaladas para aprovechar el espacio libre; a la derecha el buscador y, debajo, la ficha buscada. Las fichas MUST desplazarse verticalmente si no caben y conservar el plegado de secciones con un clic en el título. Sin posición guardada, el panel SHALL abrirse con un tamaño que deje sitio a dos fichas y a la tabla.
 
 #### Scenario: Combate en modo Panel
 - **WHEN** se reconoce a Stufful con el modo Panel activo
-- **THEN** el panel muestra la ficha de Stufful a la izquierda y la tabla de tipos a la derecha con las columnas Normal y Lucha resaltadas
+- **THEN** el panel muestra la ficha de Stufful a la izquierda, la tabla de tipos en el centro con las columnas Normal y Lucha resaltadas y el buscador a la derecha
+
+#### Scenario: Ficha buscada en el panel
+- **WHEN** con la ficha de Stufful en el panel, el usuario busca Rotom
+- **THEN** la ficha de Rotom aparece en la columna derecha, debajo del buscador, y la de Stufful sigue a la izquierda
 
 #### Scenario: Redimensionar
 - **WHEN** el usuario agranda la ventana del panel
-- **THEN** la tabla de tipos crece hasta llenar el espacio libre, sin pasar de su escala máxima
+- **THEN** las tablas crecen hasta llenar la columna central, sin pasar de su escala máxima
 
 ### Requirement: Panel sin combate
-Cuando no hay ficha (fin del combate, ✕, atajo de ocultar o temporizador), el panel SHALL seguir abierto y mostrar «Esperando combate…» en el hueco de la ficha. Además, la tabla de tipos MUST quitar el resaltado.
+Cuando no hay ficha del rival (fin del combate, ✕, atajo de ocultar o temporizador), el panel SHALL seguir abierto y mostrar «Esperando combate…» en el hueco de la ficha. Además, la tabla de tipos MUST quitar el resaltado. El buscador y la ficha buscada MUST seguir como estaban.
 
 #### Scenario: Fin del combate
 - **WHEN** termina el combate con el panel abierto
-- **THEN** la ficha desaparece, se ve «Esperando combate…» y la tabla sigue visible sin resaltado
+- **THEN** la ficha del rival desaparece, se ve «Esperando combate…», la tabla sigue visible sin resaltado y el buscador sigue disponible
 
 ### Requirement: Abrir y cerrar el panel
 El panel SHALL aparecer, sin quitar el foco al juego, al mostrarse una ficha o al activar el modo Panel. Si se cierra con la ✕ del marco, solo se oculta y MUST reaparecer con la siguiente ficha o con «Mostrar el panel» en la bandeja. Esa opción solo aparece en modo Panel.
