@@ -26,6 +26,7 @@ EN: dict[str, str] = {
     "Tabla de naturalezas": "Nature chart",
     "tabla de naturalezas": "nature chart",
     "Naturalezas": "Natures",
+    "Naturalezas (desde Gen 3)": "Natures (from Gen 3)",
     "Baja →": "Lowers →",
     "Sube ↓": "Raises ↓",
     "Cerrar": "Close",

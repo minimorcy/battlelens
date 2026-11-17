@@ -77,6 +77,10 @@ def test_tabla_de_naturalezas(qapp):
     set_language("en")
     try:
         assert nature(2, 0) == "Modest" and nature(4, 2) == "Jolly"
-        NatureChartWindow().grab()  # se pinta sin errores
+        w = NatureChartWindow()
+        assert w.title() == "Natures"
+        w.generation = 2
+        assert w.title() == "Natures (from Gen 3)"
+        w.grab()  # se pinta sin errores
     finally:
         set_language("es")

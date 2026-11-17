@@ -37,6 +37,12 @@ class NatureChartWindow(TypeChartWindow):
         self._base = QRect(0, 0, 2 * PAD + HEAD_W + n * CELL_W, PAD + TITLE_H + HEAD_H + n * CELL_H + PAD)
         self.set_scale(self.scale)
 
+    def title(self) -> str:
+        """Las naturalezas llegan en Gen 3: en Rojo/Azul/Oro/Plata se avisa (generation 0 = sin juego)."""
+        if 0 < self.generation < 3:
+            return _("Naturalezas (desde Gen 3)")
+        return _("Naturalezas")
+
     def _type_at(self, pos: QPoint) -> str | None:
         return None
 
@@ -54,7 +60,7 @@ class NatureChartWindow(TypeChartWindow):
         p.setFont(font)
         p.setPen(QColor(theme.TEXT))
         p.drawText(QRect(PAD, PAD, self._base.width() - 2 * PAD - CLOSE, TITLE_H - 6),
-                   Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, _("Naturalezas"))
+                   Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, self.title())
         p.setPen(QColor(theme.TEXT_MUTED))
         if self.isWindow():  # dentro del panel no se cierra ni se reescala a mano
             p.drawText(self._close_rect(), Qt.AlignmentFlag.AlignCenter, "✕")

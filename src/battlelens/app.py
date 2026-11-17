@@ -893,6 +893,7 @@ class Controller(QObject):
         if self.nature_chart.isVisible():
             self.nature_chart.hide()
         else:
+            self._load_type_chart()  # también fija la generación de la de naturalezas
             self.nature_chart.present(self._target_rect())
 
     def _load_type_chart(self) -> None:
@@ -903,6 +904,8 @@ class Controller(QObject):
         chart = self.pokedex.type_chart(generation)
         lang = get_language()
         self.type_chart.set_chart(chart, {t: self.pokedex.type_name(t, lang) for t in chart}, generation)
+        self.nature_chart.generation = generation
+        self.nature_chart.update()
         if self.panel.docked:
             self.panel.fit_chart()
 
