@@ -92,7 +92,7 @@ def read_crop(crop: np.ndarray, ocr_fn: OcrFn, matcher: NameMatcher, languages: 
         image = pending.pop(0)
         text = ocr_fn(image, languages).text
         readings.append(text)
-        match = matcher.match(text)
+        match = matcher.match(text, languages)
         if best is None or match.score > best.score or (not best.raw_text.strip() and text.strip()):
             best, best_image = match, image
         if match.score >= 100:

@@ -9,10 +9,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); v
 ### Añadido
 - Tabla de naturalezas (`Ctrl+Alt+N` o bandeja → «Tabla de naturalezas»): las 25 naturalezas con la estadística que sube (fila) y la que baja (columna). Se mueve, reescala y cierra como la tabla de tipos, y recuerda su sitio y tamaño entre sesiones. En el modo panel aparece debajo o al lado de la tabla de tipos, según lo que deje las dos más grandes. En los juegos de Gen 1 y 2 el título avisa de que las naturalezas llegan en Gen 3.
 
+### Corregido
+- Una mala lectura del nombre ya no se empareja con el nombre del Pokémon en otro idioma (un Yamask salía como Nuzleaf por «Blanas», su nombre alemán): los nombres de idiomas distintos al del OCR del perfil puntúan menos y, si no hay nada claro, la ficha no sale en vez de salir equivocada.
+
 ### English
 
 **Added**
 - Nature chart (`Ctrl+Alt+N` or tray → "Nature chart"): the 25 natures with the stat each raises (row) and lowers (column). Moves, resizes and closes like the type chart, and remembers its place and size between sessions. In panel mode it sits below or beside the type chart, whichever keeps both larger. In Gen 1 and 2 games the title notes that natures arrive in Gen 3.
+
+**Fixed**
+- A bad read of the name no longer matches a Pokémon's name in another language (a Yamask showed up as Nuzleaf through "Blanas", its German name): names outside the profile's OCR languages score lower and, if nothing is clear, no card appears instead of a wrong one.
 
 ## [0.8.0] - 2026-11-16
 

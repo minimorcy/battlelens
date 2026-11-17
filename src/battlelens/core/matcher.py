@@ -15,6 +15,9 @@ DEFAULT_THRESHOLD = 80.0
 PIXEL_CONFUSIONS = str.maketrans("AD", "RO")
 CONFUSION_PENALTY = 3.0
 MATCH_LANGUAGES = ("en", "es", "fr", "de", "it")
+# Nombre que solo existe en un idioma distinto del del juego (p. ej. «Blanas», Nuzleaf en alemán, frente a
+# una mala lectura de «Yamask» en un juego en español): mejor «no reconocido» que una ficha equivocada.
+FOREIGN_PENALTY = 10.0
 
 
 @dataclass(frozen=True)
@@ -33,26 +36,37 @@ class NameMatcher:
     def __init__(self, pokedex: Pokedex, threshold: float = DEFAULT_THRESHOLD) -> None:
         self.threshold = threshold
         self._index: dict[str, int] = {}
+        self._languages: dict[str, set[str]] = {}  # idiomas en los que existe cada nombre
         for species in pokedex:
             for lang in MATCH_LANGUAGES:
                 name = species.names.get(lang)
                 if name:
-                    self._index.setdefault(normalize_name(name), species.id)
+                    key = normalize_name(name)
+                    self._index.setdefault(key, species.id)
+                    self._languages.setdefault(key, set()).add(lang)
         self._collapsed: dict[str, str] = {}  # nombre con las confusiones unificadas → nombre del índice
         for name in self._index:
             self._collapsed.setdefault(name.translate(PIXEL_CONFUSIONS), name)
 
-    def match(self, raw_text: str) -> MatchResult:
+    def match(self, raw_text: str, languages: tuple[str, ...] = ()) -> MatchResult:
+        """`languages`: los del OCR del perfil (el idioma del juego); vacío, todos los idiomas valen igual."""
+        wanted = {lang.split("-")[0].lower() for lang in languages}
+
+        def foreign(name: str) -> float:
+            return FOREIGN_PENALTY if wanted and not wanted & self._languages[name] else 0.0
+
         best: tuple[str, float] | None = None
         for query, penalty in name_candidates(raw_text):  # el texto completo va primero y gana los empates
-            found = process.extractOne(query, self._index.keys(), scorer=fuzz.ratio)
-            if found is not None and (best is None or found[1] - penalty > best[1]):
-                best = (found[0], found[1] - penalty)
-            collapsed = process.extractOne(query.translate(PIXEL_CONFUSIONS), self._collapsed.keys(), scorer=fuzz.ratio)
-            if collapsed is not None:
-                score = collapsed[1] - penalty - CONFUSION_PENALTY
+            for found, score, _ in process.extract(query, self._index.keys(), scorer=fuzz.ratio, limit=5):
+                score -= penalty + foreign(found)
                 if best is None or score > best[1]:
-                    best = (self._collapsed[collapsed[0]], score)
+                    best = (found, score)
+            for found, score, _ in process.extract(query.translate(PIXEL_CONFUSIONS), self._collapsed.keys(),
+                                                   scorer=fuzz.ratio, limit=5):
+                name = self._collapsed[found]
+                score -= penalty + CONFUSION_PENALTY + foreign(name)
+                if best is None or score > best[1]:
+                    best = (name, score)
         if best is None:
             return MatchResult(None, 0.0, raw_text)
         name, score = best
