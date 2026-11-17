@@ -297,6 +297,8 @@ class AppState:
     collapsed_sections: dict[str, list[str]] = field(default_factory=dict)
     type_chart_pos: list[int] | None = None  # tabla de tipos (spec type-chart): dónde la dejó el usuario
     type_chart_scale: float = 1.0
+    nature_chart_pos: list[int] | None = None  # tabla de naturalezas, igual que la de tipos
+    nature_chart_scale: float = 1.0
     panel_geometry: list[int] | None = None  # modo panel (spec panel-window): [x, y, ancho, alto]
 
     @classmethod

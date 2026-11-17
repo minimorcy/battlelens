@@ -872,6 +872,13 @@ def test_tabla_de_tipos_recuerda_posicion_y_tamano(qapp, controller, tmp_path):
     state = AppState.load(tmp_path / "state.json")
     assert state.type_chart_pos == [40, 50] and state.type_chart_scale == 1.3
     controller.toggle_type_chart()
+    natures = controller.nature_chart
+    natures.saved_pos = QPoint(60, 70)
+    natures.set_scale(0.8)
+    natures.changed.emit()
+    state = AppState.load(tmp_path / "state.json")
+    assert state.nature_chart_pos == [60, 70] and state.nature_chart_scale == 0.8
+    assert state.type_chart_scale == 1.3  # no pisa la de tipos
 
 
 # ---- editar perfiles existentes (edit-existing-profiles) ----------------------------------------

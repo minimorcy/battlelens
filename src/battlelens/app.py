@@ -162,14 +162,15 @@ class Controller(QObject):
         self.overlay.collapsed_changed.connect(self._on_overlay_collapsed)
         # Tabla de tipos (spec type-chart): resalta los tipos de la ficha mientras está visible
         self.type_chart = TypeChartWindow()
-        pos, scale = self.state.type_chart_pos, self.state.type_chart_scale  # state.json puede venir tocado a mano
-        if isinstance(pos, list) and len(pos) == 2 and all(isinstance(v, int) for v in pos):
-            self.type_chart.saved_pos = QPoint(*pos)
-        if isinstance(scale, (int, float)) and not isinstance(scale, bool):
-            self.type_chart.scale = float(scale)
-        self.type_chart.changed.connect(self._on_type_chart_changed)
-        self.overlay.became_hidden.connect(lambda: self.type_chart.set_highlight(()))
         self.nature_chart = NatureChartWindow()
+        for chart, key in ((self.type_chart, "type_chart"), (self.nature_chart, "nature_chart")):
+            pos, scale = getattr(self.state, f"{key}_pos"), getattr(self.state, f"{key}_scale")  # puede venir tocado a mano
+            if isinstance(pos, list) and len(pos) == 2 and all(isinstance(v, int) for v in pos):
+                chart.saved_pos = QPoint(*pos)
+            if isinstance(scale, (int, float)) and not isinstance(scale, bool):
+                chart.set_scale(float(scale))
+            chart.changed.connect(lambda c=chart, k=key: self._on_chart_changed(c, k))
+        self.overlay.became_hidden.connect(lambda: self.type_chart.set_highlight(()))
         # Modo panel (spec panel-window): la ficha y la tabla en una ventana normal
         self.panel = PanelWindow(self.overlay, self.type_chart, self.nature_chart)
         self.panel.restore_geometry(self.state.panel_geometry)
@@ -1322,10 +1323,11 @@ class Controller(QObject):
         """«Desplegar todas las secciones» (improve-card-visuals)."""
         self.overlay.expand_all()  # emite collapsed_changed, que lo guarda en state.json
 
-    def _on_type_chart_changed(self) -> None:
-        pos = self.type_chart.saved_pos
-        self.state.type_chart_pos = [pos.x(), pos.y()] if pos is not None else None
-        self.state.type_chart_scale = self.type_chart.scale
+    def _on_chart_changed(self, chart, key: str) -> None:
+        """Tabla de tipos o de naturalezas movida o reescalada: se guarda en state.json."""
+        pos = chart.saved_pos
+        setattr(self.state, f"{key}_pos", [pos.x(), pos.y()] if pos is not None else None)
+        setattr(self.state, f"{key}_scale", chart.scale)
         self._save_state()
 
     def _on_panel_geometry(self) -> None:
