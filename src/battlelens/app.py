@@ -171,7 +171,7 @@ class Controller(QObject):
         self.overlay.became_hidden.connect(lambda: self.type_chart.set_highlight(()))
         self.nature_chart = NatureChartWindow()
         # Modo panel (spec panel-window): la ficha y la tabla en una ventana normal
-        self.panel = PanelWindow(self.overlay, self.type_chart)
+        self.panel = PanelWindow(self.overlay, self.type_chart, self.nature_chart)
         self.panel.restore_geometry(self.state.panel_geometry)
         self.panel.geometry_changed.connect(self._on_panel_geometry)
 

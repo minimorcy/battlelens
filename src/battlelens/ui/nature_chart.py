@@ -56,7 +56,8 @@ class NatureChartWindow(TypeChartWindow):
         p.drawText(QRect(PAD, PAD, self._base.width() - 2 * PAD - CLOSE, TITLE_H - 6),
                    Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, _("Naturalezas"))
         p.setPen(QColor(theme.TEXT_MUTED))
-        p.drawText(self._close_rect(), Qt.AlignmentFlag.AlignCenter, "✕")
+        if self.isWindow():  # dentro del panel no se cierra ni se reescala a mano
+            p.drawText(self._close_rect(), Qt.AlignmentFlag.AlignCenter, "✕")
 
         font.setPixelSize(10)
         font.setWeight(QFont.Weight.DemiBold)
@@ -81,6 +82,6 @@ class NatureChartWindow(TypeChartWindow):
                 p.drawText(rect, Qt.AlignmentFlag.AlignCenter, nature(row, col))
         grip = self._grip_rect()
         p.setPen(QPen(QColor(theme.TEXT_MUTED), 1.2))
-        for offset in (4, 8, 12):
+        for offset in (4, 8, 12) if self.isWindow() else ():
             p.drawLine(grip.right() - offset, grip.bottom(), grip.right(), grip.bottom() - offset)
         p.end()

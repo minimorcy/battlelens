@@ -16,7 +16,7 @@ GAP = 12
 
 
 class PanelWindow(QWidget):
-    """Ventana con marco: ficha a la izquierda (o «Esperando combate…») y tabla de tipos a la derecha.
+    """Ventana con marco: ficha a la izquierda (o «Esperando combate…») y tablas de tipos y naturalezas a la derecha.
 
     Reutiliza los mismos `Overlay` y `TypeChartWindow` reparentándolos (design D1); fuera de aquí vuelven a ser
     ventanas flotantes con sus flags de siempre.
@@ -24,7 +24,7 @@ class PanelWindow(QWidget):
 
     geometry_changed = pyqtSignal()
 
-    def __init__(self, overlay: Overlay, chart: TypeChartWindow) -> None:
+    def __init__(self, overlay: Overlay, chart: TypeChartWindow, natures: TypeChartWindow | None = None) -> None:
         super().__init__(None, Qt.WindowType.Window)
         self.setWindowTitle("BattleLens")
         self.setWindowIcon(app_icon())
@@ -33,8 +33,9 @@ class PanelWindow(QWidget):
         self.setStyleSheet(f"PanelWindow {{ background:{theme.PANEL_SOLID}; }}")
         self.setMinimumSize(480, 360)
         self.resize(1100, 720)
-        self.overlay, self.chart = overlay, chart
-        self._flags = {overlay: overlay.windowFlags(), chart: chart.windowFlags()}
+        self.overlay, self.chart, self.natures = overlay, chart, natures
+        self.charts = [c for c in (chart, natures) if c is not None]  # apiladas en el hueco derecho
+        self._flags = {w: w.windowFlags() for w in (overlay, *self.charts)}
 
         # Ficha y tabla se colocan a mano dentro de sus huecos, sin layout: con su tamaño fijo, un layout no
         # dejaría encoger la ventana por debajo de ellas y no se volverían a ajustar.
@@ -56,18 +57,19 @@ class PanelWindow(QWidget):
         if self.docked:
             return
         self.docked = True
-        self._floating_scale = self.chart.scale  # la de la tabla flotante, para devolvérsela al salir
+        self._floating_scale = {c: c.scale for c in self.charts}  # las de las tablas flotantes, para devolvérselas
         self.overlay.hide()  # la app vuelve a dibujar la última ficha si la había
-        self.chart.hide()
         self.overlay.setParent(self._column, Qt.WindowType.Widget)
         self.overlay.move(0, 0)
-        self.chart.setParent(self._chart_slot, Qt.WindowType.Widget)
-        self.chart.move(0, 0)
-        for widget in (self.overlay, self.chart):
-            widget.setCursor(Qt.CursorShape.ArrowCursor)
-        for watched in (self.overlay, self._column, self._chart_slot):
+        self.overlay.setCursor(Qt.CursorShape.ArrowCursor)
+        for chart in self.charts:
+            chart.hide()
+            chart.setParent(self._chart_slot, Qt.WindowType.Widget)
+            chart.setCursor(Qt.CursorShape.ArrowCursor)
+        for watched in (self.overlay, self._column, self._chart_slot, *self.charts):
             watched.installEventFilter(self)
-        self.chart.show()
+        for chart in self.charts:  # chuletas siempre a mano en el panel
+            chart.show()
         self._sync_waiting()
         self.show()
 
@@ -76,14 +78,15 @@ class PanelWindow(QWidget):
             return
         self.docked = False
         self.hide()
-        for watched in (self.overlay, self._column, self._chart_slot):
+        for watched in (self.overlay, self._column, self._chart_slot, *self.charts):
             watched.removeEventFilter(self)
-        for widget in (self.overlay, self.chart):
+        for widget in (self.overlay, *self.charts):
             widget.hide()
             widget.setParent(None, self._flags[widget])
             widget.setCursor(Qt.CursorShape.OpenHandCursor)
             widget._capture_excluded = False  # HWND nuevo: hay que volver a excluirlo de la captura
-        self.chart.set_scale(self._floating_scale)
+        for chart in self.charts:
+            chart.set_scale(self._floating_scale[chart])
 
     # ---- geometría ----------------------------------------------------------
 
@@ -100,13 +103,19 @@ class PanelWindow(QWidget):
         return [rect.x(), rect.y(), rect.width(), rect.height()]
 
     def fit_chart(self) -> None:
-        """La tabla ocupa el hueco libre a la derecha de la ficha (design D6)."""
-        base = self.chart._base
-        if base.isEmpty():
+        """Las tablas visibles, una debajo de otra, ocupan el hueco libre a la derecha de la ficha (design D6)."""
+        shown = [c for c in self.charts if c.isVisibleTo(self) and not c._base.isEmpty()]
+        if not shown:
             return
         slot = self._chart_slot.size()
-        scale = min(slot.width() / base.width(), slot.height() / base.height())
-        self.chart.set_scale(min(max(scale, MIN_SCALE), MAX_SCALE))
+        width = max(c._base.width() for c in shown)
+        height = sum(c._base.height() for c in shown) + GAP * (len(shown) - 1)
+        scale = min(max(min(slot.width() / width, slot.height() / height), MIN_SCALE), MAX_SCALE)
+        y = 0
+        for chart in shown:
+            chart.set_scale(scale)
+            chart.move(0, y)
+            y += chart.height() + GAP
 
     # ---- eventos -------------------------------------------------------------
 
@@ -123,6 +132,8 @@ class PanelWindow(QWidget):
             if self.overlay.isVisibleTo(self):
                 self.overlay._relayout()  # alto disponible nuevo: con o sin desplazamiento
         elif obj is self._chart_slot and event.type() == QEvent.Type.Resize:
+            self.fit_chart()
+        elif obj in self.charts and event.type() in (QEvent.Type.Show, QEvent.Type.Hide):
             self.fit_chart()
         return False
 

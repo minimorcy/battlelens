@@ -60,3 +60,25 @@ def test_geometria_de_state_json(qapp):
     for bad in (None, [1, 2], ["a", 0, 0, 0], [99999, 99999, 800, 600]):
         panel.restore_geometry(bad)  # se ignora: tocado a mano o monitor que ya no está
         assert panel.saved_geometry() == [50, 60, 900, 600]
+
+
+def test_panel_con_la_tabla_de_naturalezas(qapp):
+    from battlelens.ui.nature_chart import NatureChartWindow
+    from battlelens.ui.panel import PanelWindow
+
+    _dex, overlay, chart, _ = _panel(qapp)
+    natures = NatureChartWindow()
+    panel = PanelWindow(overlay, chart, natures)
+    panel.dock()
+    try:
+        panel.resize(1300, 900)
+        qapp.processEvents()
+        assert natures.isVisible() and not natures.isWindow()
+        assert natures.y() >= chart.y() + chart.height()  # debajo de la de tipos
+        assert natures.y() + natures.height() <= panel._chart_slot.height()  # caben las dos
+        natures.hide()  # bandeja: la oculta y la de tipos recupera el hueco
+        qapp.processEvents()
+        assert chart.scale > natures.scale
+    finally:
+        panel.undock()
+    assert natures.isWindow() and natures.scale == 1.0
